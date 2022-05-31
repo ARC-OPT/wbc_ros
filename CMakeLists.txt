@@ -105,7 +105,7 @@ pkg_check_modules(wbc-solvers-qpoases REQUIRED wbc-solvers-qpoases)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  CATKIN_DEPENDS geometry_msgs sensor_msgs std_msgs trajectory_msgs 
+  CATKIN_DEPENDS geometry_msgs sensor_msgs std_msgs trajectory_msgs
   DEPENDS wbc-core wbc-controllers wbc-scenes wbc-robot_models-kdl wbc-solvers-qpoases wbc-solvers-hls
 )
 
@@ -121,23 +121,23 @@ include_directories(
   ${wbc-scenes_INCLUDE_DIRS}
   ${wbc-controllers_INCLUDE_DIRS}
   ${wbc-robot_models-kdl_INCLUDE_DIRS}
-  ${wbc-solvers-hls_INCLUDE_DIRS}  
-  ${wbc-solvers-qpoases_INCLUDE_DIRS}  
+  ${wbc-solvers-hls_INCLUDE_DIRS}
+  ${wbc-solvers-qpoases_INCLUDE_DIRS}
 )
 
 link_directories(
   ${wbc-core_LIBRARIES}
   ${wbc-scenes_LIBRARIES}
-  ${wbc-controllers_LIBRARIES} 
-  ${wbc-robot_models-kdl_LIBRARIES} 
-  ${wbc-solvers-hls_LIBRARIES}  
-  ${wbc-solvers-qpoases_LIBRARIES}  
+  ${wbc-controllers_LIBRARIES}
+  ${wbc-robot_models-kdl_LIBRARIES}
+  ${wbc-solvers-hls_LIBRARIES}
+  ${wbc-solvers-qpoases_LIBRARIES}
 )
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(wbc_node nodes/wbc_node.cpp)
+add_executable(wbc_node nodes/wbc_node.cpp nodes/conversions.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -154,10 +154,10 @@ add_executable(wbc_node nodes/wbc_node.cpp)
    ${catkin_LIBRARIES}
    ${roscpp_LIBRARIES}
    ${wbc-core_LIBRARIES}
-   ${wbc-scenes_LIBRARIES}   
-   ${wbc-robot_models-kdl_LIBRARIES}   
-   ${wbc-solvers-hls_LIBRARIES}   
-   ${wbc-solvers-qpoases_LIBRARIES}   
+   ${wbc-scenes_LIBRARIES}
+   ${wbc-robot_models-kdl_LIBRARIES}
+   ${wbc-solvers-hls_LIBRARIES}
+   ${wbc-solvers-qpoases_LIBRARIES}
  )
 
 #############
