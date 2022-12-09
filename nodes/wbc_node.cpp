@@ -1,28 +1,40 @@
 #include "wbc_node.hpp"
 #include <wbc/scenes/VelocitySceneQuadraticCost.hpp>
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
+#include <wbc/core/RobotModelFactory.hpp>
+#include <wbc/core/QPSolverFactory.hpp>
 #include "conversions.hpp"
 
 using namespace std;
+using namespace wbc;
 
-namespace wbc{
-
-WbcNode::WbcNode(int argc, char** argv){
+WbcNode::WbcNode(int argc, char** argv) : is_initialized(false){
 
     ros::init(argc, argv, "wbc");
     nh = new ros::NodeHandle();
 
-    XmlRpc::XmlRpcValue xml_rpc_val;
-    ros::param::get("robot_model_config", xml_rpc_val);
-    if(!xml_rpc_val.valid()){
+    if(!ros::param::has("control_rate")){
+        ROS_ERROR("WBC parameter control_rate has not been set");
+        abort();
+    }
+    ros::param::get("control_rate", control_rate);
+
+    if(!ros::param::has("integrate")){
+        ROS_ERROR("WBC parameter integrate has not been set");
+        abort();
+    }
+    ros::param::get("integrate", integrate);
+
+    if(!ros::param::has("robot_model_config")){
         ROS_ERROR("ROS parameter 'robot_model_config' has not been set");
         abort();
     }
+    XmlRpc::XmlRpcValue xml_rpc_val;
+    ros::param::get("robot_model_config", xml_rpc_val);
     RobotModelConfig robot_model_cfg;
     fromROS(xml_rpc_val, robot_model_cfg);
 
     ROS_INFO("Configuring robot model: %s", robot_model_cfg.type.c_str());
-
     PluginLoader::loadPlugin("libwbc-robot_models-" + robot_model_cfg.type + ".so");
     robot_model = shared_ptr<RobotModel>(RobotModelFactory::createInstance(robot_model_cfg.type));
     if(!robot_model->configure(robot_model_cfg)){
@@ -30,17 +42,25 @@ WbcNode::WbcNode(int argc, char** argv){
         abort();
     }
 
-    xml_rpc_val.clear();
-    ros::param::get("wbc_config", xml_rpc_val);
-    if(!xml_rpc_val.valid()){
+    if(!ros::param::has("qp_solver")){
+        ROS_ERROR("ROS parameter 'qp_solver' has not been set");
+        abort();
+    }
+    std::string qp_solver;
+    ros::param::get("qp_solver", qp_solver);
+
+    ROS_INFO("Configuring solver: %s", "qpoases");
+    PluginLoader::loadPlugin("libwbc-solvers-" + qp_solver + ".so");
+    solver = shared_ptr<QPSolver>(QPSolverFactory::createInstance(qp_solver));
+
+    if(!ros::param::has("wbc_config")){
         ROS_ERROR("ROS parameter 'wbc_config' has not been set");
         abort();
     }
-    vector<ConstraintConfig> wbc_config;
+    xml_rpc_val.clear();
+    ros::param::get("wbc_config", xml_rpc_val);
+    vector<TaskConfig> wbc_config;
     fromROS(xml_rpc_val, wbc_config);
-
-    ROS_INFO("Configuring solver: %s", "qpoases");
-    solver = make_shared<QPOASESSolver>();
 
     ROS_INFO("Configuring scene: %s", "VelocitySceneQuadraticCost");
     scene = make_shared<VelocitySceneQuadraticCost>(robot_model, solver);
@@ -55,8 +75,7 @@ WbcNode::WbcNode(int argc, char** argv){
     is_initialized = false;
     joint_state.resize(robot_model->noOfJoints());
     joint_state.names = robot_model->jointNames();
-    ros::Subscriber sub = nh->subscribe("joint_states", 1, &WbcNode::jointStateCallback, this);
-    subscribers.push_back(sub);
+    sub_joint_state = nh->subscribe("joint_states", 1, &WbcNode::jointStateCallback, this);
 
     // Input floating base state
     if(robot_model_cfg.floating_base == true){
@@ -84,7 +103,7 @@ WbcNode::WbcNode(int argc, char** argv){
     }
 
     // Input joint weights
-    sub = nh->subscribe("joint_weights", 1, &WbcNode::jointWeightsCallback, this);
+    ros::Subscriber sub = nh->subscribe("joint_weights", 1, &WbcNode::jointWeightsCallback, this);
 
     // Solver output
     solver_output_publisher = nh->advertise<trajectory_msgs::JointTrajectory>("solver_output", 1);
@@ -96,11 +115,7 @@ WbcNode::~WbcNode(){
 
 void WbcNode::jointStateCallback(const sensor_msgs::JointState& msg){
     fromROS(msg,joint_state);
-    for(uint i = 0; i < joint_state.size(); i++){
-        if(!joint_state[i].hasPosition()) // TODO: Also check velocity?
-            return;
-    }
-    robot_model->update(joint_state); // Only update if all joints have a valid joint state
+    robot_model->update(joint_state);
     is_initialized = true;
 }
 
@@ -129,30 +144,27 @@ void WbcNode::jointWeightsCallback(const std_msgs::Float64MultiArray& msg){
 }
 
 void WbcNode::solve(){
+    if(!isInitialized()){
+        ROS_WARN_DELAYED_THROTTLE(5,"WBC did not receive a valid joint state for all configured joints");
+        return;
+    }
     qp = scene->update();
     solver_output = scene->solve(qp);
+    if(integrate)
+        joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/control_rate);
     toROS(solver_output, solver_output_ros);
     solver_output_publisher.publish(solver_output_ros);
 }
 
-}
-
 int main(int argc, char** argv)
 {
-    wbc::WbcNode node(argc, argv);
-    /*ros::Subscriber sub;
-    for(auto w : wbc_config)
-       sub = nh.subscribe("ref_" + w.name, 1, callback);*/
+    WbcNode node(argc, argv);
 
-    double rate;
-    ros::param::get("rate", rate);
-    ros::Rate loop_rate(rate);
+    ros::Rate loop_rate(node.controlRate());
     ROS_INFO("Whole-Body Controller is running");
     while(ros::ok()){
-        if(node.isInitialized())
-            node.solve();
-        else
-            ROS_WARN_DELAYED_THROTTLE(5,"WBC did not receive a valid joint state for all configured joints");
+        node.solve();
+        ros::spinOnce();
         loop_rate.sleep();
     }
     return 0;

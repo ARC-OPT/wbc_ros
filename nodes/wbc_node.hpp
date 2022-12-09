@@ -11,9 +11,9 @@
 
 #include <wbc/core/RobotModel.hpp>
 #include <wbc/core/PluginLoader.hpp>
-#include <wbc/core/RobotModelFactory.hpp>
 #include <wbc/core/Scene.hpp>
 #include <wbc/core/QPSolver.hpp>
+#include <wbc/tools/JointIntegrator.hpp>
 
 #include <base/commands/Joints.hpp>
 
@@ -32,17 +32,17 @@ protected:
    base::VectorXd task_weights;
    wbc::JointWeights joint_weights;
    bool is_initialized;
+   bool integrate;
+   double control_rate;
    HierarchicalQP qp;
    base::commands::Joints solver_output;
+   wbc::JointIntegrator joint_integrator;
 
    trajectory_msgs::JointTrajectory solver_output_ros;
 
    std::vector<ros::Subscriber> subscribers;
+   ros::Subscriber sub_joint_state;
    ros::Publisher solver_output_publisher;
-
-   base::RigidBodyStateSE3 xmlrpc2RigidBodyStateSE3(const XmlRpc::XmlRpcValue& in);
-   wbc::RobotModelConfig xmlrpc2RobotModelConfig(const XmlRpc::XmlRpcValue& in);
-   std::vector<wbc::ConstraintConfig> xmlrpc2WbcConfig(const XmlRpc::XmlRpcValue& in);
 
    void jointStateCallback(const sensor_msgs::JointState& msg);
    void cartReferenceCallback(const ros::MessageEvent<geometry_msgs::TwistStamped>& event, const std::string& constraint_name);
@@ -56,6 +56,7 @@ public:
    ~WbcNode();
    void solve();
    bool isInitialized(){return is_initialized;}
+   double controlRate(){return control_rate;}
 };
 
 }

@@ -1,0 +1,18 @@
+<launch>
+    <param name="robot_description" textfile="$(find kuka_lbr_ros)/urdf/kuka_lbr_ros.urdf" />
+
+    <group ns="kuka_lbr">
+        <rosparam command="load" file="$(find wbc_ros)/launch/robot_model_config.yml" />
+        <rosparam command="load" file="$(find wbc_ros)/launch/wbc_config.yml" />
+        <rosparam command="load" file="$(find wbc_ros)/launch/initial_joint_state.yml" />
+
+        <param name="qp_solver" value="qpoases" />
+        <param name="control_rate" value="250" />
+        <param name="integrate" value="true" />
+        <param name="noise_std_dev" value="1e-4" />
+
+        <node pkg="wbc_ros" type="wbc_node" name="wbc" output="screen"/>
+        <node pkg="wbc_ros" type="loop_back_driver_node" name="joints" output="screen"/>
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"/>
+    </group>
+</launch>

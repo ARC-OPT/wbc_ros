@@ -20,7 +20,7 @@ include(FindPkgConfig)
 pkg_check_modules(wbc-core REQUIRED wbc-core)
 pkg_check_modules(wbc-scenes REQUIRED wbc-scenes)
 pkg_check_modules(wbc-controllers REQUIRED wbc-controllers)
-pkg_check_modules(wbc-robot_models-kdl REQUIRED wbc-robot_models-kdl)
+pkg_check_modules(wbc-robot_models-pinocchio REQUIRED wbc-robot_models-pinocchio)
 pkg_check_modules(wbc-solvers-hls REQUIRED wbc-solvers-hls)
 pkg_check_modules(wbc-solvers-qpoases REQUIRED wbc-solvers-qpoases)
 
@@ -138,6 +138,7 @@ link_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(wbc_node nodes/wbc_node.cpp nodes/conversions.cpp)
+add_executable(loop_back_driver_node nodes/loop_back_driver_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -150,7 +151,7 @@ add_executable(wbc_node nodes/wbc_node.cpp nodes/conversions.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(wbc_node dl
+target_link_libraries(wbc_node dl
    ${catkin_LIBRARIES}
    ${roscpp_LIBRARIES}
    ${wbc-core_LIBRARIES}
@@ -158,7 +159,10 @@ add_executable(wbc_node nodes/wbc_node.cpp nodes/conversions.cpp)
    ${wbc-robot_models-kdl_LIBRARIES}
    ${wbc-solvers-hls_LIBRARIES}
    ${wbc-solvers-qpoases_LIBRARIES}
- )
+)
+target_link_libraries(loop_back_driver_node
+   ${roscpp_LIBRARIES}
+)
 
 #############
 ## Install ##

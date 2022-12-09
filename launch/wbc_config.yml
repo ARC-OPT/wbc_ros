@@ -1,0 +1,9 @@
+wbc_config:
+    - name: right_arm
+      type: cart
+      priority: 0
+      root: kuka_lbr_base
+      tip: kuka_lbr_r_tcp
+      ref_frame: kuka_lbr_base
+      weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+      activation: 1.0
