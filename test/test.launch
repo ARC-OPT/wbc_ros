@@ -1,10 +1,10 @@
 <launch>
-    <param name="robot_description" textfile="$(find kuka_lbr_ros)/urdf/kuka_lbr_ros.urdf" />
+    <param name="robot_description" textfile="$(find kuka_lbr_description)/urdf/kuka_lbr.urdf" />
 
     <group ns="kuka_lbr">
-        <rosparam command="load" file="$(find wbc_ros)/launch/robot_model_config.yml" />
-        <rosparam command="load" file="$(find wbc_ros)/launch/wbc_config.yml" />
-        <rosparam command="load" file="$(find wbc_ros)/launch/initial_joint_state.yml" />
+        <rosparam command="load" file="$(find wbc_ros)/test/robot_model_config.yml" />
+        <rosparam command="load" file="$(find wbc_ros)/test/wbc_config.yml" />
+        <rosparam command="load" file="$(find wbc_ros)/test/initial_joint_state.yml" />
 
         <param name="qp_solver" value="qpoases" />
         <param name="control_rate" value="250" />

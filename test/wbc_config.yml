@@ -1,16 +1,9 @@
 wbc_config:
-- name: cart_ctrl
-  root: kuka_lbr_l_link_0
-  tip: kuka_lbr_l_tcp
-  ref_frame: kuka_lbr_l_link_0
-  weights: [1.0,1.0,1.0,1.0,1.0,1.0]
-  activation: 1.0
-  type: cart
-  priority: 0
-- name: jnt_ctrl
-  joint_names: ["kuka_lbr_l_joint_1"]
-  weights: [1.0]
-  type: jnt
-  priority: 1
-  activation: 1.0
-  
+    - name: right_arm
+      type: cart
+      priority: 0
+      root: kuka_lbr_base
+      tip: kuka_lbr_r_tcp
+      ref_frame: kuka_lbr_base
+      weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+      activation: 1.0
