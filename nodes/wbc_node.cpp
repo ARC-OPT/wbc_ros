@@ -4,11 +4,12 @@
 #include <wbc/core/RobotModelFactory.hpp>
 #include <wbc/core/QPSolverFactory.hpp>
 #include "conversions.hpp"
+#include <std_msgs/String.h>
 
 using namespace std;
 using namespace wbc;
 
-WbcNode::WbcNode(int argc, char** argv) : is_initialized(false){
+WbcNode::WbcNode(int argc, char** argv) : state("NO_JOINT_STATE"){
 
     ros::init(argc, argv, "wbc");
     nh = new ros::NodeHandle();
@@ -72,7 +73,6 @@ WbcNode::WbcNode(int argc, char** argv) : is_initialized(false){
     ROS_INFO("Creating interfaces");
 
     // Input joint state
-    is_initialized = false;
     joint_state.resize(robot_model->noOfJoints());
     joint_state.names = robot_model->jointNames();
     sub_joint_state = nh->subscribe("joint_states", 1, &WbcNode::jointStateCallback, this);
@@ -107,6 +107,9 @@ WbcNode::WbcNode(int argc, char** argv) : is_initialized(false){
 
     // Solver output
     solver_output_publisher = nh->advertise<trajectory_msgs::JointTrajectory>("solver_output", 1);
+
+    // State
+    state_publisher = nh->advertise<std_msgs::String>("state", 1);
 }
 
 WbcNode::~WbcNode(){
@@ -116,7 +119,7 @@ WbcNode::~WbcNode(){
 void WbcNode::jointStateCallback(const sensor_msgs::JointState& msg){
     fromROS(msg,joint_state);
     robot_model->update(joint_state);
-    is_initialized = true;
+    state = "RUNNING";
 }
 
 void WbcNode::cartReferenceCallback(const ros::MessageEvent<geometry_msgs::TwistStamped>& event, const std::string& constraint_name){
@@ -144,7 +147,11 @@ void WbcNode::jointWeightsCallback(const std_msgs::Float64MultiArray& msg){
 }
 
 void WbcNode::solve(){
-    if(!isInitialized()){
+    std_msgs::String msg;
+    msg.data = state;
+    state_publisher.publish(std_msgs::String(msg));
+
+    if(state == "NO_JOINT_STATE"){
         ROS_WARN_DELAYED_THROTTLE(5,"WBC did not receive a valid joint state for all configured joints");
         return;
     }
@@ -156,16 +163,18 @@ void WbcNode::solve(){
     solver_output_publisher.publish(solver_output_ros);
 }
 
-int main(int argc, char** argv)
-{
-    WbcNode node(argc, argv);
-
-    ros::Rate loop_rate(node.controlRate());
+void WbcNode::run(){
+    ros::Rate loop_rate(control_rate);
     ROS_INFO("Whole-Body Controller is running");
     while(ros::ok()){
-        node.solve();
+        solve();
         ros::spinOnce();
         loop_rate.sleep();
     }
-    return 0;
+}
+
+int main(int argc, char** argv)
+{
+    WbcNode node(argc, argv);
+    node.run();
 }

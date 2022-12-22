@@ -17,8 +17,6 @@
 
 #include <base/commands/Joints.hpp>
 
-namespace wbc{
-
 class WbcNode{
 protected:
    ros::NodeHandle* nh;
@@ -31,10 +29,10 @@ protected:
    base::commands::Joints reference_jnt;
    base::VectorXd task_weights;
    wbc::JointWeights joint_weights;
-   bool is_initialized;
    bool integrate;
    double control_rate;
-   HierarchicalQP qp;
+   std::string state;
+   wbc::HierarchicalQP qp;
    base::commands::Joints solver_output;
    wbc::JointIntegrator joint_integrator;
 
@@ -43,6 +41,7 @@ protected:
    std::vector<ros::Subscriber> subscribers;
    ros::Subscriber sub_joint_state;
    ros::Publisher solver_output_publisher;
+   ros::Publisher state_publisher;
 
    void jointStateCallback(const sensor_msgs::JointState& msg);
    void cartReferenceCallback(const ros::MessageEvent<geometry_msgs::TwistStamped>& event, const std::string& constraint_name);
@@ -55,10 +54,7 @@ public:
    WbcNode(int argc, char** argv);
    ~WbcNode();
    void solve();
-   bool isInitialized(){return is_initialized;}
-   double controlRate(){return control_rate;}
+   void run();
 };
-
-}
 
 #endif
