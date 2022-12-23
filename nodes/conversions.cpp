@@ -97,6 +97,13 @@ void fromROS(const XmlRpc::XmlRpcValue& in, vector<TaskConfig>& out){
    }
 }
 
+void fromROS(const XmlRpc::XmlRpcValue& in, std::vector<string>& out){
+    out.clear();
+    for(int i = 0; i < in.size(); i++){
+        out.push_back(static_cast<string>(in[i]));
+    }
+}
+
 void fromROS(const sensor_msgs::JointState& in, base::samples::Joints& out){
      out.time = base::Time::now();
      out.resize(in.name.size());
@@ -108,21 +115,37 @@ void fromROS(const sensor_msgs::JointState& in, base::samples::Joints& out){
      }
 }
 
-void fromROS(const geometry_msgs::TwistStamped& in, base::samples::RigidBodyStateSE3& out){
-    out.time.fromSeconds(in.header.stamp.toSec());
-    out.frame_id = in.header.frame_id;
-    out.twist.linear = base::Vector3d(in.twist.linear.x,in.twist.linear.y,in.twist.linear.z);
-    out.twist.angular = base::Vector3d(in.twist.angular.x,in.twist.angular.y,in.twist.angular.z);
-    out.acceleration.linear = base::Vector3d(in.twist.linear.x,in.twist.linear.y,in.twist.linear.z);
-    out.acceleration.angular = base::Vector3d(in.twist.angular.x,in.twist.angular.y,in.twist.angular.z);
+void fromROS(const geometry_msgs::Pose& in, base::Pose& out){
+    out.position = base::Vector3d(in.position.x,in.position.y,in.position.z);
+    out.orientation = base::Quaterniond(in.orientation.w,in.orientation.x,in.orientation.y,in.orientation.z);
 }
 
-void fromROS(const trajectory_msgs::JointTrajectory& in, base::commands::Joints& out){
+void fromROS(const geometry_msgs::Twist& in, base::Twist& out){
+    out.linear = base::Vector3d(in.linear.x,in.linear.y,in.linear.z);
+    out.angular = base::Vector3d(in.angular.x,in.angular.y,in.angular.z);
+}
+
+void fromROS(const geometry_msgs::Accel& in, base::Acceleration& out){
+    out.linear = base::Vector3d(in.linear.x,in.linear.y,in.linear.z);
+    out.angular = base::Vector3d(in.angular.x,in.angular.y,in.angular.z);
+}
+
+void fromROS(const wbc_ros::RigidBodyState& in, base::samples::RigidBodyStateSE3& out){
+    out.time.fromSeconds(in.header.stamp.toSec());
+    out.frame_id = in.header.frame_id;
+    fromROS(in.pose,out.pose);
+    fromROS(in.twist,out.twist);
+    fromROS(in.acceleration,out.acceleration);
+}
+
+void fromROS(const trajectory_msgs::JointTrajectory& in, base::samples::Joints& out){
     if(in.points.size() != 1)
         throw std::runtime_error("Reference trajectory must contain exactly one point");
     out.time.fromSeconds(in.header.stamp.toSec());
+    out.resize(in.joint_names.size());
     out.names = in.joint_names;
     for(size_t i = 0; i < in.joint_names.size(); i++){
+        out[i].position = in.points[0].positions[i];
         out[i].speed = in.points[0].velocities[i];
         out[i].acceleration = in.points[0].accelerations[i];
     }
@@ -155,5 +178,54 @@ void toROS(const base::commands::Joints& in, trajectory_msgs::JointTrajectory& o
         out.points[0].velocities[i] = in[i].speed;
         out.points[0].accelerations[i] = in[i].acceleration;
         out.points[0].effort[i] = in[i].effort;
+    }
+}
+
+void toROS(const base::Pose& in, geometry_msgs::Pose& out){
+    out.position.x = in.position[0];
+    out.position.y = in.position[1];
+    out.position.z = in.position[2];
+    out.orientation.w = in.orientation.w();
+    out.orientation.x = in.orientation.x();
+    out.orientation.y = in.orientation.y();
+    out.orientation.z = in.orientation.z();
+}
+
+void toROS(const base::Twist& in, geometry_msgs::Twist& out){
+    out.linear.x = in.linear[0];
+    out.linear.y = in.linear[1];
+    out.linear.z = in.linear[2];
+    out.angular.x = in.angular[0];
+    out.angular.y = in.angular[1];
+    out.angular.z = in.angular[2];
+}
+
+void toROS(const base::Acceleration& in, geometry_msgs::Accel& out){
+    out.linear.x = in.linear[0];
+    out.linear.y = in.linear[1];
+    out.linear.z = in.linear[2];
+    out.angular.x = in.angular[0];
+    out.angular.y = in.angular[1];
+    out.angular.z = in.angular[2];
+}
+
+void toROS(const base::samples::RigidBodyStateSE3& in, wbc_ros::RigidBodyState& out){
+    out.header.stamp.fromSec(in.time.toSeconds());
+    out.header.frame_id = in.frame_id;
+    toROS(in.pose, out.pose);
+    toROS(in.twist, out.twist);
+    toROS(in.acceleration, out.acceleration);
+}
+
+void toROS(const base::samples::Joints& in, sensor_msgs::JointState& out){
+    out.name = in.names;
+    out.header.stamp.fromSec(in.time.toSeconds());
+    out.position.resize(in.size());
+    out.velocity.resize(in.size());
+    out.effort.resize(in.size());
+    for(int i = 0; i < in.size(); i++){
+        out.position[i] = in[i].position;
+        out.velocity[i] = in[i].speed;
+        out.effort[i] = in[i].effort;
     }
 }

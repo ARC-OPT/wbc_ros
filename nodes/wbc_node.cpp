@@ -60,7 +60,6 @@ WbcNode::WbcNode(int argc, char** argv) : state("NO_JOINT_STATE"){
     }
     xml_rpc_val.clear();
     ros::param::get("wbc_config", xml_rpc_val);
-    vector<TaskConfig> wbc_config;
     fromROS(xml_rpc_val, wbc_config);
 
     ROS_INFO("Configuring scene: %s", "VelocitySceneQuadraticCost");
@@ -89,7 +88,7 @@ WbcNode::WbcNode(int argc, char** argv) : state("NO_JOINT_STATE"){
     for(auto w : wbc_config){
         ros::Subscriber sub;
         if(w.type == cart){
-            sub = nh->subscribe<geometry_msgs::TwistStamped>("ref_" + w.name, 1, boost::bind(&WbcNode::cartReferenceCallback, this, _1, w.name));
+            sub = nh->subscribe<wbc_ros::RigidBodyState>("ref_" + w.name, 1, boost::bind(&WbcNode::cartReferenceCallback, this, _1, w.name));
             subscribers.push_back(sub);
         }
         else{
@@ -100,6 +99,18 @@ WbcNode::WbcNode(int argc, char** argv) : state("NO_JOINT_STATE"){
         subscribers.push_back(sub);
         sub = nh->subscribe<std_msgs::Float64>("activation_" + w.name, 1, boost::bind(&WbcNode::taskActivationCallback, this, _1, w.name));
         subscribers.push_back(sub);
+    }
+
+    // Output task states
+    for(auto w : wbc_config){
+        ros::Publisher pub;
+        if(w.type == cart){
+            pub = nh->advertise<wbc_ros::RigidBodyState>("status_" + w.name, 1);
+        }
+        else{
+            pub = nh->advertise<sensor_msgs::JointState>("status_" + w.name, 1);
+        }
+        publishers.push_back(pub);
     }
 
     // Input joint weights
@@ -122,7 +133,7 @@ void WbcNode::jointStateCallback(const sensor_msgs::JointState& msg){
     state = "RUNNING";
 }
 
-void WbcNode::cartReferenceCallback(const ros::MessageEvent<geometry_msgs::TwistStamped>& event, const std::string& constraint_name){
+void WbcNode::cartReferenceCallback(const ros::MessageEvent<wbc_ros::RigidBodyState>& event, const std::string& constraint_name){
     fromROS(*event.getMessage(), reference_cart);
     scene->setReference(constraint_name, reference_cart);
 }
@@ -161,6 +172,22 @@ void WbcNode::solve(){
         joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/control_rate);
     toROS(solver_output, solver_output_ros);
     solver_output_publisher.publish(solver_output_ros);
+
+    publishTaskStatus();
+}
+
+void WbcNode::publishTaskStatus(){
+    for(int i = 0; i < wbc_config.size(); i++){
+        const TaskConfig& w = wbc_config[i];
+        if(w.type == cart){
+            toROS(robot_model->rigidBodyState(w.ref_frame, w.tip), status_cart);
+            publishers[i].publish(status_cart);
+        }
+        else{
+            toROS(robot_model->jointState(w.joint_names), status_jnt);
+            publishers[i].publish(status_jnt);
+        }
+    }
 }
 
 void WbcNode::run(){

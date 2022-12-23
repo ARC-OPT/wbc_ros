@@ -13,7 +13,7 @@ protected:
     double noise_std_dev;
     sensor_msgs::JointState joint_state;
 
-    void fromROS(const XmlRpc::XmlRpcValue& in, sensor_msgs::JointState& out);
+    void fromXmlRpc(const XmlRpc::XmlRpcValue& in, sensor_msgs::JointState& out);
     double whiteNoise(const double std_dev);
 
 public:

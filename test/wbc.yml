@@ -1,0 +1,19 @@
+robot_model_config:
+    file: /home/dennis/catkin_ws/src/kuka_lbr_ros/kuka_lbr_description/urdf/kuka_lbr.urdf
+wbc_config:
+    - name: right_arm
+      type: cart
+      priority: 0
+      root: kuka_lbr_base
+      tip: kuka_lbr_r_tcp
+      ref_frame: kuka_lbr_base
+      weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+      activation: 1.0
+    - name: joint_position
+      type: jnt
+      priority: 0
+      joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7',
+                    'kuka_lbr_r_joint_1', 'kuka_lbr_r_joint_2', 'kuka_lbr_r_joint_3', 'kuka_lbr_r_joint_4', 'kuka_lbr_r_joint_5', 'kuka_lbr_r_joint_6', 'kuka_lbr_r_joint_7']
+      weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+                1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+      activation: 1.0

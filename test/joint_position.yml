@@ -1,0 +1,13 @@
+control_rate: 250
+joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7',
+              'kuka_lbr_r_joint_1', 'kuka_lbr_r_joint_2', 'kuka_lbr_r_joint_3', 'kuka_lbr_r_joint_4', 'kuka_lbr_r_joint_5', 'kuka_lbr_r_joint_6', 'kuka_lbr_r_joint_7']
+p_gain: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+         1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+d_gain: [0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+         0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+ff_gain: [0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+          0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+max_control_output: [0.5,0.5,0.5,0.5,0.5,0.5,0.5,
+                     0.5,0.5,0.5,0.5,0.5,0.5,0.5]
+dead_zone: [0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+            0.0,0.0,0.0,0.0,0.0,0.0,0.0]

@@ -3,7 +3,7 @@
 
 #include <ros/ros.h>
 
-#include <geometry_msgs/TwistStamped.h>
+#include <wbc_ros/RigidBodyState.h>
 #include <sensor_msgs/JointState.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <std_msgs/Float64.h>
@@ -35,16 +35,20 @@ protected:
    wbc::HierarchicalQP qp;
    base::commands::Joints solver_output;
    wbc::JointIntegrator joint_integrator;
+   std::vector<wbc::TaskConfig> wbc_config;
 
    trajectory_msgs::JointTrajectory solver_output_ros;
 
    std::vector<ros::Subscriber> subscribers;
+   std::vector<ros::Publisher> publishers;
    ros::Subscriber sub_joint_state;
    ros::Publisher solver_output_publisher;
    ros::Publisher state_publisher;
+   wbc_ros::RigidBodyState status_cart;
+   sensor_msgs::JointState status_jnt;
 
    void jointStateCallback(const sensor_msgs::JointState& msg);
-   void cartReferenceCallback(const ros::MessageEvent<geometry_msgs::TwistStamped>& event, const std::string& constraint_name);
+   void cartReferenceCallback(const ros::MessageEvent<wbc_ros::RigidBodyState>& event, const std::string& constraint_name);
    void jntReferenceCallback(const ros::MessageEvent<trajectory_msgs::JointTrajectory>& event, const std::string& constraint_name);
    void taskActivationCallback(const ros::MessageEvent<std_msgs::Float64>& event, const std::string& constraint_name);
    void taskWeightsCallback(const ros::MessageEvent<std_msgs::Float64MultiArray>& event, const std::string& constraint_name);
@@ -54,6 +58,7 @@ public:
    WbcNode(int argc, char** argv);
    ~WbcNode();
    void solve();
+   void publishTaskStatus();
    void run();
 };
 

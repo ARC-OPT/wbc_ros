@@ -13,7 +13,7 @@ LoopBackDriverNode::LoopBackDriverNode(int argc, char** argv){
 
     XmlRpc::XmlRpcValue xml_rpc_val;
     ros::param::get("initial_joint_state", xml_rpc_val);
-    fromROS(xml_rpc_val, joint_state);
+    fromXmlRpc(xml_rpc_val, joint_state);
 
     if(!ros::param::has("noise_std_dev")){
         ROS_ERROR("Parameter 'noise_std_dev' has not been set");
@@ -29,7 +29,7 @@ LoopBackDriverNode::~LoopBackDriverNode(){
     delete nh;
 }
 
-void LoopBackDriverNode::fromROS(const XmlRpc::XmlRpcValue& in, sensor_msgs::JointState& out){
+void LoopBackDriverNode::fromXmlRpc(const XmlRpc::XmlRpcValue& in, sensor_msgs::JointState& out){
     out.name.clear();
     if(in.hasMember("name")){
         for(uint i = 0; i < in["name"].size(); i++)

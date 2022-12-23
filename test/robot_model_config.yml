@@ -1,2 +1,0 @@
-robot_model_config:
-    file: /home/dennis/catkin_ws/src/kuka_lbr_ros/kuka_lbr_description/urdf/kuka_lbr.urdf
