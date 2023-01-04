@@ -1,0 +1,10 @@
+string name
+string type
+uint8 priority
+float32[] weights
+float32 activation
+float32 timeout
+string[] joint_names
+string root
+string tip
+string ref_frame

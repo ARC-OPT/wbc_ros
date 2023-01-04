@@ -229,3 +229,42 @@ void toROS(const base::samples::Joints& in, sensor_msgs::JointState& out){
         out.effort[i] = in[i].effort;
     }
 }
+
+void toROS(const TaskConfig& in, wbc_ros::TaskConfig& out){
+    out.name = in.name;
+    if(in.type == cart)
+        out.type = "cart";
+    else
+        out.type = "jnt";
+    out.priority = (uint)in.priority;
+    out.weights.resize(in.weights.size());
+    for(uint i = 0; i < in.weights.size(); i++)
+        out.weights[i] = in.weights[i];
+    out.activation = in.activation;
+    out.timeout = in.timeout;
+    out.joint_names.resize(in.joint_names.size());
+    for(uint i = 0; i < in.joint_names.size(); i++)
+        out.joint_names[i] = in.joint_names[i];
+    out.root = in.root;
+    out.tip = in.tip;
+    out.ref_frame = in.ref_frame;
+}
+
+void toROS(const TaskStatus& in, wbc_ros::TaskStatus& out){
+    out.header.stamp.fromSec(in.time.toSeconds());
+    toROS(in.config,out.config);
+    out.activation = in.activation;
+    out.weights.resize(in.weights.size());
+    for(uint i = 0; i < in.weights.size(); i++)
+        out.weights[i] = in.weights[i];
+    out.timeout = (uint)in.timeout;
+    out.y_ref.resize(in.y_ref.size());
+    for(uint i = 0; i < in.y_ref.size(); i++)
+        out.y_ref[i] = in.y_ref[i];
+    out.y_solution.resize(in.y_solution.size());
+    for(uint i = 0; i < in.y_solution.size(); i++)
+        out.y_solution[i] = in.y_solution[i];
+    out.y.resize(in.y.size());
+    for(uint i = 0; i < in.y.size(); i++)
+        out.y[i] = in.y[i];
+}

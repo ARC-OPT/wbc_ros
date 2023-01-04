@@ -5,31 +5,24 @@
     <remap from="/kuka_lbr/wbc/joint_position/control_output" to="/kuka_lbr/wbc/ref_joint_position"/>
     <remap from="/kuka_lbr/wbc/right_arm/control_output" to="/kuka_lbr/wbc/ref_right_arm"/>
     <remap from="/kuka_lbr/wbc/solver_output" to="/kuka_lbr/wbc/command"/>
-    <remap from="/kuka_lbr/wbc/joint_states" to="/kuka_lbr/wbc/joint_position/feedback"/>
+    <remap from="/kuka_lbr/wbc/status_joint_position" to="/kuka_lbr/wbc/joint_position/feedback"/>
     <remap from="/kuka_lbr/wbc/status_right_arm" to="/kuka_lbr/wbc/right_arm/feedback"/>
 
     <group ns="kuka_lbr">
         <group ns="wbc">
-            <param name="control_rate" value="250" />
-            <param name="noise_std_dev" value="1e-4" />
-
-            <rosparam command="load" file="$(find wbc_ros)/test/joints.yml" />
-            <rosparam command="load" file="$(find wbc_ros)/test/wbc.yml" />
-
-            <param name="qp_solver" value="qpoases" />
-            <param name="control_rate" value="250" />
-            <param name="integrate" value="true" />
+            <rosparam command="load" file="$(find wbc_ros)/test/config/joints.yml" />
+            <rosparam command="load" file="$(find wbc_ros)/test/config/wbc.yml" />
 
             <node pkg="wbc_ros" type="wbc_node" name="wbc" output="screen"/>
             <node pkg="wbc_ros" type="loop_back_driver_node" name="joints" output="screen"/>
             <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"/>
 
             <group ns="joint_position">
-                <rosparam command="load" file="$(find wbc_ros)/test/joint_position.yml" />
+                <rosparam command="load" file="$(find wbc_ros)/test/config/joint_position.yml" />
                 <node pkg="wbc_ros" type="joint_position_controller_node" name="controller" output="screen"/>
             </group>
             <group ns="right_arm">
-                <rosparam command="load" file="$(find wbc_ros)/test/right_arm.yml" />
+                <rosparam command="load" file="$(find wbc_ros)/test/config/right_arm.yml" />
                 <node pkg="wbc_ros" type="cartesian_position_controller_node" name="controller" output="screen"/>
             </group>
         </group>

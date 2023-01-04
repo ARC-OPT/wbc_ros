@@ -8,10 +8,13 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <std_msgs/Float64MultiArray.h>
 #include <wbc_ros/RigidBodyState.h>
+#include <wbc_ros/TaskConfig.h>
+#include <wbc_ros/TaskStatus.h>
 
 #include <base/samples/RigidBodyStateSE3.hpp>
 #include <base/commands/Joints.hpp>
 #include <wbc/core/TaskConfig.hpp>
+#include <wbc/core/TaskStatus.hpp>
 #include <wbc/core/RobotModelConfig.hpp>
 #include <wbc/core/QuadraticProgram.hpp>
 
@@ -34,5 +37,7 @@ void toROS(const base::Twist& in, geometry_msgs::Twist& out);
 void toROS(const base::Acceleration& in, geometry_msgs::Accel& out);
 void toROS(const base::samples::RigidBodyStateSE3& in, wbc_ros::RigidBodyState& out);
 void toROS(const base::samples::Joints& in, sensor_msgs::JointState& out);
+void toROS(const wbc::TaskConfig& in, wbc_ros::TaskConfig& out);
+void toROS(const wbc::TaskStatus& in, wbc_ros::TaskStatus& out);
 
 #endif

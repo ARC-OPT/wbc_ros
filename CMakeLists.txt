@@ -27,6 +27,8 @@ pkg_check_modules(wbc-solvers-qpoases REQUIRED wbc-solvers-qpoases)
 add_message_files(
    FILES
    RigidBodyState.msg
+   TaskConfig.msg
+   TaskStatus.msg
 )
 
 ## Generate services in the 'srv' folder

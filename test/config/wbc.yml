@@ -1,5 +1,8 @@
+control_rate: 250
 robot_model_config:
     file: /home/dennis/catkin_ws/src/kuka_lbr_ros/kuka_lbr_description/urdf/kuka_lbr.urdf
+    submechanism_file: /home/dennis/catkin_ws/src/kuka_lbr_ros/kuka_lbr_description/hyrodyn/kuka_lbr.yml
+    type: hyrodyn
 wbc_config:
     - name: right_arm
       type: cart
@@ -17,3 +20,5 @@ wbc_config:
       weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
                 1.0,1.0,1.0,1.0,1.0,1.0,1.0]
       activation: 1.0
+qp_solver: qpoases
+integrate: true

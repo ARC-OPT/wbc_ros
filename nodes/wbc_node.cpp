@@ -3,13 +3,11 @@
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
 #include <wbc/core/RobotModelFactory.hpp>
 #include <wbc/core/QPSolverFactory.hpp>
-#include "conversions.hpp"
-#include <std_msgs/String.h>
 
 using namespace std;
 using namespace wbc;
 
-WbcNode::WbcNode(int argc, char** argv) : state("NO_JOINT_STATE"){
+WbcNode::WbcNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_joint_state(false), has_floating_base_state(false){
 
     ros::init(argc, argv, "wbc");
     nh = new ros::NodeHandle();
@@ -77,24 +75,17 @@ WbcNode::WbcNode(int argc, char** argv) : state("NO_JOINT_STATE"){
     sub_joint_state = nh->subscribe("joint_states", 1, &WbcNode::jointStateCallback, this);
 
     // Input floating base state
-    if(robot_model_cfg.floating_base == true){
-        ROS_ERROR("Floating base is not yet supported");
-        abort();
-        //ros::Subscriber sub = nh->subscribe("floating_base_state", 1, &WbcNode::floatingBaseStateCallback, this));
-        //subscribers.push_back(sub);
-    }
+    if(robot_model_cfg.floating_base)
+        sub_floating_base = nh->subscribe("floating_base_state", 1, &WbcNode::floatingBaseStateCallback, this);
 
     // Input references, task weights and activations
     for(auto w : wbc_config){
         ros::Subscriber sub;
-        if(w.type == cart){
+        if(w.type == cart)
             sub = nh->subscribe<wbc_ros::RigidBodyState>("ref_" + w.name, 1, boost::bind(&WbcNode::cartReferenceCallback, this, _1, w.name));
-            subscribers.push_back(sub);
-        }
-        else{
+        else
             sub = nh->subscribe<trajectory_msgs::JointTrajectory>("ref_" + w.name, 1, boost::bind(&WbcNode::jntReferenceCallback, this, _1, w.name));
-            subscribers.push_back(sub);
-        }
+        subscribers.push_back(sub);
         sub = nh->subscribe<std_msgs::Float64MultiArray>("weights_" + w.name, 1, boost::bind(&WbcNode::taskWeightsCallback, this, _1, w.name));
         subscribers.push_back(sub);
         sub = nh->subscribe<std_msgs::Float64>("activation_" + w.name, 1, boost::bind(&WbcNode::taskActivationCallback, this, _1, w.name));
@@ -110,11 +101,17 @@ WbcNode::WbcNode(int argc, char** argv) : state("NO_JOINT_STATE"){
         else{
             pub = nh->advertise<sensor_msgs::JointState>("status_" + w.name, 1);
         }
-        publishers.push_back(pub);
+        publishers_task_status.push_back(pub);
+    }
+
+    // Output task info
+    for(auto w : wbc_config){
+        ros::Publisher pub = nh->advertise<wbc_ros::TaskStatus>("task_" + w.name, 1);
+        publishers_task_info.push_back(pub);
     }
 
     // Input joint weights
-    ros::Subscriber sub = nh->subscribe("joint_weights", 1, &WbcNode::jointWeightsCallback, this);
+    sub_joint_weights = nh->subscribe("joint_weights", 1, &WbcNode::jointWeightsCallback, this);
 
     // Solver output
     solver_output_publisher = nh->advertise<trajectory_msgs::JointTrajectory>("solver_output", 1);
@@ -129,8 +126,7 @@ WbcNode::~WbcNode(){
 
 void WbcNode::jointStateCallback(const sensor_msgs::JointState& msg){
     fromROS(msg,joint_state);
-    robot_model->update(joint_state);
-    state = "RUNNING";
+    has_joint_state = true;
 }
 
 void WbcNode::cartReferenceCallback(const ros::MessageEvent<wbc_ros::RigidBodyState>& event, const std::string& constraint_name){
@@ -154,26 +150,63 @@ void WbcNode::taskWeightsCallback(const ros::MessageEvent<std_msgs::Float64Multi
 
 void WbcNode::jointWeightsCallback(const std_msgs::Float64MultiArray& msg){
     fromROS(msg, robot_model->jointNames(), joint_weights);
+    ROS_ERROR("Got a joint weight callback");
+    for(auto n : joint_weights.names){
+        std::cout<<n<<": "<<joint_weights[n]<<std::endl;
+    }
     scene->setJointWeights(joint_weights);
 }
 
-void WbcNode::solve(){
-    std_msgs::String msg;
-    msg.data = state;
-    state_publisher.publish(std_msgs::String(msg));
+void WbcNode::floatingBaseStateCallback(const wbc_ros::RigidBodyState& msg){
+    fromROS(msg, floating_base_state);
+    has_floating_base_state = true;
+}
 
-    if(state == "NO_JOINT_STATE"){
-        ROS_WARN_DELAYED_THROTTLE(5,"WBC did not receive a valid joint state for all configured joints");
-        return;
+void WbcNode::update(){
+
+    switch(state){
+        case PRE_OPERATIONAL:{
+            if(robot_model->hasFloatingBase())
+                state = NO_FLOATING_BASE_STATE;
+            else
+                state = NO_JOINT_STATE;
+            break;
+        }
+        case NO_FLOATING_BASE_STATE:{
+            if(has_floating_base_state)
+                state = NO_JOINT_STATE;
+            else
+                ROS_WARN_DELAYED_THROTTLE(5,"WBC did not receive a valid floating base state for all configured joints");
+            break;
+        }
+        case NO_JOINT_STATE:{
+            if(has_joint_state)
+                state = RUNNING;
+            else
+                ROS_WARN_DELAYED_THROTTLE(5,"WBC did not receive a valid joint state for all configured joints");
+            break;
+        }
+        case RUNNING:{
+            robot_model->update(joint_state, floating_base_state);
+            qp = scene->update();
+            solver_output = scene->solve(qp);
+            tasks_status = scene->updateTasksStatus();
+            if(integrate)
+                joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/control_rate);
+            toROS(solver_output, solver_output_ros);
+            solver_output_publisher.publish(solver_output_ros);
+
+            publishTaskStatus();
+            publishTaskInfo();
+
+            break;
+        }
+        default:{
+            break;
+        }
     }
-    qp = scene->update();
-    solver_output = scene->solve(qp);
-    if(integrate)
-        joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/control_rate);
-    toROS(solver_output, solver_output_ros);
-    solver_output_publisher.publish(solver_output_ros);
 
-    publishTaskStatus();
+    state_publisher.publish(stateToStringMsg(state));
 }
 
 void WbcNode::publishTaskStatus(){
@@ -181,12 +214,21 @@ void WbcNode::publishTaskStatus(){
         const TaskConfig& w = wbc_config[i];
         if(w.type == cart){
             toROS(robot_model->rigidBodyState(w.ref_frame, w.tip), status_cart);
-            publishers[i].publish(status_cart);
+            publishers_task_status[i].publish(status_cart);
         }
         else{
             toROS(robot_model->jointState(w.joint_names), status_jnt);
-            publishers[i].publish(status_jnt);
+            publishers_task_status[i].publish(status_jnt);
         }
+    }
+}
+
+void WbcNode::publishTaskInfo(){
+    task_status_msgs.resize(tasks_status.size());
+    for(int i = 0; i < tasks_status.size(); i++){
+        const TaskStatus& w = tasks_status[i];
+        toROS(w, task_status_msgs[i]);
+        publishers_task_info[i].publish(task_status_msgs[i]);
     }
 }
 
@@ -194,7 +236,7 @@ void WbcNode::run(){
     ros::Rate loop_rate(control_rate);
     ROS_INFO("Whole-Body Controller is running");
     while(ros::ok()){
-        solve();
+        update();
         ros::spinOnce();
         loop_rate.sleep();
     }
