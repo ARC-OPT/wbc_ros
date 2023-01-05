@@ -1,14 +1,14 @@
 #include "joint_position_controller_node.hpp"
-#include <std_msgs/String.h>
 #include "../conversions.hpp"
 
 using namespace ctrl_lib;
 
-JointPositionControllerNode::JointPositionControllerNode(int argc, char** argv) : state("NO_FEEDBACK"), has_setpoint(false), has_feedback(false){
-    ros::init(argc, argv, "joint_position_controller");
+JointPositionControllerNode::JointPositionControllerNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_setpoint(false), has_feedback(false){
+    std::string node_name = "joint_position_controller";
+    ros::init(argc, argv, node_name);
     nh = new ros::NodeHandle();
 
-    ROS_INFO("Initialize Controller: %s", "Joint Position Controller");
+    ROS_INFO("Initialize Controller: %s", node_name.c_str());
 
     if(!ros::param::has("control_rate")){
         ROS_ERROR("WBC parameter control_rate has not been set");
@@ -52,6 +52,7 @@ JointPositionControllerNode::JointPositionControllerNode(int argc, char** argv) 
 
 JointPositionControllerNode::~JointPositionControllerNode(){
     delete controller;
+    delete nh;
 }
 
 void JointPositionControllerNode::setpointCallback(const trajectory_msgs::JointTrajectory& msg){
@@ -65,24 +66,30 @@ void JointPositionControllerNode::feedbackCallback(const sensor_msgs::JointState
 }
 
 void JointPositionControllerNode::update(){
-    std_msgs::String msg;
-    msg.data = state;
-    state_publisher.publish(std_msgs::String(msg));
-
-    if(!has_feedback){
-        state = "NO_FEEDBACK";
-        return;
+    switch (state) {
+        case PRE_OPERATIONAL:{
+            state = NO_FEEDBACK;
+            break;
+        }
+        case NO_FEEDBACK:{
+            if(has_feedback)
+                state = NO_SETPOINT;
+            break;
+        }
+        case NO_SETPOINT:{
+            if(has_setpoint)
+                state = RUNNING;
+            break;
+        }
+        case RUNNING:{
+            control_output = controller->update(setpoint, feedback);
+            toROS(control_output, control_output_msg);
+            control_output_publisher.publish(control_output_msg);
+            break;
+        }
+        default: break;
     }
-    if(!has_setpoint){
-        state = "NO_SETPOINT";
-        return;
-    }
-    state = "RUNNING";
-
-    control_output = controller->update(setpoint, feedback);
-
-    toROS(control_output, control_output_msg);
-    control_output_publisher.publish(control_output_msg);
+    state_publisher.publish(controllerStateToStringMsg(state));
 }
 
 void JointPositionControllerNode::run(){

@@ -5,12 +5,28 @@
 
 #include <wbc/controllers/CartesianPosPDController.hpp>
 #include <wbc_ros/RigidBodyState.h>
+#include <std_msgs/String.h>
 
 #include <base/samples/RigidBodyStateSE3.hpp>
 
 using namespace ctrl_lib;
 
 class CartesianPositionControllerNode{
+   enum controllerState{PRE_OPERATIONAL = 0,
+                        NO_FEEDBACK,
+                        NO_SETPOINT,
+                        RUNNING};
+
+    std_msgs::String controllerStateToStringMsg(controllerState s){
+        std_msgs::String msg;
+        switch(s){
+            case PRE_OPERATIONAL: msg.data = "PRE_OPERATIONAL";
+            case NO_FEEDBACK: msg.data = "NO_FEEDBACK";
+            case NO_SETPOINT: msg.data = "NO_SETPOINT";
+            case RUNNING: msg.data = "RUNNING";
+        }
+        return msg;
+    }
 protected:
    ros::NodeHandle* nh;
    ros::Subscriber sub_setpoint;
@@ -19,7 +35,7 @@ protected:
    ros::Publisher state_publisher;
    wbc_ros::RigidBodyState control_output_msg;
 
-   std::string state;
+   controllerState state;
    double control_rate;
    CartesianPosPDController* controller;
    base::samples::RigidBodyStateSE3 feedback;

@@ -198,7 +198,6 @@ void WbcNode::update(){
 
             publishTaskStatus();
             publishTaskInfo();
-
             break;
         }
         default:{
@@ -206,7 +205,7 @@ void WbcNode::update(){
         }
     }
 
-    state_publisher.publish(stateToStringMsg(state));
+    state_publisher.publish(controllerStateToStringMsg(state));
 }
 
 void WbcNode::publishTaskStatus(){

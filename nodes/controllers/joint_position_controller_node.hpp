@@ -7,10 +7,26 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <sensor_msgs/JointState.h>
 #include <base/commands/Joints.hpp>
+#include <std_msgs/String.h>
 
 using namespace ctrl_lib;
 
 class JointPositionControllerNode{
+   enum controllerState{PRE_OPERATIONAL = 0,
+                        NO_FEEDBACK,
+                        NO_SETPOINT,
+                        RUNNING};
+
+    std_msgs::String controllerStateToStringMsg(controllerState s){
+        std_msgs::String msg;
+        switch(s){
+            case PRE_OPERATIONAL: msg.data = "PRE_OPERATIONAL";
+            case NO_FEEDBACK: msg.data = "NO_FEEDBACK";
+            case NO_SETPOINT: msg.data = "NO_SETPOINT";
+            case RUNNING: msg.data = "RUNNING";
+         }
+        return msg;
+    }
 protected:
    ros::NodeHandle* nh;
    ros::Subscriber sub_setpoint;
@@ -19,7 +35,7 @@ protected:
    ros::Publisher control_output_publisher;
    trajectory_msgs::JointTrajectory control_output_msg;
 
-   std::string state;
+   controllerState state;
    double control_rate;
    std::vector<std::string> joint_names;
    JointPosPDController* controller;

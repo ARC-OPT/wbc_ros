@@ -10,9 +10,13 @@
 #include <wbc_ros/RigidBodyState.h>
 #include <wbc_ros/TaskConfig.h>
 #include <wbc_ros/TaskStatus.h>
+#include <wbc_ros/RadialPotentialFieldVector.h>
+#include <geometry_msgs/WrenchStamped.h>
 
 #include <base/samples/RigidBodyStateSE3.hpp>
 #include <base/commands/Joints.hpp>
+#include <base/samples/Wrench.hpp>
+#include <base/JointLimits.hpp>
 #include <wbc/core/TaskConfig.hpp>
 #include <wbc/core/TaskStatus.hpp>
 #include <wbc/core/RobotModelConfig.hpp>
@@ -23,6 +27,7 @@ void fromROS(const XmlRpc::XmlRpcValue& in, wbc::RobotModelConfig& out);
 void fromROS(const XmlRpc::XmlRpcValue& in, wbc::ActiveContact& out);
 void fromROS(const XmlRpc::XmlRpcValue& in, std::vector<wbc::TaskConfig>& out);
 void fromROS(const XmlRpc::XmlRpcValue& in, std::vector<std::string>& out);
+void fromROS(const XmlRpc::XmlRpcValue& in, base::JointLimits& out);
 void fromROS(const sensor_msgs::JointState& in, base::samples::Joints& out);
 void fromROS(const geometry_msgs::Pose& in, base::Pose& out);
 void fromROS(const geometry_msgs::Twist& in, base::Twist& out);
@@ -31,6 +36,7 @@ void fromROS(const wbc_ros::RigidBodyState& in, base::samples::RigidBodyStateSE3
 void fromROS(const trajectory_msgs::JointTrajectory& in, base::samples::Joints& out);
 void fromROS(const std_msgs::Float64MultiArray& in, base::VectorXd& out);
 void fromROS(const std_msgs::Float64MultiArray& in, const std::vector<std::string>& joint_names, wbc::JointWeights& out);
+void fromROS(const geometry_msgs::WrenchStamped& in, base::samples::Wrench& out);
 void toROS(const base::commands::Joints& in, trajectory_msgs::JointTrajectory& out);
 void toROS(const base::Pose& in, geometry_msgs::Pose& out);
 void toROS(const base::Twist& in, geometry_msgs::Twist& out);

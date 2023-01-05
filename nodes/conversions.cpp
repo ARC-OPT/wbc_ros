@@ -104,6 +104,10 @@ void fromROS(const XmlRpc::XmlRpcValue& in, std::vector<string>& out){
     }
 }
 
+void fromROS(const XmlRpc::XmlRpcValue& in, base::JointLimits& out){
+
+}
+
 void fromROS(const sensor_msgs::JointState& in, base::samples::Joints& out){
      out.time = base::Time::now();
      out.resize(in.name.size());
@@ -162,6 +166,13 @@ void fromROS(const std_msgs::Float64MultiArray& in, const vector<string>& joint_
     out.elements.resize(in.data.size());
     for(uint i = 0; i < in.data.size(); i++)
         out[i] = in.data[i];
+}
+
+void fromROS(const geometry_msgs::WrenchStamped& in, base::samples::Wrench& out){
+    out.time.fromSeconds(in.header.stamp.toSec());
+    out.frame_id = in.header.frame_id;
+    out.force = base::Vector3d(in.wrench.force.x, in.wrench.force.y, in.wrench.force.z);
+    out.torque = base::Vector3d(in.wrench.torque.x, in.wrench.torque.y, in.wrench.torque.z);
 }
 
 void toROS(const base::commands::Joints& in, trajectory_msgs::JointTrajectory& out){

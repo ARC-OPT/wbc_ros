@@ -21,12 +21,12 @@
 #include "conversions.hpp"
 
 class WbcNode{
-   enum nodeState{PRE_OPERATIONAL = 0,
-                  NO_FLOATING_BASE_STATE,
-                  NO_JOINT_STATE,
-                  RUNNING};
+   enum controllerState{PRE_OPERATIONAL = 0,
+                        NO_FLOATING_BASE_STATE,
+                        NO_JOINT_STATE,
+                        RUNNING};
 
-    std_msgs::String stateToStringMsg(nodeState s){
+    std_msgs::String controllerStateToStringMsg(controllerState s){
         std_msgs::String msg;
         switch(s){
             case PRE_OPERATIONAL: msg.data = "PRE_OPERATIONAL";
@@ -50,7 +50,7 @@ protected:
    wbc::JointWeights joint_weights;
    bool integrate;
    double control_rate;
-   nodeState state;
+   controllerState state;
    wbc::HierarchicalQP qp;
    base::commands::Joints solver_output;
    wbc::JointIntegrator joint_integrator;
