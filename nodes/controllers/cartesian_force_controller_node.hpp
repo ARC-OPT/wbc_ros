@@ -32,7 +32,7 @@ protected:
     ros::Subscriber sub_setpoint;
     ros::Publisher control_output_publisher;
     ros::Publisher state_publisher;
-    wbc_ros::RigidBodyState control_output_msg;
+    wbc_msgs::RigidBodyState control_output_msg;
 
     double control_rate;
     ctrl_lib::CartesianForcePIDController *controller;

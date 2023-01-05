@@ -3,8 +3,8 @@
 
 #include <ros/ros.h>
 #include <std_msgs/String.h>
-#include <wbc_ros/RigidBodyState.h>
-#include <wbc_ros/RadialPotentialFieldVector.h>
+#include <wbc_msgs/RigidBodyState.h>
+#include <wbc_msgs/RadialPotentialFieldVector.h>
 
 #include <base/samples/RigidBodyStateSE3.hpp>
 
@@ -35,7 +35,7 @@ protected:
     ros::Subscriber sub_feedback;
     ros::Publisher state_publisher;
     ros::Publisher control_output_publisher;
-    wbc_ros::RigidBodyState control_output_msg;
+    wbc_msgs::RigidBodyState control_output_msg;
 
     double control_rate;
     ctrl_lib::CartesianPotentialFieldsController* controller;
@@ -51,8 +51,8 @@ public:
     CartesianRadialPotentialFieldsNode(int argc, char** argv);
     ~CartesianRadialPotentialFieldsNode();
 
-    void feedbackCallback(const wbc_ros::RigidBodyState& msg);
-    void potFieldsCallback(const wbc_ros::RadialPotentialFieldVector& msg);
+    void feedbackCallback(const wbc_msgs::RigidBodyState& msg);
+    void potFieldsCallback(const wbc_msgs::RadialPotentialFieldVector& msg);
     void update();
     void run();
 };

@@ -47,7 +47,7 @@ CartesianRadialPotentialFieldsNode::CartesianRadialPotentialFieldsNode(int argc,
     // State
     state_publisher = nh->advertise<std_msgs::String>("state", 1);
     // Ctrl output
-    control_output_publisher = nh->advertise<wbc_ros::RigidBodyState>("control_output", 1);
+    control_output_publisher = nh->advertise<wbc_msgs::RigidBodyState>("control_output", 1);
 }
 
 CartesianRadialPotentialFieldsNode::~CartesianRadialPotentialFieldsNode(){
@@ -55,12 +55,12 @@ CartesianRadialPotentialFieldsNode::~CartesianRadialPotentialFieldsNode(){
     delete nh;
 }
 
-void CartesianRadialPotentialFieldsNode::feedbackCallback(const wbc_ros::RigidBodyState& msg){
+void CartesianRadialPotentialFieldsNode::feedbackCallback(const wbc_msgs::RigidBodyState& msg){
     fromROS(msg, feedback);
     has_feedback = true;
 }
 
-void CartesianRadialPotentialFieldsNode::potFieldsCallback(const wbc_ros::RadialPotentialFieldVector& msg){
+void CartesianRadialPotentialFieldsNode::potFieldsCallback(const wbc_msgs::RadialPotentialFieldVector& msg){
     if(!has_feedback)
         return;
     fields.clear();

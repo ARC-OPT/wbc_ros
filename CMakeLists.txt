@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   trajectory_msgs
+  wbc_msgs
   roscpp
   message_generation
 )
@@ -24,14 +25,9 @@ pkg_check_modules(wbc-solvers-qpoases REQUIRED wbc-solvers-qpoases)
 ################################################
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-   FILES
-   RigidBodyState.msg
-   TaskConfig.msg
-   TaskStatus.msg
-   RadialPotentialField.msg
-   RadialPotentialFieldVector.msg
-)
+# add_message_files(
+#    FILES
+# )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -48,10 +44,10 @@ add_message_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-   DEPENDENCIES
-   geometry_msgs
-)
+# generate_messages(
+#    DEPENDENCIES
+#    geometry_msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -68,8 +64,7 @@ generate_messages(
 ###################################
 
 catkin_package(
-  CATKIN_DEPENDS geometry_msgs sensor_msgs std_msgs trajectory_msgs
-  DEPENDS wbc-core wbc-controllers wbc-scenes wbc-robot_models-kdl wbc-solvers-qpoases wbc-solvers-hls
+  CATKIN_DEPENDS geometry_msgs sensor_msgs std_msgs trajectory_msgs wbc_msgs
 )
 
 ###########

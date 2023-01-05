@@ -134,7 +134,7 @@ void fromROS(const geometry_msgs::Accel& in, base::Acceleration& out){
     out.angular = base::Vector3d(in.angular.x,in.angular.y,in.angular.z);
 }
 
-void fromROS(const wbc_ros::RigidBodyState& in, base::samples::RigidBodyStateSE3& out){
+void fromROS(const wbc_msgs::RigidBodyState& in, base::samples::RigidBodyStateSE3& out){
     out.time.fromSeconds(in.header.stamp.toSec());
     out.frame_id = in.header.frame_id;
     fromROS(in.pose,out.pose);
@@ -220,7 +220,7 @@ void toROS(const base::Acceleration& in, geometry_msgs::Accel& out){
     out.angular.z = in.angular[2];
 }
 
-void toROS(const base::samples::RigidBodyStateSE3& in, wbc_ros::RigidBodyState& out){
+void toROS(const base::samples::RigidBodyStateSE3& in, wbc_msgs::RigidBodyState& out){
     out.header.stamp.fromSec(in.time.toSeconds());
     out.header.frame_id = in.frame_id;
     toROS(in.pose, out.pose);
@@ -241,7 +241,7 @@ void toROS(const base::samples::Joints& in, sensor_msgs::JointState& out){
     }
 }
 
-void toROS(const TaskConfig& in, wbc_ros::TaskConfig& out){
+void toROS(const TaskConfig& in, wbc_msgs::TaskConfig& out){
     out.name = in.name;
     if(in.type == cart)
         out.type = "cart";
@@ -261,7 +261,7 @@ void toROS(const TaskConfig& in, wbc_ros::TaskConfig& out){
     out.ref_frame = in.ref_frame;
 }
 
-void toROS(const TaskStatus& in, wbc_ros::TaskStatus& out){
+void toROS(const TaskStatus& in, wbc_msgs::TaskStatus& out){
     out.header.stamp.fromSec(in.time.toSeconds());
     toROS(in.config,out.config);
     out.activation = in.activation;

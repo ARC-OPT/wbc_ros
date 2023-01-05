@@ -42,7 +42,7 @@ CartesianPositionControllerNode::CartesianPositionControllerNode(int argc, char*
     // State
     state_publisher = nh->advertise<std_msgs::String>("state", 1);
     // Ctrl output
-    control_output_publisher = nh->advertise<wbc_ros::RigidBodyState>("control_output", 1);
+    control_output_publisher = nh->advertise<wbc_msgs::RigidBodyState>("control_output", 1);
 }
 
 CartesianPositionControllerNode::~CartesianPositionControllerNode(){
@@ -50,12 +50,12 @@ CartesianPositionControllerNode::~CartesianPositionControllerNode(){
     delete nh;
 }
 
-void CartesianPositionControllerNode::setpointCallback(const wbc_ros::RigidBodyState& msg){
+void CartesianPositionControllerNode::setpointCallback(const wbc_msgs::RigidBodyState& msg){
     fromROS(msg, setpoint);
     has_setpoint = true;
 }
 
-void CartesianPositionControllerNode::feedbackCallback(const wbc_ros::RigidBodyState& msg){
+void CartesianPositionControllerNode::feedbackCallback(const wbc_msgs::RigidBodyState& msg){
     fromROS(msg, feedback);
     has_feedback = true;
 }

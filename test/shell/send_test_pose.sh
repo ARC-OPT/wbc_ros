@@ -1,4 +1,4 @@
-rostopic pub /kuka_lbr/wbc/right_arm/setpoint wbc_ros/RigidBodyState "header:
+rostopic pub /kuka_lbr/wbc/right_arm/setpoint wbc_msgs/RigidBodyState "header:
   seq: 0
   stamp: {secs: 0, nsecs: 0}
   frame_id: ''

@@ -82,7 +82,7 @@ WbcNode::WbcNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_joint_stat
     for(auto w : wbc_config){
         ros::Subscriber sub;
         if(w.type == cart)
-            sub = nh->subscribe<wbc_ros::RigidBodyState>("ref_" + w.name, 1, boost::bind(&WbcNode::cartReferenceCallback, this, _1, w.name));
+            sub = nh->subscribe<wbc_msgs::RigidBodyState>("ref_" + w.name, 1, boost::bind(&WbcNode::cartReferenceCallback, this, _1, w.name));
         else
             sub = nh->subscribe<trajectory_msgs::JointTrajectory>("ref_" + w.name, 1, boost::bind(&WbcNode::jntReferenceCallback, this, _1, w.name));
         subscribers.push_back(sub);
@@ -96,7 +96,7 @@ WbcNode::WbcNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_joint_stat
     for(auto w : wbc_config){
         ros::Publisher pub;
         if(w.type == cart){
-            pub = nh->advertise<wbc_ros::RigidBodyState>("status_" + w.name, 1);
+            pub = nh->advertise<wbc_msgs::RigidBodyState>("status_" + w.name, 1);
         }
         else{
             pub = nh->advertise<sensor_msgs::JointState>("status_" + w.name, 1);
@@ -106,7 +106,7 @@ WbcNode::WbcNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_joint_stat
 
     // Output task info
     for(auto w : wbc_config){
-        ros::Publisher pub = nh->advertise<wbc_ros::TaskStatus>("task_" + w.name, 1);
+        ros::Publisher pub = nh->advertise<wbc_msgs::TaskStatus>("task_" + w.name, 1);
         publishers_task_info.push_back(pub);
     }
 
@@ -129,7 +129,7 @@ void WbcNode::jointStateCallback(const sensor_msgs::JointState& msg){
     has_joint_state = true;
 }
 
-void WbcNode::cartReferenceCallback(const ros::MessageEvent<wbc_ros::RigidBodyState>& event, const std::string& constraint_name){
+void WbcNode::cartReferenceCallback(const ros::MessageEvent<wbc_msgs::RigidBodyState>& event, const std::string& constraint_name){
     fromROS(*event.getMessage(), reference_cart);
     scene->setReference(constraint_name, reference_cart);
 }
@@ -157,7 +157,7 @@ void WbcNode::jointWeightsCallback(const std_msgs::Float64MultiArray& msg){
     scene->setJointWeights(joint_weights);
 }
 
-void WbcNode::floatingBaseStateCallback(const wbc_ros::RigidBodyState& msg){
+void WbcNode::floatingBaseStateCallback(const wbc_msgs::RigidBodyState& msg){
     fromROS(msg, floating_base_state);
     has_floating_base_state = true;
 }

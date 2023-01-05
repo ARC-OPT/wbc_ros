@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 
 #include <wbc/controllers/CartesianPosPDController.hpp>
-#include <wbc_ros/RigidBodyState.h>
+#include <wbc_msgs/RigidBodyState.h>
 #include <std_msgs/String.h>
 
 #include <base/samples/RigidBodyStateSE3.hpp>
@@ -33,7 +33,7 @@ protected:
    ros::Subscriber sub_feedback;
    ros::Publisher control_output_publisher;
    ros::Publisher state_publisher;
-   wbc_ros::RigidBodyState control_output_msg;
+   wbc_msgs::RigidBodyState control_output_msg;
 
    controllerState state;
    double control_rate;
@@ -48,8 +48,8 @@ public:
     CartesianPositionControllerNode(int argc, char** argv);
     ~CartesianPositionControllerNode();
 
-    void setpointCallback(const wbc_ros::RigidBodyState& msg);
-    void feedbackCallback(const wbc_ros::RigidBodyState& msg);
+    void setpointCallback(const wbc_msgs::RigidBodyState& msg);
+    void feedbackCallback(const wbc_msgs::RigidBodyState& msg);
     void update();
     void run();
 };
