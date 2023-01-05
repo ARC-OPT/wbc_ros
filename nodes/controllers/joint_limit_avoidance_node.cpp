@@ -3,8 +3,8 @@
 
 using namespace ctrl_lib;
 
-JointLimitAvoidanceNode::JointLimitAvoidanceNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_feedback(false){
-    std::string node_name = "joint_limit_avoidance";
+JointLimitAvoidanceNode::JointLimitAvoidanceNode(int argc, char** argv) : has_feedback(false){
+    node_name = "joint_limit_avoidance";
     ros::init(argc, argv, node_name);
     nh = new ros::NodeHandle();
 
@@ -21,6 +21,7 @@ JointLimitAvoidanceNode::JointLimitAvoidanceNode(int argc, char** argv) : state(
         ROS_ERROR("WBC parameter joint_limits has not been set");
         abort();
     }
+    ros::param::get("joint_limits", value);
     base::JointLimits joint_limits;
     fromROS(value, joint_limits);
 
@@ -51,10 +52,8 @@ JointLimitAvoidanceNode::JointLimitAvoidanceNode(int argc, char** argv) : state(
 
     // controller feedback
     sub_feedback = nh->subscribe("feedback", 1, &JointLimitAvoidanceNode::feedbackCallback, this);
-    // State
-    state_publisher = nh->advertise<std_msgs::String>("state", 1);
     // Ctrl output
-    control_output_publisher = nh->advertise<sensor_msgs::JointState>("control_output", 1);
+    control_output_publisher = nh->advertise<trajectory_msgs::JointTrajectory>("control_output", 1);
 }
 
 JointLimitAvoidanceNode::~JointLimitAvoidanceNode(){
@@ -64,28 +63,17 @@ JointLimitAvoidanceNode::~JointLimitAvoidanceNode(){
 
 void JointLimitAvoidanceNode::feedbackCallback(const sensor_msgs::JointState& msg){
     has_feedback = true;
+    fromROS(msg, feedback);
 }
 
 void JointLimitAvoidanceNode::update(){
-    switch (state) {
-        case PRE_OPERATIONAL:{
-            state = NO_FEEDBACK;
-            break;
-        }
-        case NO_FEEDBACK:{
-            if(has_feedback)
-                state = RUNNING;
-            break;
-        }
-        case RUNNING:{
-            control_output = controller->update(feedback);
-            toROS(control_output, control_output_msg);
-            control_output_publisher.publish(control_output_msg);
-            break;
-        }
-        default: break;
+    if(!has_feedback){
+        ROS_WARN_DELAYED_THROTTLE(5, "%s: No feedback", node_name.c_str());
+        return;
     }
-    state_publisher.publish(controllerStateToStringMsg(state));
+    control_output = controller->update(feedback);
+    toROS(control_output, control_output_msg);
+    control_output_publisher.publish(control_output_msg);
 }
 
 void JointLimitAvoidanceNode::run(){
@@ -98,8 +86,7 @@ void JointLimitAvoidanceNode::run(){
     }
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
     JointLimitAvoidanceNode node(argc, argv);
     node.run();
     return 0;

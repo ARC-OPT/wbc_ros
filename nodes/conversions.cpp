@@ -105,7 +105,15 @@ void fromROS(const XmlRpc::XmlRpcValue& in, std::vector<string>& out){
 }
 
 void fromROS(const XmlRpc::XmlRpcValue& in, base::JointLimits& out){
-
+    out.clear();
+    for(size_t i = 0; i < in.size(); i++){
+        base::JointLimitRange range;
+        range.max.position = static_cast<double>(in[i]["position"]["max"]);
+        range.min.position = static_cast<double>(in[i]["position"]["min"]);
+        string name = static_cast<string>(in[i]["name"]);
+        out.names.push_back(name);
+        out.elements.push_back(range);
+    }
 }
 
 void fromROS(const sensor_msgs::JointState& in, base::samples::Joints& out){

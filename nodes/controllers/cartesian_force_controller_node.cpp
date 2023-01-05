@@ -1,9 +1,10 @@
 #include "cartesian_force_controller_node.hpp"
+#include "../conversions.hpp"
 
 using namespace ctrl_lib;
 
-CartesianForceControllerNode::CartesianForceControllerNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_feedback(false),has_setpoint(false){
-    std::string node_name = "cartesian_force_controller";
+CartesianForceControllerNode::CartesianForceControllerNode(int argc, char** argv) : has_feedback(false),has_setpoint(false){
+    node_name = "cartesian_force_controller";
     ros::init(argc, argv, node_name);
     nh = new ros::NodeHandle();
 
@@ -21,8 +22,6 @@ CartesianForceControllerNode::CartesianForceControllerNode(int argc, char** argv
     sub_setpoint = nh->subscribe("setpoint", 1, &CartesianForceControllerNode::setpointCallback, this);
     // controller feedback
     sub_feedback = nh->subscribe("feedback", 1, &CartesianForceControllerNode::feedbackCallback, this);
-    // State
-    state_publisher = nh->advertise<std_msgs::String>("state", 1);
     // Ctrl output
     control_output_publisher = nh->advertise<wbc_msgs::RigidBodyState>("control_output", 1);
 }
@@ -43,30 +42,17 @@ void CartesianForceControllerNode::feedbackCallback(const geometry_msgs::WrenchS
 }
 
 void CartesianForceControllerNode::update(){
-    switch (state) {
-        case PRE_OPERATIONAL:{
-            state = NO_FEEDBACK;
-            break;
-        }
-        case NO_FEEDBACK:{
-            if(has_feedback)
-                state = NO_SETPOINT;
-            break;
-        }
-        case NO_SETPOINT:{
-            if(has_setpoint)
-                state = RUNNING;
-            break;
-        }
-        case RUNNING:{
-            control_output = controller->update(setpoint, feedback, 1/control_rate);
-            toROS(control_output, control_output_msg);
-            control_output_publisher.publish(control_output_msg);
-            break;
-        }
-        default: break;
+    if(!has_feedback){
+        ROS_WARN_DELAYED_THROTTLE(5, "%s: No feedback", node_name.c_str());
+        return;
     }
-    state_publisher.publish(controllerStateToStringMsg(state));
+    if(!has_setpoint){
+        ROS_DEBUG_DELAYED_THROTTLE(5, "%s: No setpoint", node_name.c_str());
+        return;
+    }
+    control_output = controller->update(setpoint, feedback, 1/control_rate);
+    toROS(control_output, control_output_msg);
+    control_output_publisher.publish(control_output_msg);
 }
 
 void CartesianForceControllerNode::run(){
@@ -79,8 +65,7 @@ void CartesianForceControllerNode::run(){
     }
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
     CartesianForceControllerNode node(argc, argv);
     node.run();
     return 0;

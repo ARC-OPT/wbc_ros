@@ -1,10 +1,11 @@
 #include "cartesian_radial_potential_fields_node.hpp"
 #include <wbc/controllers/RadialPotentialField.hpp>
+#include "../conversions.hpp"
 
 using namespace ctrl_lib;
 
-CartesianRadialPotentialFieldsNode::CartesianRadialPotentialFieldsNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_feedback(false), has_pot_fields(false){
-    std::string node_name = "cartesian_potential_fields";
+CartesianRadialPotentialFieldsNode::CartesianRadialPotentialFieldsNode(int argc, char** argv) : has_feedback(false), has_pot_fields(false){
+    node_name = "cartesian_potential_fields";
     ros::init(argc, argv, node_name);
     nh = new ros::NodeHandle();
 
@@ -44,8 +45,6 @@ CartesianRadialPotentialFieldsNode::CartesianRadialPotentialFieldsNode(int argc,
     sub_pot_fields = nh->subscribe("pot_field_centers", 1, &CartesianRadialPotentialFieldsNode::potFieldsCallback, this);
     // controller feedback
     sub_feedback = nh->subscribe("feedback", 1, &CartesianRadialPotentialFieldsNode::feedbackCallback, this);
-    // State
-    state_publisher = nh->advertise<std_msgs::String>("state", 1);
     // Ctrl output
     control_output_publisher = nh->advertise<wbc_msgs::RigidBodyState>("control_output", 1);
 }
@@ -78,31 +77,18 @@ void CartesianRadialPotentialFieldsNode::potFieldsCallback(const wbc_msgs::Radia
 }
 
 void CartesianRadialPotentialFieldsNode::update(){
-    switch (state) {
-        case PRE_OPERATIONAL:{
-            state = NO_FEEDBACK;
-            break;
-        }
-        case NO_FEEDBACK:{
-            if(has_feedback)
-                state = NO_POTENTIAL_FIELDS;
-            break;
-        }
-        case NO_POTENTIAL_FIELDS:{
-            if(has_pot_fields)
-                state = RUNNING;
-            break;
-        }
-        case RUNNING:{
-            controller->setFields(fields);
-            control_output = controller->update(feedback);
-            toROS(control_output, control_output_msg);
-            control_output_publisher.publish(control_output_msg);
-            break;
-        }
-        default: break;
+    if(!has_feedback){
+        ROS_WARN_DELAYED_THROTTLE(5, "%s: No feedback", node_name.c_str());
+        return;
     }
-    state_publisher.publish(controllerStateToStringMsg(state));
+    if(!has_pot_fields){
+        ROS_DEBUG_DELAYED_THROTTLE(5, "%s: No potential fields", node_name.c_str());
+        return;
+    }
+    controller->setFields(fields);
+    control_output = controller->update(feedback);
+    toROS(control_output, control_output_msg);
+    control_output_publisher.publish(control_output_msg);
 }
 
 void CartesianRadialPotentialFieldsNode::run(){
@@ -115,8 +101,7 @@ void CartesianRadialPotentialFieldsNode::run(){
     }
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
     CartesianRadialPotentialFieldsNode node(argc, argv);
     node.run();
     return 0;

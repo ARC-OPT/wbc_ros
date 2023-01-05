@@ -3,8 +3,8 @@
 
 using namespace ctrl_lib;
 
-JointPositionControllerNode::JointPositionControllerNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_setpoint(false), has_feedback(false){
-    std::string node_name = "joint_position_controller";
+JointPositionControllerNode::JointPositionControllerNode(int argc, char** argv) : has_setpoint(false), has_feedback(false){
+    node_name = "joint_position_controller";
     ros::init(argc, argv, node_name);
     nh = new ros::NodeHandle();
 
@@ -44,8 +44,6 @@ JointPositionControllerNode::JointPositionControllerNode(int argc, char** argv) 
     sub_setpoint = nh->subscribe("setpoint", 1, &JointPositionControllerNode::setpointCallback, this);
     // controller feedback
     sub_feedback = nh->subscribe("feedback", 1, &JointPositionControllerNode::feedbackCallback, this);
-    // State
-    state_publisher = nh->advertise<std_msgs::String>("state", 1);
     // Ctrl output
     control_output_publisher = nh->advertise<trajectory_msgs::JointTrajectory>("control_output", 1);
 }
@@ -66,30 +64,17 @@ void JointPositionControllerNode::feedbackCallback(const sensor_msgs::JointState
 }
 
 void JointPositionControllerNode::update(){
-    switch (state) {
-        case PRE_OPERATIONAL:{
-            state = NO_FEEDBACK;
-            break;
-        }
-        case NO_FEEDBACK:{
-            if(has_feedback)
-                state = NO_SETPOINT;
-            break;
-        }
-        case NO_SETPOINT:{
-            if(has_setpoint)
-                state = RUNNING;
-            break;
-        }
-        case RUNNING:{
-            control_output = controller->update(setpoint, feedback);
-            toROS(control_output, control_output_msg);
-            control_output_publisher.publish(control_output_msg);
-            break;
-        }
-        default: break;
+    if(!has_feedback){
+        ROS_WARN_DELAYED_THROTTLE(5, "%s: No feedback", node_name.c_str());
+        return;
     }
-    state_publisher.publish(controllerStateToStringMsg(state));
+    if(!has_setpoint){
+        ROS_DEBUG_DELAYED_THROTTLE(5, "%s: No setpoint", node_name.c_str());
+        return;
+    }
+    control_output = controller->update(setpoint, feedback);
+    toROS(control_output, control_output_msg);
+    control_output_publisher.publish(control_output_msg);
 }
 
 void JointPositionControllerNode::run(){
@@ -102,8 +87,7 @@ void JointPositionControllerNode::run(){
     }
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
     JointPositionControllerNode node(argc, argv);
     node.run();
     return 0;
