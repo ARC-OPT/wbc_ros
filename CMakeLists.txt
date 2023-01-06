@@ -90,7 +90,7 @@ link_directories(
   ${wbc-solvers-qpoases_LIBRARIES}
 )
 
-add_executable(wbc_node nodes/wbc_node.cpp nodes/conversions.cpp)
+add_executable(wbc_node nodes/wbc_node.cpp nodes/conversions.cpp nodes/controllers/controller_node.cpp)
 add_executable(loop_back_driver_node nodes/loop_back_driver_node.cpp)
 add_executable(cartesian_position_controller_node nodes/controllers/cartesian_position_controller_node.cpp nodes/controllers/controller_node.cpp nodes/conversions.cpp)
 add_executable(joint_position_controller_node nodes/controllers/joint_position_controller_node.cpp  nodes/controllers/controller_node.cpp nodes/conversions.cpp)

@@ -3,31 +3,17 @@
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
 #include <wbc/core/RobotModelFactory.hpp>
 #include <wbc/core/QPSolverFactory.hpp>
+#include "conversions.hpp"
 
 using namespace std;
 using namespace wbc;
 
-WbcNode::WbcNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_joint_state(false), has_floating_base_state(false){
+WbcNode::WbcNode(int argc, char** argv) : ControllerNode(argc, argv), has_floating_base_state(false){
 
-    ros::init(argc, argv, "wbc");
-    nh = new ros::NodeHandle();
-
-    if(!ros::param::has("control_rate")){
-        ROS_ERROR("WBC parameter control_rate has not been set");
-        abort();
-    }
-    ros::param::get("control_rate", control_rate);
-
-    if(!ros::param::has("integrate")){
-        ROS_ERROR("WBC parameter integrate has not been set");
-        abort();
-    }
+    checkParam("integrate");
     ros::param::get("integrate", integrate);
 
-    if(!ros::param::has("robot_model_config")){
-        ROS_ERROR("ROS parameter 'robot_model_config' has not been set");
-        abort();
-    }
+    checkParam("robot_model_config");
     XmlRpc::XmlRpcValue xml_rpc_val;
     ros::param::get("robot_model_config", xml_rpc_val);
     RobotModelConfig robot_model_cfg;
@@ -41,10 +27,7 @@ WbcNode::WbcNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_joint_stat
         abort();
     }
 
-    if(!ros::param::has("qp_solver")){
-        ROS_ERROR("ROS parameter 'qp_solver' has not been set");
-        abort();
-    }
+    checkParam("qp_solver");
     std::string qp_solver;
     ros::param::get("qp_solver", qp_solver);
 
@@ -52,10 +35,7 @@ WbcNode::WbcNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_joint_stat
     PluginLoader::loadPlugin("libwbc-solvers-" + qp_solver + ".so");
     solver = shared_ptr<QPSolver>(QPSolverFactory::createInstance(qp_solver));
 
-    if(!ros::param::has("wbc_config")){
-        ROS_ERROR("ROS parameter 'wbc_config' has not been set");
-        abort();
-    }
+    checkParam("wbc_config");
     xml_rpc_val.clear();
     ros::param::get("wbc_config", xml_rpc_val);
     fromROS(xml_rpc_val, wbc_config);
@@ -72,7 +52,7 @@ WbcNode::WbcNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_joint_stat
     // Input joint state
     joint_state.resize(robot_model->noOfJoints());
     joint_state.names = robot_model->jointNames();
-    sub_joint_state = nh->subscribe("joint_states", 1, &WbcNode::jointStateCallback, this);
+    sub_feedback = nh->subscribe("joint_states", 1, &WbcNode::jointStateCallback, this);
 
     // Input floating base state
     if(robot_model_cfg.floating_base)
@@ -116,17 +96,21 @@ WbcNode::WbcNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_joint_stat
     // Solver output
     solver_output_publisher = nh->advertise<trajectory_msgs::JointTrajectory>("solver_output", 1);
 
-    // State
-    state_publisher = nh->advertise<std_msgs::String>("state", 1);
+    // WBC will send zeros if no setpoint is given from any controller
+    has_setpoint = true;
 }
 
 WbcNode::~WbcNode(){
-    delete nh;
 }
 
 void WbcNode::jointStateCallback(const sensor_msgs::JointState& msg){
     fromROS(msg,joint_state);
-    has_joint_state = true;
+    if(robot_model->hasFloatingBase()){
+        if(has_floating_base_state)
+            has_feedback = true;
+    }
+    else
+        has_feedback = true;
 }
 
 void WbcNode::cartReferenceCallback(const ros::MessageEvent<wbc_msgs::RigidBodyState>& event, const std::string& constraint_name){
@@ -162,50 +146,18 @@ void WbcNode::floatingBaseStateCallback(const wbc_msgs::RigidBodyState& msg){
     has_floating_base_state = true;
 }
 
-void WbcNode::update(){
+void WbcNode::updateController(){
+    robot_model->update(joint_state, floating_base_state);
+    qp = scene->update();
+    solver_output = scene->solve(qp);
+    tasks_status = scene->updateTasksStatus();
+    if(integrate)
+        joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/control_rate);
+    toROS(solver_output, solver_output_ros);
+    solver_output_publisher.publish(solver_output_ros);
 
-    switch(state){
-        case PRE_OPERATIONAL:{
-            if(robot_model->hasFloatingBase())
-                state = NO_FLOATING_BASE_STATE;
-            else
-                state = NO_JOINT_STATE;
-            break;
-        }
-        case NO_FLOATING_BASE_STATE:{
-            if(has_floating_base_state)
-                state = NO_JOINT_STATE;
-            else
-                ROS_WARN_DELAYED_THROTTLE(5,"WBC did not receive a valid floating base state for all configured joints");
-            break;
-        }
-        case NO_JOINT_STATE:{
-            if(has_joint_state)
-                state = RUNNING;
-            else
-                ROS_WARN_DELAYED_THROTTLE(5,"WBC did not receive a valid joint state for all configured joints");
-            break;
-        }
-        case RUNNING:{
-            robot_model->update(joint_state, floating_base_state);
-            qp = scene->update();
-            solver_output = scene->solve(qp);
-            tasks_status = scene->updateTasksStatus();
-            if(integrate)
-                joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/control_rate);
-            toROS(solver_output, solver_output_ros);
-            solver_output_publisher.publish(solver_output_ros);
-
-            publishTaskStatus();
-            publishTaskInfo();
-            break;
-        }
-        default:{
-            break;
-        }
-    }
-
-    state_publisher.publish(controllerStateToStringMsg(state));
+    publishTaskStatus();
+    publishTaskInfo();
 }
 
 void WbcNode::publishTaskStatus(){
@@ -231,18 +183,7 @@ void WbcNode::publishTaskInfo(){
     }
 }
 
-void WbcNode::run(){
-    ros::Rate loop_rate(control_rate);
-    ROS_INFO("Whole-Body Controller is running");
-    while(ros::ok()){
-        update();
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
-}
-
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
     WbcNode node(argc, argv);
     node.run();
 }
