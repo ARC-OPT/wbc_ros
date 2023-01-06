@@ -3,6 +3,22 @@ robot_model_config:
     file: /home/dennis/catkin_ws/src/kuka_lbr_ros/kuka_lbr_description/urdf/kuka_lbr.urdf
     type: pinocchio
 wbc_config:
+    - name: collision_avoidance_right
+      type: cart
+      priority: 0
+      root: kuka_lbr_base
+      tip: kuka_lbr_r_tcp
+      ref_frame: kuka_lbr_base
+      weights: [1.0,1.0,1.0,0.0,0.0,0.0]
+      activation: 1.0
+    - name: contact_force_left
+      type: cart
+      priority: 0
+      root: kuka_lbr_base
+      tip: kuka_lbr_r_tcp
+      ref_frame: kuka_lbr_base
+      weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+      activation: 1.0
     - name: right_arm
       type: cart
       priority: 0

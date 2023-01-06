@@ -1,0 +1,4 @@
+control_rate: 250
+influence_distance: 0.1
+p_gain: [1.0,1.0,1.0]
+max_control_output: [1.0,1.0,1.0]
