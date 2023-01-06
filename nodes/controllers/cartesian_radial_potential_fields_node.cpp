@@ -4,45 +4,25 @@
 
 using namespace ctrl_lib;
 
-CartesianRadialPotentialFieldsNode::CartesianRadialPotentialFieldsNode(int argc, char** argv) : has_feedback(false), has_pot_fields(false){
-    node_name = "cartesian_potential_fields";
-    ros::init(argc, argv, node_name);
-    nh = new ros::NodeHandle();
-
-    ROS_INFO("Initialize Controller: %s", node_name.c_str());
-
-    if(!ros::param::has("control_rate")){
-        ROS_ERROR("WBC parameter control_rate has not been set");
-        abort();
-    }
-    ros::param::get("control_rate", control_rate);
+CartesianRadialPotentialFieldsNode::CartesianRadialPotentialFieldsNode(int argc, char** argv) : ControllerNode(argc, argv){
 
     controller = new CartesianPotentialFieldsController();
 
-    if(!ros::param::has("influence_distance")){
-        ROS_ERROR("WBC parameter influence_distance has not been set");
-        abort();
-    }
+    checkParam("influence_distance");
     ros::param::get("influence_distance", influence_distance);
 
-    if(!ros::param::has("p_gain")){
-        ROS_ERROR("WBC parameter p_gain has not been set");
-        abort();
-    }
+    checkParam("p_gain");
     std::vector<double> p_gain;
     ros::param::get("p_gain", p_gain);
     controller->setPGain(Eigen::Map<Eigen::VectorXd>(p_gain.data(),p_gain.size()));
 
-    if(!ros::param::has("max_control_output")){
-        ROS_ERROR("WBC parameter max_control_output has not been set");
-        abort();
-    }
+    checkParam("max_control_output");
     std::vector<double> max_control_output;
     ros::param::get("max_control_output", max_control_output);
     controller->setMaxControlOutput(Eigen::Map<Eigen::VectorXd>(max_control_output.data(),max_control_output.size()));
 
     // Potential Fields
-    sub_pot_fields = nh->subscribe("pot_field_centers", 1, &CartesianRadialPotentialFieldsNode::potFieldsCallback, this);
+    sub_setpoint = nh->subscribe("pot_field_centers", 1, &CartesianRadialPotentialFieldsNode::potFieldsCallback, this);
     // controller feedback
     sub_feedback = nh->subscribe("feedback", 1, &CartesianRadialPotentialFieldsNode::feedbackCallback, this);
     // Ctrl output
@@ -51,7 +31,6 @@ CartesianRadialPotentialFieldsNode::CartesianRadialPotentialFieldsNode(int argc,
 
 CartesianRadialPotentialFieldsNode::~CartesianRadialPotentialFieldsNode(){
     delete controller;
-    delete nh;
 }
 
 void CartesianRadialPotentialFieldsNode::feedbackCallback(const wbc_msgs::RigidBodyState& msg){
@@ -73,32 +52,14 @@ void CartesianRadialPotentialFieldsNode::potFieldsCallback(const wbc_msgs::Radia
             fields.push_back(pf);
         }
     }
-    has_pot_fields = true;
+    has_setpoint = true;
 }
 
-void CartesianRadialPotentialFieldsNode::update(){
-    if(!has_feedback){
-        ROS_WARN_DELAYED_THROTTLE(5, "%s: No feedback", node_name.c_str());
-        return;
-    }
-    if(!has_pot_fields){
-        ROS_DEBUG_DELAYED_THROTTLE(5, "%s: No potential fields", node_name.c_str());
-        return;
-    }
+void CartesianRadialPotentialFieldsNode::updateController(){
     controller->setFields(fields);
     control_output = controller->update(feedback);
     toROS(control_output, control_output_msg);
     control_output_publisher.publish(control_output_msg);
-}
-
-void CartesianRadialPotentialFieldsNode::run(){
-    ros::Rate loop_rate(control_rate);
-    ROS_INFO("Cartesian Radial Potential Fields Controller is running");
-    while(ros::ok()){
-        update();
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
 }
 
 int main(int argc, char** argv){

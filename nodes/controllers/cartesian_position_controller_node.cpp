@@ -3,20 +3,15 @@
 
 using namespace ctrl_lib;
 
-CartesianPositionControllerNode::CartesianPositionControllerNode(int argc, char** argv) : has_setpoint(false), has_feedback(false){
-    node_name = "cartesian_position_controller";
-    ros::init(argc, argv, node_name);
-    nh = new ros::NodeHandle();
-
-    ROS_INFO("Initialize Controller: %s", node_name.c_str());
-
-    if(!ros::param::has("control_rate")){
-        ROS_ERROR("WBC parameter control_rate has not been set");
-        abort();
-    }
-    ros::param::get("control_rate", control_rate);
+CartesianPositionControllerNode::CartesianPositionControllerNode(int argc, char** argv) : ControllerNode(argc, argv){
 
     controller = new CartesianPosPDController();
+
+    checkParam("p_gain");
+    checkParam("d_gain");
+    checkParam("ff_gain");
+    checkParam("max_control_output");
+    checkParam("dead_zone");
 
     std::vector<double> p_gain;
     ros::param::get("p_gain", p_gain);
@@ -45,7 +40,6 @@ CartesianPositionControllerNode::CartesianPositionControllerNode(int argc, char*
 
 CartesianPositionControllerNode::~CartesianPositionControllerNode(){
     delete controller;
-    delete nh;
 }
 
 void CartesianPositionControllerNode::setpointCallback(const wbc_msgs::RigidBodyState& msg){
@@ -58,28 +52,10 @@ void CartesianPositionControllerNode::feedbackCallback(const wbc_msgs::RigidBody
     has_feedback = true;
 }
 
-void CartesianPositionControllerNode::update(){
-    if(!has_feedback){
-        ROS_WARN_DELAYED_THROTTLE(5, "%s: No feedback", node_name.c_str());
-        return;
-    }
-    if(!has_setpoint){
-        ROS_DEBUG_DELAYED_THROTTLE(5, "%s: No setpoint", node_name.c_str());
-        return;
-    }
+void CartesianPositionControllerNode::updateController(){
     control_output = controller->update(setpoint, feedback);
     toROS(control_output, control_output_msg);
     control_output_publisher.publish(control_output_msg);
-}
-
-void CartesianPositionControllerNode::run(){
-    ros::Rate loop_rate(control_rate);
-    ROS_INFO("Cartesian Position Controller is running");
-    while(ros::ok()){
-        update();
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
 }
 
 int main(int argc, char** argv){

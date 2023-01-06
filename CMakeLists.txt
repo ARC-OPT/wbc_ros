@@ -92,11 +92,11 @@ link_directories(
 
 add_executable(wbc_node nodes/wbc_node.cpp nodes/conversions.cpp)
 add_executable(loop_back_driver_node nodes/loop_back_driver_node.cpp)
-add_executable(cartesian_position_controller_node nodes/controllers/cartesian_position_controller_node.cpp nodes/conversions.cpp)
-add_executable(joint_position_controller_node nodes/controllers/joint_position_controller_node.cpp nodes/conversions.cpp)
-add_executable(cartesian_force_controller_node nodes/controllers/cartesian_force_controller_node.cpp nodes/conversions.cpp)
-add_executable(cartesian_radial_potential_fields_node nodes/controllers/cartesian_radial_potential_fields_node.cpp nodes/conversions.cpp)
-add_executable(joint_limit_avoidance_node nodes/controllers/joint_limit_avoidance_node.cpp nodes/conversions.cpp)
+add_executable(cartesian_position_controller_node nodes/controllers/cartesian_position_controller_node.cpp nodes/controllers/controller_node.cpp nodes/conversions.cpp)
+add_executable(joint_position_controller_node nodes/controllers/joint_position_controller_node.cpp  nodes/controllers/controller_node.cpp nodes/conversions.cpp)
+add_executable(cartesian_force_controller_node nodes/controllers/cartesian_force_controller_node.cpp  nodes/controllers/controller_node.cpp nodes/conversions.cpp)
+add_executable(cartesian_radial_potential_fields_node nodes/controllers/cartesian_radial_potential_fields_node.cpp  nodes/controllers/controller_node.cpp nodes/conversions.cpp)
+add_executable(joint_limit_avoidance_node nodes/controllers/joint_limit_avoidance_node.cpp  nodes/controllers/controller_node.cpp nodes/conversions.cpp)
 
 target_link_libraries(wbc_node dl
    ${catkin_LIBRARIES}

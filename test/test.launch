@@ -11,7 +11,7 @@
     <remap from="/kuka_lbr/wbc/joint_limits/feedback" to="/kuka_lbr/wbc/joint_states"/>
     <remap from="/kuka_lbr/wbc/joint_limits/control_output" to="/kuka_lbr/wbc/ref_joint_limits"/>
 
-    <remap from="/kuka_lbr/wbc/status_collision_avoidance_right" to="/kuka_lbr/wbc/collision_avoidance_right/feedback"/>
+    <remap from="/kuka_lbr/wbc/status_collision_avoidance_left" to="/kuka_lbr/wbc/collision_avoidance_left/feedback"/>
 
     <remap from="/kuka_lbr/wbc/solver_output" to="/kuka_lbr/wbc/command"/>
 
@@ -37,7 +37,7 @@
                 <rosparam command="load" file="$(find wbc_ros)/test/config/joint_limits.yml" />
                 <node pkg="wbc_ros" type="joint_limit_avoidance_node" name="controller" output="screen"/>
             </group>
-            <group ns="collision_avoidance_right">
+            <group ns="collision_avoidance_left">
                 <rosparam command="load" file="$(find wbc_ros)/test/config/collision_avoidance.yml" />
                 <node pkg="wbc_ros" type="cartesian_radial_potential_fields_node" name="controller" output="screen"/>
             </group>

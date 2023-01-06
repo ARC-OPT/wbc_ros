@@ -3,46 +3,23 @@
 
 using namespace ctrl_lib;
 
-JointLimitAvoidanceNode::JointLimitAvoidanceNode(int argc, char** argv) : has_feedback(false){
-    node_name = "joint_limit_avoidance";
-    ros::init(argc, argv, node_name);
-    nh = new ros::NodeHandle();
+JointLimitAvoidanceNode::JointLimitAvoidanceNode(int argc, char** argv) : ControllerNode(argc, argv){
 
-    ROS_INFO("Initialize Controller: %s", node_name.c_str());
-
-    if(!ros::param::has("control_rate")){
-        ROS_ERROR("WBC parameter control_rate has not been set");
-        abort();
-    }
-    ros::param::get("control_rate", control_rate);
-
+    checkParam("joint_limits");
     XmlRpc::XmlRpcValue value;
-    if(!ros::param::has("joint_limits")){
-        ROS_ERROR("WBC parameter joint_limits has not been set");
-        abort();
-    }
     ros::param::get("joint_limits", value);
     base::JointLimits joint_limits;
     fromROS(value, joint_limits);
 
-    if(!ros::param::has("influence_distance")){
-        ROS_ERROR("WBC parameter influence_distance has not been set");
-        abort();
-    }
+    checkParam("influence_distance");
     std::vector<double> influence_distance;
     ros::param::get("influence_distance", influence_distance);
 
-    if(!ros::param::has("p_gain")){
-        ROS_ERROR("WBC parameter p_gain has not been set");
-        abort();
-    }
+    checkParam("p_gain");
     std::vector<double> p_gain;
     ros::param::get("p_gain", p_gain);
 
-    if(!ros::param::has("max_control_output")){
-        ROS_ERROR("WBC parameter max_control_output has not been set");
-        abort();
-    }
+    checkParam("max_control_output");
     std::vector<double> max_control_output;
     ros::param::get("max_control_output", max_control_output);
 
@@ -54,11 +31,12 @@ JointLimitAvoidanceNode::JointLimitAvoidanceNode(int argc, char** argv) : has_fe
     sub_feedback = nh->subscribe("feedback", 1, &JointLimitAvoidanceNode::feedbackCallback, this);
     // Ctrl output
     control_output_publisher = nh->advertise<trajectory_msgs::JointTrajectory>("control_output", 1);
+
+    has_setpoint = true; // Controller does not need a setpoint
 }
 
 JointLimitAvoidanceNode::~JointLimitAvoidanceNode(){
     delete controller;
-    delete nh;
 }
 
 void JointLimitAvoidanceNode::feedbackCallback(const sensor_msgs::JointState& msg){
@@ -66,24 +44,10 @@ void JointLimitAvoidanceNode::feedbackCallback(const sensor_msgs::JointState& ms
     fromROS(msg, feedback);
 }
 
-void JointLimitAvoidanceNode::update(){
-    if(!has_feedback){
-        ROS_WARN_DELAYED_THROTTLE(5, "%s: No feedback", node_name.c_str());
-        return;
-    }
+void JointLimitAvoidanceNode::updateController(){
     control_output = controller->update(feedback);
     toROS(control_output, control_output_msg);
     control_output_publisher.publish(control_output_msg);
-}
-
-void JointLimitAvoidanceNode::run(){
-    ros::Rate loop_rate(control_rate);
-    ROS_INFO("Joint Limit Avoidance Controller is running");
-    while(ros::ok()){
-        update();
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
 }
 
 int main(int argc, char** argv){

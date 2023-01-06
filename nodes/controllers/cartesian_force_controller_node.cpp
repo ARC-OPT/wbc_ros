@@ -3,46 +3,23 @@
 
 using namespace ctrl_lib;
 
-CartesianForceControllerNode::CartesianForceControllerNode(int argc, char** argv) : has_feedback(false),has_setpoint(false){
-    node_name = "cartesian_force_controller";
-    ros::init(argc, argv, node_name);
-    nh = new ros::NodeHandle();
-
-    ROS_INFO("Initialize Controller: %s", node_name.c_str());
-
-    if(!ros::param::has("control_rate")){
-        ROS_ERROR("WBC parameter control_rate has not been set");
-        abort();
-    }
-    ros::param::get("control_rate", control_rate);
+CartesianForceControllerNode::CartesianForceControllerNode(int argc, char** argv) : ControllerNode(argc, argv){
 
     controller = new CartesianForcePIDController();
 
-    if(!ros::param::has("p_gain")){
-        ROS_ERROR("WBC parameter p_gain has not been set");
-        abort();
-    }
+    checkParam("p_gain");
     std::vector<double> p_gain;
     ros::param::get("p_gain", p_gain);
 
-    if(!ros::param::has("i_gain")){
-        ROS_ERROR("WBC parameter i_gain has not been set");
-        abort();
-    }
+    checkParam("i_gain");
     std::vector<double> i_gain;
     ros::param::get("i_gain", i_gain);
 
-    if(!ros::param::has("d_gain")){
-        ROS_ERROR("WBC parameter d_gain has not been set");
-        abort();
-    }
+    checkParam("d_gain");
     std::vector<double> d_gain;
     ros::param::get("d_gain", d_gain);
 
-    if(!ros::param::has("windup")){
-        ROS_ERROR("WBC parameter windup has not been set");
-        abort();
-    }
+    checkParam("windup");
     std::vector<double> windup;
     ros::param::get("windup", windup);
 
@@ -54,18 +31,12 @@ CartesianForceControllerNode::CartesianForceControllerNode(int argc, char** argv
 
     controller->setPID(pid_params);
 
-    if(!ros::param::has("max_control_output")){
-        ROS_ERROR("WBC parameter max_control_output has not been set");
-        abort();
-    }
+    checkParam("max_control_output");
     std::vector<double> max_control_output;
     ros::param::get("max_control_output", max_control_output);
     controller->setMaxCtrlOutput(Eigen::Map<Eigen::VectorXd>(max_control_output.data(),max_control_output.size()));
 
-    if(!ros::param::has("dead_zone")){
-        ROS_ERROR("WBC parameter dead_zone has not been set");
-        abort();
-    }
+    checkParam("dead_zone");
     std::vector<double> dead_zone;
     ros::param::get("dead_zone", dead_zone);
     controller->setDeadZone(Eigen::Map<Eigen::VectorXd>(dead_zone.data(),dead_zone.size()));
@@ -80,7 +51,6 @@ CartesianForceControllerNode::CartesianForceControllerNode(int argc, char** argv
 
 CartesianForceControllerNode::~CartesianForceControllerNode(){
     delete controller;
-    delete nh;
 }
 
 void CartesianForceControllerNode::setpointCallback(const geometry_msgs::WrenchStamped& msg){
@@ -93,28 +63,10 @@ void CartesianForceControllerNode::feedbackCallback(const geometry_msgs::WrenchS
     has_feedback = true;
 }
 
-void CartesianForceControllerNode::update(){
-    if(!has_feedback){
-        ROS_WARN_DELAYED_THROTTLE(5, "%s: No feedback", node_name.c_str());
-        return;
-    }
-    if(!has_setpoint){
-        ROS_DEBUG_DELAYED_THROTTLE(5, "%s: No setpoint", node_name.c_str());
-        return;
-    }
+void CartesianForceControllerNode::updateController(){
     control_output = controller->update(setpoint, feedback, 1/control_rate);
     toROS(control_output, control_output_msg);
     control_output_publisher.publish(control_output_msg);
-}
-
-void CartesianForceControllerNode::run(){
-    ros::Rate loop_rate(control_rate);
-    ROS_INFO("Cartesian Force Controller is running");
-    while(ros::ok()){
-        update();
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
 }
 
 int main(int argc, char** argv){
