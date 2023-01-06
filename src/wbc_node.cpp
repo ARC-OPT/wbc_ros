@@ -96,6 +96,9 @@ WbcNode::WbcNode(int argc, char** argv) : ControllerNode(argc, argv), has_floati
     // Solver output
     solver_output_publisher = nh->advertise<trajectory_msgs::JointTrajectory>("solver_output", 1);
 
+    // Stats on computation time
+    pub_timing_stats = nh->advertise<wbc_msgs::WbcTimingStats>("timing_stats", 1);
+
     // WBC will send zeros if no setpoint is given from any controller
     has_setpoint = true;
 }
@@ -134,10 +137,6 @@ void WbcNode::taskWeightsCallback(const ros::MessageEvent<std_msgs::Float64Multi
 
 void WbcNode::jointWeightsCallback(const std_msgs::Float64MultiArray& msg){
     fromROS(msg, robot_model->jointNames(), joint_weights);
-    ROS_ERROR("Got a joint weight callback");
-    for(auto n : joint_weights.names){
-        std::cout<<n<<": "<<joint_weights[n]<<std::endl;
-    }
     scene->setJointWeights(joint_weights);
 }
 
@@ -147,9 +146,22 @@ void WbcNode::floatingBaseStateCallback(const wbc_msgs::RigidBodyState& msg){
 }
 
 void WbcNode::updateController(){
+    timing_stats.desired_period = 1.0 / control_rate;
+    timing_stats.actual_period = (ros::Time::now() - stamp).toSec();
+    stamp = ros::Time::now();
+
+    ros::Time start = ros::Time::now();
     robot_model->update(joint_state, floating_base_state);
+    timing_stats.time_robot_model_update = (ros::Time::now() - start).toSec();
+
+    start = ros::Time::now();
     qp = scene->update();
+    timing_stats.time_scene_update = (ros::Time::now() - start).toSec();
+
+    start = ros::Time::now();
     solver_output = scene->solve(qp);
+    timing_stats.time_solve = (ros::Time::now() - start).toSec();
+
     tasks_status = scene->updateTasksStatus();
     if(integrate)
         joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/control_rate);
@@ -158,6 +170,10 @@ void WbcNode::updateController(){
 
     publishTaskStatus();
     publishTaskInfo();
+
+    timing_stats.time_per_cycle = (ros::Time::now() - stamp).toSec();
+    timing_stats.header.stamp = ros::Time::now();
+    pub_timing_stats.publish(timing_stats);
 }
 
 void WbcNode::publishTaskStatus(){

@@ -7,6 +7,7 @@
 #include <std_msgs/Float64.h>
 #include <std_msgs/Float64MultiArray.h>
 #include <wbc_msgs/TaskStatus.h>
+#include <wbc_msgs/WbcTimingStats.h>
 
 #include "controllers/controller_node.hpp"
 #include <wbc/core/RobotModel.hpp>
@@ -17,6 +18,9 @@
 
 #include <base/commands/Joints.hpp>
 
+/**
+@brief WBCNode - ROS interface for the WBC libary (https://github.com/ARC-OPT/wbc).
+*/
 class WbcNode : public ControllerNode{
 protected:
    wbc::WbcScenePtr scene;
@@ -46,8 +50,11 @@ protected:
    ros::Subscriber sub_joint_weights;
    ros::Subscriber sub_floating_base;
    ros::Publisher solver_output_publisher;
+   ros::Publisher pub_timing_stats;
    wbc_msgs::RigidBodyState status_cart;
    sensor_msgs::JointState status_jnt;
+   wbc_msgs::WbcTimingStats timing_stats;
+   ros::Time stamp;
 
    void jointStateCallback(const sensor_msgs::JointState& msg);
    void cartReferenceCallback(const ros::MessageEvent<wbc_msgs::RigidBodyState>& event, const std::string& constraint_name);

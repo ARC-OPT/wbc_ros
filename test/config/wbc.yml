@@ -1,7 +1,7 @@
 control_rate: 250
 robot_model_config:
     file: /home/dennis/catkin_ws/src/kuka_lbr_ros/kuka_lbr_description/urdf/kuka_lbr.urdf
-    type: pinocchio
+    type: rbdl
 wbc_config:
     - name: right_arm
       type: cart
