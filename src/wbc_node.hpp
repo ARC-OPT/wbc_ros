@@ -19,7 +19,43 @@
 #include <base/commands/Joints.hpp>
 
 /**
-@brief WBCNode - ROS interface for the WBC libary (https://github.com/ARC-OPT/wbc).
+@brief WBCNode - Main ROS interface for the WBC libary (https://github.com/ARC-OPT/wbc). This node implements a peridic control loop,
+which does the following in every control cycle:
+
+   1. Update the internal robot with the current joint status
+   2. Update the reference values for all tasks
+   3. Set up a quadratic program, which includes all tasks and constraints
+   4. Solve the QP and outputs the solver output
+   5. Publish debug info about the task status and the QP
+
+Subscribed Topics:
+ - `joint_state` (`sensor_msgs/JointState`): The current joint state of the entire robot. Must contain all non-fixed joints from the URDF used in WBC. Must contain
+    at least positions for Veloicty-based WBC and positions/velocities for acceleration-based WBC, e.g., TSID
+ - `floating_base_state` (`wbc_msgs/RigidBodyState`): The state of the floating base. Only required if floating_base is set to true in the wbc configuration. Must contain
+    at least pose for Veloicty-based WBC and pose/twist for acceleration-based WBC, e.g., TSID
+ - `ref_mytask` (`wbc_msgs/RigidBodyState` or `sensor_msgs/JointState`): Reference for task mytask. For Cartesian space tasks this must be a twist or spatial acceleration,
+    for joint space tasks, this must be joint velocities or accelerations.
+ - `weights_mytask` (`std_msgs/Float64MultiArray`): Task weights for task mytask. Can be used to set the priority of different aspects of one tasks, e.g.,
+    certain directions in task space. Size must be 6 for Cartesian space tasks. For joint space tasks, the size must match the number of configured joints for this task.
+ - `activation_mytask` (`std_msgs/Float64`): Activation value for task mytask. Can be used to activate/deactivate a task entirely.
+ - `joint_weights` (`std_msgs/Float64MultiArray`): Joint weight vector. Can be used to prioritize or activate/deactivate certain joints.
+
+ Published Topics:
+ - `status_mytask` (`wbc_msgs/RigidBodyState` or `sensor_msgs/JointState`): Status for task mytask For Cartesian space tasks: Current pose, twist and
+   spatial acceleration for the kinematic chain associated with this task. For joint space tasks: position, velocity and acceleration of the joints associated with this task.
+ - `task_mytask` (`wbc_msgs/TaskStatus`): Debug info on task mytask.
+ - `solver_output` (`trajectory_msgs/JointTrajectory`): Solution of the QP. No. of points in the trajectory is always 1. Size of this point is same as number
+    of non-fixed joints in URDF.
+ - `timing_stats` (`wbc_msgs/WbcTimingStats`): Computation time for different processing steps in WBC.
+
+ Parameters:
+ - `control_rate` (double): Loop rate of the WBC in Hz
+ - `integrate` (bool): If true, the solver output will be integrated once for velocity-based WBC and twice for acceleration-based WBC
+ - `robot_model_config` (dict): Configuration of the robot model like, e.g., URDF filename, type of model, floating base etc.
+    (see <a href="https://github.com/ARC-OPT/wbc/blob/master/src/core/RobotModelConfig.hpp">here</a>) for more information.
+ - `qp_solver` (string): Name of the QP solver to use, can be one of qpoases, qpswift, eiquadprog, proxqp
+ - `wbc_config` (dict): Tasks configuration. This contains information about each task, which is stacked inside the QP. See
+   (see <a href="https://github.com/ARC-OPT/wbc/blob/master/src/core/TaskConfig.hpp">here</a>) for more information.
 */
 class WbcNode : public ControllerNode{
 protected:

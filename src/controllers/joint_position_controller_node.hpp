@@ -8,6 +8,9 @@
 #include <wbc/controllers/JointPosPDController.hpp>
 #include <base/commands/Joints.hpp>
 
+/**
+@brief Position controller in joint space. See <a href="https://github.com/ARC-OPT/wbc/blob/master/src/controllers/JointPosPDController.hpp">here</a> for details.
+*/
 class JointPositionControllerNode : public ControllerNode{
 protected:
     trajectory_msgs::JointTrajectory control_output_msg;

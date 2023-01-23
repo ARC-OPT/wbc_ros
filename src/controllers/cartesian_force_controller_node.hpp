@@ -9,6 +9,9 @@
 #include <base/samples/Wrench.hpp>
 #include <base/samples/RigidBodyStateSE3.hpp>
 
+/**
+@brief Force controller in Cartesian space. See <a href="https://github.com/ARC-OPT/wbc/blob/master/src/controllers/CartesianForcePIDController.hpp">here</a> for details.
+*/
 class CartesianForceControllerNode : public ControllerNode{
 protected:
     wbc_msgs::RigidBodyState control_output_msg;

@@ -7,6 +7,9 @@
 #include <wbc/controllers/CartesianPosPDController.hpp>
 #include <base/samples/RigidBodyStateSE3.hpp>
 
+/**
+@brief Position controller in Cartesian space. See <a href="https://github.com/ARC-OPT/wbc/blob/master/src/controllers/CartesianPosPDController.hpp">here</a> for details.
+*/
 class CartesianPositionControllerNode : public ControllerNode{
 protected:
     wbc_msgs::RigidBodyState control_output_msg;

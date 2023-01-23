@@ -4,6 +4,10 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 
+/**
+@brief Base class for all controllers including wbc_node. Will peridically call updateController() if feedback
+and setpoint are available. 
+*/
 class ControllerNode{
     enum controllerState{
         PRE_OPERATIONAL = 0,

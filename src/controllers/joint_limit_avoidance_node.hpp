@@ -8,6 +8,9 @@
 #include <base/samples/Joints.hpp>
 #include <wbc/controllers/JointLimitAvoidanceController.hpp>
 
+/**
+@brief Joint limit avoidance controller. See <a href="https://github.com/ARC-OPT/wbc/blob/master/src/controllers/JointLimitAvoidanceController.hpp">here</a> for details.
+*/
 class JointLimitAvoidanceNode : public ControllerNode{
 protected:
     trajectory_msgs::JointTrajectory control_output_msg;

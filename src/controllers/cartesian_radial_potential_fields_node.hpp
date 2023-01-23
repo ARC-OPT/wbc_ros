@@ -9,6 +9,9 @@
 #include <wbc/controllers/CartesianPotentialFieldsController.hpp>
 #include <wbc/controllers/PotentialField.hpp>
 
+/**
+@brief Radial potential fields in Cartesian space. See <a href="https://github.com/ARC-OPT/wbc/blob/master/src/controllers/CartesianPotentialFieldsController.hpp">here</a> for details.
+*/
 class CartesianRadialPotentialFieldsNode : public ControllerNode{
 protected:
     wbc_msgs::RigidBodyState control_output_msg;
