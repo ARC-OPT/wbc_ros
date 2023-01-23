@@ -47,6 +47,10 @@ wbc_ros requires a bare-bones ROS installation (noetic is the only tested distri
  rosdep install wbc_ros
  catkin_make wbc_ros
  ```
+ 
+## Documentation
+
+Doygen documentation can be generated with [rosdoc_lite](http://wiki.ros.org/rosdoc_lite)
 
 ## Testing
 
