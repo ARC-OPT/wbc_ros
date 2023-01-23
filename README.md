@@ -30,17 +30,29 @@ The online solution of this problem is the robot joint control signal that compl
 
 Currently supported OS: Ubuntu20.04, Ubuntu22.04
 
-wbc_ros requires a bare-bones ROS installation (noetic is the only well-tested distribution). See package.xml for further dependencies.
-
+wbc_ros requires a bare-bones ROS installation (noetic is the only tested distribution) as well as the [WBC library](https://github.com/ARC-OPT/wbc). See package.xml for further dependencies.
 
 ## Installation
 
 * Install ROS noetic as described [here](http://wiki.ros.org/noetic/Installation/Ubuntu)
 * Install the WBC library as described [here](https://arc-opt.github.io/Documentation/installation/installation_no_rock.html)
+* Create a catkin workspace as described [here](http://wiki.ros.org/catkin/Tutorials/create_a_workspace) or use an existing one
+* If not yet done, install rosdep as described [here](wiki.ros.org/rosdep)
+* In a console type
+ ```
+ cd ~/my_catkin_workspace/src
+ git clone https://git.hb.dfki.de/dfki-control/wbc/wbc_ros
+ git clone https://git.hb.dfki.de/dfki-control/wbc/wbc_msgs
+ cd ..
+ rosdep install wbc_ros
+ catkin_make wbc_ros
+ ```
 
 ## Testing
 
-TODO
+For testing the ROS interface you can run ```rostest wbc_ros test_wbc.test```.
+
+The unit tests for the wbc library can be found [here](https://github.com/ARC-OPT/wbc/tree/master/test).
 
 ## Contributing
 
@@ -50,7 +62,7 @@ Please use merge requests as described [here](TODO) to add/adapt functionality.
 
 ## License
 
-orogen-wbc is distributed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).
+wbc_ros is distributed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).
 
 ## Acknowledge WBC
 
