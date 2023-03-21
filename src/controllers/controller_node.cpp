@@ -1,69 +1,51 @@
 #include "controller_node.hpp"
 
-ControllerNode::ControllerNode(int argc, char** argv) : state(PRE_OPERATIONAL), has_feedback(false),has_setpoint(false){
-    ros::init(argc, argv, "controller");
-    nh = new ros::NodeHandle();
-    node_name = ros::this_node::getName();
+using namespace rclcpp;
+using namespace std;
 
-    ROS_INFO("Initializing Controller: %s", node_name.c_str());
+ControllerNode::ControllerNode(string node_name) : Node(node_name), state(PRE_OPERATIONAL), has_feedback(false), has_setpoint(false){
 
-    checkParam("control_rate");
-    ros::param::get("control_rate", control_rate);
+    RCLCPP_INFO(this->get_logger(), "Initializing Controller: %s", node_name.c_str());
 
-    state_publisher = nh->advertise<std_msgs::String>("state", 1);
+    this->declare_parameter("control_rate", 1000.0);
+    control_rate = this->get_parameter("control_rate").get_parameter_value().get<double>();
+
+    state_publisher = this->create_publisher<std_msgs::msg::String>("state", 1);
+    timer_update = this->create_wall_timer(std::chrono::duration<double>(1.0/control_rate), std::bind(&ControllerNode::update, this));
+    timer_state_pub = this->create_wall_timer(1000ms, std::bind(&ControllerNode::publishState, this));
 }
 
-ControllerNode::~ControllerNode(){
-    delete nh;
+void ControllerNode::publishState(){
+    state_publisher->publish(controllerState2StringMsg(state));
 }
 
-void ControllerNode::checkParam(std::string name){
-    if(!ros::param::has(name)){
-        ROS_ERROR("%s: Parameter %s has not been set", node_name.c_str(), name.c_str());
-        abort();
-    }
-}
-
-void ControllerNode::run(){
-    ros::Rate loop_rate(control_rate);
-    ROS_INFO("Running: %s", node_name.c_str());
-    while(ros::ok()){
-
-        switch(state){
-            case PRE_OPERATIONAL:{
-                state = NO_FEEDBACK;
-                break;
-            }
-            case NO_FEEDBACK:{
-                if(has_feedback)
-                    state = NO_SETPOINT;
-                else
-                    ROS_WARN_DELAYED_THROTTLE(5, "%s: No feedback", node_name.c_str());
-                break;
-            }
-            case NO_SETPOINT:{
-                if(has_setpoint)
-                    state = RUNNING;
-                else
-                    ROS_DEBUG_DELAYED_THROTTLE(5, "%s: No setpoint", node_name.c_str());
-                break;
-            }
-            case RUNNING:{
-                updateController();
-                break;
-            }
-            default:{
-                ROS_ERROR("Invalid controller state: %i", state);
-                abort();
-            }
+void ControllerNode::update(){
+    switch(state){
+        case PRE_OPERATIONAL:{
+            state = NO_FEEDBACK;
+            break;
         }
-
-        if((ros::Time::now() - stamp).toSec() > 1){
-            state_publisher.publish(controllerState2StringMsg(state));
-            stamp = ros::Time::now();
+        case NO_FEEDBACK:{
+            if(has_feedback)
+                state = NO_SETPOINT;
+            else
+                RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000, "%s: No feedback", node_name.c_str());
+            break;
         }
-
-        ros::spinOnce();
-        loop_rate.sleep();
+        case NO_SETPOINT:{
+            if(has_setpoint)
+                state = RUNNING;
+            else
+                RCLCPP_DEBUG_THROTTLE(this->get_logger(), *this->get_clock(), 1000, "%s: No setpoint", node_name.c_str());
+            break;
+        }
+        case RUNNING:{
+            updateController();
+            break;
+        }
+        default:{
+            RCLCPP_ERROR(this->get_logger(), "Invalid controller state: %i", state);
+            abort();
+        }
     }
 }

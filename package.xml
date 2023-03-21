@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>wbc_ros</name>
   <version>0.1.0</version>
   <description>ROS interface for wbc library</description>
@@ -7,31 +7,17 @@
   <maintainer email="dennis.mronga@dfki.de">Dennis Mronga</maintainer>
   <license>BSD-3</license>
   <url type="https://arc-opt.github.io/Documentation"></url>
-  <logo>https://github.com/ARC-OPT/wbc/doc/images/arcopt_logo_v3_github.jpg</logo>
   <author email="dennis.mronga@dfki.de">Dennis Mronga</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>wbc_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>trajectory_msgs</depend>
   <depend>std_msgs</depend>
 
-  <tags>stable</tags>
-  <keywords>
-     <keyword>Control</keyword>
-     <keyword>Whole-Body Control</keyword>
-     <keyword>Optimization</keyword>
-     <keyword>Redundancy Resolution</keyword>
-   </keywords>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 
-  <stage>0</stage>
-  <use>single project</use>
-  <activity>active</activity>
-
-  <classifiers>
-    <classifier>c++</classifier>
-    <classifier>ROS</classifier>
-    <classifier>ubuntu</classifier>
-  </classifiers>
 </package>

@@ -1,22 +1,22 @@
 #ifndef CONTROLLER_NODE_HPP
 #define CONTROLLER_NODE_HPP
 
-#include <ros/ros.h>
-#include <std_msgs/String.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/string.hpp>
 
 /**
 @brief Base class for all controllers including wbc_node. Will peridically call updateController() if feedback
-and setpoint are available. 
+and setpoint are available.
 */
-class ControllerNode{
+class ControllerNode : public rclcpp::Node{
     enum controllerState{
         PRE_OPERATIONAL = 0,
         NO_FEEDBACK,
         NO_SETPOINT,
         RUNNING
     };
-    std_msgs::String controllerState2StringMsg(controllerState s){
-        std_msgs::String msg;
+    std_msgs::msg::String controllerState2StringMsg(controllerState s){
+        std_msgs::msg::String msg;
         if(s == PRE_OPERATIONAL)
             msg.data = "PRE_OPERATIONAL";
         else if(s == NO_FEEDBACK)
@@ -30,13 +30,9 @@ class ControllerNode{
 
 
 protected:
-    ros::NodeHandle* nh;
-    ros::Subscriber sub_feedback;
-    ros::Subscriber sub_setpoint;
-    ros::Publisher control_output_publisher;
-    ros::Publisher state_publisher;
-    ros::Time stamp;
-
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr state_publisher;
+    rclcpp::TimerBase::SharedPtr timer_update;
+    rclcpp::TimerBase::SharedPtr timer_state_pub;
     controllerState state;
     std::string node_name;
     double control_rate;
@@ -44,11 +40,11 @@ protected:
     bool has_setpoint;
 
     virtual void updateController() = 0;
-    void checkParam(std::string name);
+    void publishState();
 public:
-    ControllerNode(int argc, char** argv);
-    virtual ~ControllerNode();
-    void run();
+    ControllerNode(std::string node_name);
+    virtual ~ControllerNode(){}
+    void update();
 };
 
 #endif

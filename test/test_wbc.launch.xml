@@ -1,57 +1,67 @@
 <launch>
-    <param name="robot_description" textfile="$(find kuka_lbr_description)/urdf/kuka_lbr.urdf" />
+
 
     <!-- TODO: This is quite ugly, is there a better way?-->
     <!-- Map controller output to WBC input-->
-    <remap from="/kuka_lbr/wbc/joint_position/control_output" to="/kuka_lbr/wbc/ref_joint_position"/>
+    <!--remap from="/kuka_lbr/wbc/joint_position/control_output" to="/kuka_lbr/wbc/ref_joint_position"/>
     <remap from="/kuka_lbr/wbc/right_arm/control_output" to="/kuka_lbr/wbc/ref_right_arm"/>
     <remap from="/kuka_lbr/wbc/joint_limits/control_output" to="/kuka_lbr/wbc/ref_joint_limits"/>
     <remap from="/kuka_lbr/wbc/contact_force_left/control_output" to="/kuka_lbr/wbc/ref_contact_force_left"/>
-    <remap from="/kuka_lbr/wbc/collision_avoidance_left/control_output" to="/kuka_lbr/wbc/ref_collision_avoidance_left"/>
+    <remap from="/kuka_lbr/wbc/collision_avoidance_left/control_output" to="/kuka_lbr/wbc/ref_collision_avoidance_left"/-->
 
     <!-- Map WBC output to controller feedback-->
-    <remap from="/kuka_lbr/wbc/joint_position/feedback" to="/kuka_lbr/wbc/joint_states"/>
+    <!--remap from="/kuka_lbr/wbc/joint_position/feedback" to="/kuka_lbr/wbc/joint_states"/>
     <remap from="/kuka_lbr/wbc/right_arm/feedback" to="/kuka_lbr/wbc/status_right_arm"/>
     <remap from="/kuka_lbr/wbc/joint_limits/feedback" to="/kuka_lbr/wbc/joint_states"/>
-    <remap from="/kuka_lbr/wbc/collision_avoidance_left/feedback" to="/kuka_lbr/wbc/status_collision_avoidance_left"/>
+    <remap from="/kuka_lbr/wbc/collision_avoidance_left/feedback" to="/kuka_lbr/wbc/status_collision_avoidance_left"/-->
 
     <!-- Map joint command to solver output -->
-    <remap from="/kuka_lbr/wbc/command" to="/kuka_lbr/wbc/solver_output"/>
+    <!--remap from="/kuka_lbr/wbc/command" to="/kuka_lbr/wbc/solver_output"/-->
 
-    <group ns="kuka_lbr">
-        <group ns="wbc">
-            <rosparam command="load" file="$(find wbc_ros)/test/config/joints.yml" />
-            <rosparam command="load" file="$(find wbc_ros)/test/config/wbc.yml" />
+    <group>
+        <push_ros_namespace namespace="kuka_lbr"/>
+        <group>
+            <push_ros_namespace namespace="wbc"/>
+            <node pkg="wbc_ros" exec="wbc_node" name="wbc" output="screen">
+                <param from="$(find-pkg-prefix wbc_ros)/test/config/wbc.yml" />
+            </node>
+            <node pkg="wbc_ros" exec="loop_back_driver_node" name="joints" output="screen">
+                <param from="$(find-pkg-prefix wbc_ros)/test/config/joints.yml" />
+            </node>
+            <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher">
+                <param name="robot_description" value="$(command 'xacro $(find-pkg-share kuka_lbr_description)/urdf/kuka_lbr.urdf.xacro')" />
+            </node>
+            <node pkg="joint_state_publisher" exec="joint_state_publisher" name="joint_state_publisher">
+                <param name="robot_description" value="$(command 'xacro $(find-pkg-share kuka_lbr_description)/urdf/kuka_lbr.urdf.xacro')" />
+                <param name="source_list" value="['/kuka_lbr/wbc/joint_states']" />
+            </node>
 
-            <node pkg="wbc_ros" type="wbc_node" name="wbc" output="screen"/>
-            <node pkg="wbc_ros" type="loop_back_driver_node" name="joints" output="screen"/>
-            <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"/>
-
-            <group ns="joint_position">
-                <rosparam command="load" file="$(find wbc_ros)/test/config/joint_position.yml" />
-                <node pkg="wbc_ros" type="joint_position_controller_node" name="controller" output="screen"/>
+            <!--group ns="joint_position">
+                <node pkg="wbc_ros" type="joint_position_controller_node" name="controller" output="screen">
+                    <param from="$(find wbc_ros)/test/config/joint_position.yml" />
+                </node>
             </group>
             <group ns="right_arm">
-                <rosparam command="load" file="$(find wbc_ros)/test/config/right_arm.yml" />
+                <param from="$(find wbc_ros)/test/config/right_arm.yml" />
                 <node pkg="wbc_ros" type="cartesian_position_controller_node" name="controller" output="screen"/>
             </group>
             <group ns="joint_limits">
-                <rosparam command="load" file="$(find wbc_ros)/test/config/joint_limits.yml" />
+                <param from="$(find wbc_ros)/test/config/joint_limits.yml" />
                 <node pkg="wbc_ros" type="joint_limit_avoidance_node" name="controller" output="screen"/>
             </group>
             <group ns="collision_avoidance_left">
-                <rosparam command="load" file="$(find wbc_ros)/test/config/collision_avoidance.yml" />
+                <param from="$(find wbc_ros)/test/config/collision_avoidance.yml" />
                 <node pkg="wbc_ros" type="cartesian_radial_potential_fields_node" name="controller" output="screen"/>
             </group>
             <group ns="contact_force_left">
-                <rosparam command="load" file="$(find wbc_ros)/test/config/contact_force.yml" />
+                <param from="$(find wbc_ros)/test/config/contact_force.yml" />
                 <node pkg="wbc_ros" type="cartesian_force_controller_node" name="controller" output="screen"/>
-            </group>
+            </group-->
         </group>
     </group>
 
-    <test name="wbc_publishers" test-name="wbc_publishers" pkg="rostest" type="publishtest">
-        <rosparam>
+    <!--test name="wbc_publishers" test-name="wbc_publishers" pkg="rostest" type="publishtest">
+        <param>
             topics:
                 - name: /kuka_lbr/wbc/solver_output
                 - name: /kuka_lbr/wbc/task_right_arm
@@ -66,29 +76,29 @@
                 - name: /kuka_lbr/wbc/status_joint_limits
                 - name: /kuka_lbr/wbc/state
                 - name: /kuka_lbr/wbc/joint_states
-        </rosparam>
+        </param>
     </test>
 
     <test name="controller_publishers" test-name="controller_publishers" pkg="rostest" type="publishtest">
-        <rosparam>
+        <param>
             topics:
                 - name: /kuka_lbr/wbc/right_arm/state
                 - name: /kuka_lbr/wbc/collision_avoidance_left/state
                 - name: /kuka_lbr/wbc/contact_force_left/state
                 - name: /kuka_lbr/wbc/joint_position/state
                 - name: /kuka_lbr/wbc/joint_limits/state
-        </rosparam>
+        </param>
     </test>
 
     <test name="controller_advertisements" test-name="controller_advertisements" pkg="rostest" type="advertisetest">
-        <rosparam>
+        <param>
             topics:
                 - name: /kuka_lbr/wbc/ref_right_arm
                 - name: /kuka_lbr/wbc/ref_collision_avoidance_left
                 - name: /kuka_lbr/wbc/ref_contact_force_left
                 - name: /kuka_lbr/wbc/ref_joint_position
                 - name: /kuka_lbr/wbc/ref_joint_limits
-        </rosparam>
+        </param>
     </test>
 
     <test test-name="wbc_control_rate" pkg="rostest" type="hztest" name="hztest">
@@ -96,7 +106,7 @@
         <param name="hz" value="250.0" />
         <param name="hzerror" value="10.0" />
         <param name="test_duration" value="5.0" />
-    </test>
+    </test-->
 
 
 </launch>

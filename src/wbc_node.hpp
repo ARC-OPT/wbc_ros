@@ -1,13 +1,13 @@
 #ifndef WBC_ROS_NODE_HPP
 #define WBC_ROS_NODE_HPP
 
-#include <wbc_msgs/RigidBodyState.h>
-#include <sensor_msgs/JointState.h>
-#include <trajectory_msgs/JointTrajectory.h>
-#include <std_msgs/Float64.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <wbc_msgs/TaskStatus.h>
-#include <wbc_msgs/WbcTimingStats.h>
+#include <wbc_msgs/msg/rigid_body_state.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <trajectory_msgs/msg/joint_trajectory.hpp>
+#include <std_msgs/msg/float64.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
+#include <wbc_msgs/msg/task_status.hpp>
+#include <wbc_msgs/msg/wbc_timing_stats.hpp>
 
 #include "controllers/controller_node.hpp"
 #include <wbc/core/RobotModel.hpp>
@@ -76,32 +76,37 @@ protected:
    std::vector<wbc::TaskConfig> wbc_config;
    bool has_floating_base_state;
    wbc::TasksStatus tasks_status;
-   std::vector<wbc_msgs::TaskStatus> task_status_msgs;
+   std::vector<wbc_msgs::msg::TaskStatus> task_status_msgs;
 
-   trajectory_msgs::JointTrajectory solver_output_ros;
+   trajectory_msgs::msg::JointTrajectory solver_output_ros;
+   std::vector<rclcpp::Publisher<wbc_msgs::msg::RigidBodyState>::SharedPtr> publishers_task_status_cart;
+   std::vector<rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr> publishers_task_status_jnt;
+   std::vector<rclcpp::Publisher<wbc_msgs::msg::TaskStatus>::SharedPtr> publishers_task_info;
+   rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr sub_joint_weights;
+   rclcpp::Subscription<wbc_msgs::msg::RigidBodyState>::SharedPtr sub_floating_base;
+   std::vector<rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr> sub_activation;
+   std::vector<rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr> sub_weights;
+   std::vector<rclcpp::Subscription<wbc_msgs::msg::RigidBodyState>::SharedPtr> sub_cart_ref;
+   std::vector<rclcpp::Subscription<trajectory_msgs::msg::JointTrajectory>::SharedPtr> sub_jnt_ref;
 
-   std::vector<ros::Subscriber> subscribers;
-   std::vector<ros::Publisher> publishers_task_status;
-   std::vector<ros::Publisher> publishers_task_info;
-   ros::Subscriber sub_joint_weights;
-   ros::Subscriber sub_floating_base;
-   ros::Publisher solver_output_publisher;
-   ros::Publisher pub_timing_stats;
-   wbc_msgs::RigidBodyState status_cart;
-   sensor_msgs::JointState status_jnt;
-   wbc_msgs::WbcTimingStats timing_stats;
-   ros::Time stamp;
+   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr sub_feedback;
+   rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr solver_output_publisher;
+   rclcpp::Publisher<wbc_msgs::msg::WbcTimingStats>::SharedPtr pub_timing_stats;
+   wbc_msgs::msg::RigidBodyState status_cart;
+   sensor_msgs::msg::JointState status_jnt;
+   wbc_msgs::msg::WbcTimingStats timing_stats;
+   rclcpp::Time stamp;
 
-   void jointStateCallback(const sensor_msgs::JointState& msg);
-   void cartReferenceCallback(const ros::MessageEvent<wbc_msgs::RigidBodyState>& event, const std::string& constraint_name);
-   void jntReferenceCallback(const ros::MessageEvent<trajectory_msgs::JointTrajectory>& event, const std::string& constraint_name);
-   void taskActivationCallback(const ros::MessageEvent<std_msgs::Float64>& event, const std::string& constraint_name);
-   void taskWeightsCallback(const ros::MessageEvent<std_msgs::Float64MultiArray>& event, const std::string& constraint_name);
-   void jointWeightsCallback(const std_msgs::Float64MultiArray& msg);
-   void floatingBaseStateCallback(const wbc_msgs::RigidBodyState& msg);
+   void jointStateCallback(const sensor_msgs::msg::JointState& msg);
+   void cartReferenceCallback(const wbc_msgs::msg::RigidBodyState& msg, const std::string& constraint_name);
+   void jntReferenceCallback(const trajectory_msgs::msg::JointTrajectory& msg, const std::string& constraint_name);
+   void taskActivationCallback(const std_msgs::msg::Float64& msg, const std::string& constraint_name);
+   void taskWeightsCallback(const std_msgs::msg::Float64MultiArray& msg, const std::string& constraint_name);
+   void jointWeightsCallback(const std_msgs::msg::Float64MultiArray& msg);
+   void floatingBaseStateCallback(const wbc_msgs::msg::RigidBodyState& msg);
 
 public:
-   WbcNode(int argc, char** argv);
+   WbcNode(std::string node_name);
    ~WbcNode();
    virtual void updateController();
    void publishTaskStatus();

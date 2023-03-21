@@ -1,9 +1,9 @@
 #ifndef LOOP_BACK_DRIVER_NODE_HPP
 #define LOOP_BACK_DRIVER_NODE_HPP
 
-#include <sensor_msgs/JointState.h>
-#include <trajectory_msgs/JointTrajectory.h>
-#include <ros/ros.h>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <trajectory_msgs/msg/joint_trajectory.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 /**
 @brief A simple loopback driver for testing WBC or other controllers. It will set the current position
@@ -19,22 +19,21 @@ Published Topics:
 Parameters:
 - `initial_joint_state` (dict): Initial state (position, velocity, effort) of all joints. Syntax is same as in sensor_msgs/JointState
 */
-class LoopBackDriverNode{
+class LoopBackDriverNode : public rclcpp::Node{
 protected:
-    ros::NodeHandle *nh;
-    ros::Subscriber sub_command;
-    ros::Publisher pub_joint_state;
+    rclcpp::Subscription<trajectory_msgs::msg::JointTrajectory>::SharedPtr sub_command;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pub_joint_state;
+    rclcpp::TimerBase::SharedPtr timer_update;
     double noise_std_dev;
-    sensor_msgs::JointState joint_state;
+    sensor_msgs::msg::JointState joint_state;
 
-    void fromXmlRpc(const XmlRpc::XmlRpcValue& in, sensor_msgs::JointState& out);
     double whiteNoise(const double std_dev);
 
 public:
-    LoopBackDriverNode(int argc, char** argv);
+    LoopBackDriverNode(std::string node_name);
     ~LoopBackDriverNode();
 
-    void commandCallback(const trajectory_msgs::JointTrajectory& msg);
+    void commandCallback(const trajectory_msgs::msg::JointTrajectory& msg);
     void update();
 };
 

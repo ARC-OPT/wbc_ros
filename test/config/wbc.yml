@@ -1,47 +1,50 @@
-control_rate: 250
-robot_model_config:
-    file: /home/dennis/catkin_ws/src/kuka_lbr_ros/kuka_lbr_description/urdf/kuka_lbr.urdf
-    type: rbdl
-wbc_config:
-    - name: right_arm
-      type: cart
-      priority: 0
-      root: kuka_lbr_base
-      tip: kuka_lbr_r_tcp
-      ref_frame: kuka_lbr_base
-      weights: [1.0,1.0,1.0,1.0,1.0,1.0]
-      activation: 1.0
-    - name: collision_avoidance_left
-      type: cart
-      priority: 0
-      root: kuka_lbr_base
-      tip: kuka_lbr_l_tcp
-      ref_frame: kuka_lbr_base
-      weights: [1.0,1.0,1.0,0.0,0.0,0.0]
-      activation: 0.0
-    - name: contact_force_left
-      type: cart
-      priority: 0
-      root: kuka_lbr_base
-      tip: kuka_lbr_l_tcp
-      ref_frame: kuka_lbr_base
-      weights: [1.0,1.0,1.0,1.0,1.0,1.0]
-      activation: 0.0
-    - name: joint_position
-      type: jnt
-      priority: 0
-      joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7',
-                    'kuka_lbr_r_joint_1', 'kuka_lbr_r_joint_2', 'kuka_lbr_r_joint_3', 'kuka_lbr_r_joint_4', 'kuka_lbr_r_joint_5', 'kuka_lbr_r_joint_6', 'kuka_lbr_r_joint_7']
-      weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
-                1.0,1.0,1.0,1.0,1.0,1.0,1.0]
-      activation: 0.0
-    - name: joint_limits
-      type: jnt
-      priority: 0
-      joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7',
-                    'kuka_lbr_r_joint_1', 'kuka_lbr_r_joint_2', 'kuka_lbr_r_joint_3', 'kuka_lbr_r_joint_4', 'kuka_lbr_r_joint_5', 'kuka_lbr_r_joint_6', 'kuka_lbr_r_joint_7']
-      weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
-                1.0,1.0,1.0,1.0,1.0,1.0,1.0]
-      activation: 0.0
-qp_solver: qpoases
-integrate: true
+/kuka_lbr/wbc/wbc:
+  ros__parameters:
+    control_rate: 250.0
+    robot_model_config:
+        file: /home/dennis/ros2_ws/src/kuka_lbr_ros/kuka_lbr_description/urdf/kuka_lbr.urdf
+        type: pinocchio
+    wbc_config:
+        names: ["right_arm", "collision_avoidance_left", "contact_force_left", "joint_position", "joint_limits"]
+        right_arm:
+          type: 1
+          priority: 0
+          root: kuka_lbr_base
+          tip: kuka_lbr_r_tcp
+          ref_frame: kuka_lbr_base
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+          activation: 1.0
+        collision_avoidance_left:
+          type: 1
+          priority: 0
+          root: kuka_lbr_base
+          tip: kuka_lbr_l_tcp
+          ref_frame: kuka_lbr_base
+          weights: [1.0,1.0,1.0,0.0,0.0,0.0]
+          activation: 0.0
+        contact_force_left:
+          type: 1
+          priority: 0
+          root: kuka_lbr_base
+          tip: kuka_lbr_l_tcp
+          ref_frame: kuka_lbr_base
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+          activation: 0.0
+        joint_position:
+          type: 0
+          priority: 0
+          joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7',
+                        'kuka_lbr_r_joint_1', 'kuka_lbr_r_joint_2', 'kuka_lbr_r_joint_3', 'kuka_lbr_r_joint_4', 'kuka_lbr_r_joint_5', 'kuka_lbr_r_joint_6', 'kuka_lbr_r_joint_7']
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+                    1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+          activation: 0.0
+        joint_limits:
+          type: 0
+          priority: 0
+          joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7',
+                        'kuka_lbr_r_joint_1', 'kuka_lbr_r_joint_2', 'kuka_lbr_r_joint_3', 'kuka_lbr_r_joint_4', 'kuka_lbr_r_joint_5', 'kuka_lbr_r_joint_6', 'kuka_lbr_r_joint_7']
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+                    1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+          activation: 0.0
+    qp_solver: qpoases
+    integrate: true
