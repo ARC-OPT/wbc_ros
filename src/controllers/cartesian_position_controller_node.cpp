@@ -2,27 +2,24 @@
 #include "../conversions.hpp"
 
 using namespace ctrl_lib;
+using namespace std;
+using namespace rclcpp;
 
-CartesianPositionControllerNode::CartesianPositionControllerNode(int argc, char** argv) : ControllerNode(argc, argv){
+CartesianPositionControllerNode::CartesianPositionControllerNode(const string & node_name) : ControllerNode(node_name){
 
     controller = new CartesianPosPDController();
 
-    checkParam("p_gain");
-    checkParam("d_gain");
-    checkParam("ff_gain");
-    checkParam("max_control_output");
-    checkParam("dead_zone");
+    declare_parameter("p_gain", std::vector<double>());
+    declare_parameter("d_gain", std::vector<double>());
+    declare_parameter("ff_gain", std::vector<double>());
+    declare_parameter("max_control_output", std::vector<double>());
+    declare_parameter("dead_zone", std::vector<double>());
 
-    std::vector<double> p_gain;
-    ros::param::get("p_gain", p_gain);
-    std::vector<double> d_gain;
-    ros::param::get("d_gain", d_gain);
-    std::vector<double> ff_gain;
-    ros::param::get("ff_gain", ff_gain);
-    std::vector<double> max_control_output;
-    ros::param::get("max_control_output", max_control_output);
-    std::vector<double> dead_zone;
-    ros::param::get("dead_zone", dead_zone);
+    vector<double> p_gain = get_parameter("p_gain").as_double_array();
+    vector<double> d_gain = get_parameter("d_gain").as_double_array();
+    vector<double> ff_gain = get_parameter("ff_gain").as_double_array();
+    vector<double> max_control_output = get_parameter("max_control_output").as_double_array();
+    vector<double> dead_zone = get_parameter("dead_zone").as_double_array();
 
     controller->setPGain(Eigen::Map<Eigen::VectorXd>(p_gain.data(),p_gain.size()));
     controller->setDGain(Eigen::Map<Eigen::VectorXd>(d_gain.data(),d_gain.size()));
@@ -31,23 +28,23 @@ CartesianPositionControllerNode::CartesianPositionControllerNode(int argc, char*
     controller->setDeadZone(Eigen::Map<Eigen::VectorXd>(dead_zone.data(),dead_zone.size()));
 
     // controller setpoint
-    sub_setpoint = nh->subscribe("setpoint", 1, &CartesianPositionControllerNode::setpointCallback, this);
+    sub_setpoint = create_subscription<wbc_msgs::msg::RigidBodyState>("setpoint", 1, bind(&CartesianPositionControllerNode::setpointCallback, this, placeholders::_1));
     // controller feedback
-    sub_feedback = nh->subscribe("feedback", 1, &CartesianPositionControllerNode::feedbackCallback, this);
+    sub_feedback = create_subscription<wbc_msgs::msg::RigidBodyState>("feedback", 1, bind(&CartesianPositionControllerNode::feedbackCallback, this, placeholders::_1));
     // Ctrl output
-    control_output_publisher = nh->advertise<wbc_msgs::RigidBodyState>("control_output", 1);
+    control_output_publisher = create_publisher<wbc_msgs::msg::RigidBodyState>("control_output", 1);
 }
 
 CartesianPositionControllerNode::~CartesianPositionControllerNode(){
     delete controller;
 }
 
-void CartesianPositionControllerNode::setpointCallback(const wbc_msgs::RigidBodyState& msg){
+void CartesianPositionControllerNode::setpointCallback(const wbc_msgs::msg::RigidBodyState& msg){
     fromROS(msg, setpoint);
     has_setpoint = true;
 }
 
-void CartesianPositionControllerNode::feedbackCallback(const wbc_msgs::RigidBodyState& msg){
+void CartesianPositionControllerNode::feedbackCallback(const wbc_msgs::msg::RigidBodyState& msg){
     fromROS(msg, feedback);
     has_feedback = true;
 }
@@ -55,11 +52,11 @@ void CartesianPositionControllerNode::feedbackCallback(const wbc_msgs::RigidBody
 void CartesianPositionControllerNode::updateController(){
     control_output = controller->update(setpoint, feedback);
     toROS(control_output, control_output_msg);
-    control_output_publisher.publish(control_output_msg);
+    control_output_publisher->publish(control_output_msg);
 }
 
 int main(int argc, char** argv){
-    CartesianPositionControllerNode node(argc, argv);
-    node.run();
+    init(argc, argv);
+    spin(make_shared<CartesianPositionControllerNode>("cartesian_position_controller"));
     return 0;
 }

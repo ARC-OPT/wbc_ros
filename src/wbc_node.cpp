@@ -54,7 +54,6 @@ WbcNode::WbcNode(string node_name) : ControllerNode(node_name), has_floating_bas
     PluginLoader::loadPlugin("libwbc-solvers-" + qp_solver + ".so");
     solver = shared_ptr<QPSolver>(QPSolverFactory::createInstance(qp_solver));
 
-    vector<TaskConfig> wbc_config;
     declare_parameter("wbc_config.names", vector<string>());
     vector<string> task_names = get_parameter("wbc_config.names").as_string_array();
     for(auto n : task_names){
@@ -221,25 +220,26 @@ void WbcNode::updateController(){
 }
 
 void WbcNode::publishTaskStatus(){
+    int idx_cart = 0, idx_jnt = 0;
     for(uint i = 0; i < wbc_config.size(); i++){
-        /*const TaskConfig& w = wbc_config[i];
+        const TaskConfig& w = wbc_config[i];
         if(w.type == cart){
-            //toROS(robot_model->rigidBodyState(w.ref_frame, w.tip), status_cart);
-            //publishers_task_status[i].publish(status_cart);
+            toROS(robot_model->rigidBodyState(w.ref_frame, w.tip), status_cart);
+            publishers_task_status_cart[idx_cart++]->publish(status_cart);
         }
         else{
-            //toROS(robot_model->jointState(w.joint_names), status_jnt);
-            //publishers_task_status[i].publish(status_jnt);
-        }*/
+            toROS(robot_model->jointState(w.joint_names), status_jnt);
+            publishers_task_status_jnt[idx_jnt++]->publish(status_jnt);
+        }
     }
 }
 
 void WbcNode::publishTaskInfo(){
     task_status_msgs.resize(tasks_status.size());
     for(uint i = 0; i < tasks_status.size(); i++){
-        /*const TaskStatus& w = tasks_status[i];
+        const TaskStatus& w = tasks_status[i];
         toROS(w, task_status_msgs[i]);
-        publishers_task_info[i].publish(task_status_msgs[i]);*/
+        publishers_task_info[i]->publish(task_status_msgs[i]);
     }
 }
 

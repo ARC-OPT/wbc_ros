@@ -41,63 +41,57 @@ link_directories(
 
 add_executable(wbc_node src/wbc_node.cpp src/controllers/controller_node.cpp src/conversions.cpp)
 add_executable(loop_back_driver_node src/loop_back_driver_node.cpp)
-#add_executable(cartesian_position_controller_node src/controllers/cartesian_position_controller_node.cpp src/controllers/controller_node.cpp src/conversions.cpp)
-#add_executable(joint_position_controller_node src/controllers/joint_position_controller_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
-#add_executable(cartesian_force_controller_node src/controllers/cartesian_force_controller_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
-#add_executable(cartesian_radial_potential_fields_node src/controllers/cartesian_radial_potential_fields_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
-#add_executable(joint_limit_avoidance_node src/controllers/joint_limit_avoidance_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
+add_executable(cartesian_position_controller_node src/controllers/cartesian_position_controller_node.cpp src/controllers/controller_node.cpp src/conversions.cpp)
+add_executable(joint_position_controller_node src/controllers/joint_position_controller_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
+add_executable(cartesian_force_controller_node src/controllers/cartesian_force_controller_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
+add_executable(cartesian_radial_potential_fields_node src/controllers/cartesian_radial_potential_fields_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
+add_executable(joint_limit_avoidance_node src/controllers/joint_limit_avoidance_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
 
 ament_target_dependencies(wbc_node rclcpp std_msgs trajectory_msgs sensor_msgs wbc_msgs)
 ament_target_dependencies(loop_back_driver_node rclcpp trajectory_msgs sensor_msgs)
+ament_target_dependencies(cartesian_position_controller_node rclcpp wbc_msgs sensor_msgs trajectory_msgs)
+ament_target_dependencies(joint_position_controller_node rclcpp wbc_msgs sensor_msgs trajectory_msgs)
+ament_target_dependencies(cartesian_force_controller_node rclcpp wbc_msgs sensor_msgs trajectory_msgs geometry_msgs)
+ament_target_dependencies(cartesian_radial_potential_fields_node rclcpp wbc_msgs sensor_msgs trajectory_msgs)
+ament_target_dependencies(joint_limit_avoidance_node rclcpp wbc_msgs sensor_msgs trajectory_msgs)
 
 target_link_libraries(wbc_node dl
-   ${roscpp_LIBRARIES}
    ${wbc-core_LIBRARIES}
    ${wbc-scenes_LIBRARIES}
    ${wbc-robot_models-kdl_LIBRARIES}
    ${wbc-solvers-hls_LIBRARIES}
    ${wbc-solvers-qpoases_LIBRARIES}
 )
-target_link_libraries(loop_back_driver_node
-   ${roscpp_LIBRARIES}
+target_link_libraries(cartesian_position_controller_node
+   ${wbc-controllers_LIBRARIES}
 )
-
-#target_link_libraries(cartesian_position_controller_node
-#   ${roscpp_LIBRARIES}
-#   ${wbc-controllers_LIBRARIES}
-#)
-#target_link_libraries(joint_position_controller_node
-#   ${roscpp_LIBRARIES}
-#   ${wbc-controllers_LIBRARIES}
-#)
-#target_link_libraries(cartesian_force_controller_node
-#    ${roscpp_LIBRARIES}
-#    ${wbc-controllers_LIBRARIES}
-#)
-#target_link_libraries(cartesian_radial_potential_fields_node
-#    ${roscpp_LIBRARIES}
-#    ${wbc-controllers_LIBRARIES}
-#)
-#target_link_libraries(joint_limit_avoidance_node
-#    ${roscpp_LIBRARIES}
-#    ${wbc-controllers_LIBRARIES}
-#)
+target_link_libraries(joint_position_controller_node
+   ${wbc-controllers_LIBRARIES}
+)
+target_link_libraries(cartesian_force_controller_node
+   ${wbc-controllers_LIBRARIES}
+)
+target_link_libraries(cartesian_radial_potential_fields_node
+    ${wbc-controllers_LIBRARIES}
+)
+target_link_libraries(joint_limit_avoidance_node
+    ${wbc-controllers_LIBRARIES}
+)
 
 install(TARGETS wbc_node
                 loop_back_driver_node
-  DESTINATION lib/${PROJECT_NAME})
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/test/config/wbc.yml
-              ${CMAKE_CURRENT_SOURCE_DIR}/test/config/joints.yml
-  DESTINATION test/config)
+                cartesian_position_controller_node
+                joint_position_controller_node
+                cartesian_force_controller_node
+                cartesian_radial_potential_fields_node
+                joint_limit_avoidance_node
+        DESTINATION lib/${PROJECT_NAME})
+install(DIRECTORY config
+        DESTINATION share/${PROJECT_NAME}/
+)
 
 ament_package()
 
 #############
 ## Testing ##
 #############
-
-#if(CATKIN_ENABLE_TESTING)
-#    find_package(rostest REQUIRED)
-#    add_rostest_gtest(${PROJECT_NAME}-test test/test_wbc.test test/test_wbc.cpp)
-#    target_link_libraries(${PROJECT_NAME}-test ${catkin_LIBRARIES} ${roscpp_LIBRARIES})
-#endif()

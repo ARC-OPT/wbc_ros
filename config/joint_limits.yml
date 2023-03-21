@@ -1,0 +1,68 @@
+/kuka_lbr/wbc/joint_limits/controller:
+  ros__parameters:
+    control_rate: 250.0
+    influence_distance: [0.1,0.1,0.1,0.1,0.1,0.1,0.1,
+                         0.1,0.1,0.1,0.1,0.1,0.1,0.1]
+    p_gain: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+             1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+    max_control_output: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+                         1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+    joint_limits:
+        names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7',
+                'kuka_lbr_r_joint_1', 'kuka_lbr_r_joint_2', 'kuka_lbr_r_joint_3', 'kuka_lbr_r_joint_4', 'kuka_lbr_r_joint_5', 'kuka_lbr_r_joint_6', 'kuka_lbr_r_joint_7']
+        kuka_lbr_r_joint_1:
+          position:
+              max: 2.96
+              min: -2.96
+        kuka_lbr_r_joint_2:
+          position:
+              max: 2.09
+              min: -2.09
+        kuka_lbr_r_joint_3:
+          position:
+              max: 2.96
+              min: -2.96
+        kuka_lbr_r_joint_4:
+          position:
+              max: 2.09
+              min: -2.09
+        kuka_lbr_r_joint_5:
+          position:
+              max: 2.96
+              min: -2.96
+        kuka_lbr_r_joint_6:
+          position:
+              max: 2.09
+              min: -2.09
+        kuka_lbr_r_joint_7:
+          position:
+              max: 3.05
+              min: -3.05
+        kuka_lbr_l_joint_1:
+          position:
+              max: 2.96
+              min: -2.96
+        kuka_lbr_l_joint_2:
+          position:
+              max: 2.09
+              min: -2.09
+        kuka_lbr_l_joint_3:
+          position:
+              max: 2.96
+              min: -2.96
+        kuka_lbr_l_joint_4:
+          position:
+              max: 2.09
+              min: -2.09
+        kuka_lbr_l_joint_5:
+          position:
+              max: 2.96
+              min: -2.96
+        kuka_lbr_l_joint_6:
+          position:
+              max: 2.09
+              min: -2.09
+        kuka_lbr_l_joint_7:
+          position:
+              max: 3.05
+              min: -3.05

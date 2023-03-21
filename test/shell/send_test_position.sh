@@ -1,9 +1,8 @@
-rostopic pub /kuka_lbr/wbc/joint_position/setpoint trajectory_msgs/JointTrajectory "header:
-  seq: 0                    
+rostopic pub /kuka_lbr/wbc/joint_position/setpoint trajectory_msgs/msg/JointTrajectory "header:
   stamp:
-    secs: 0
-    nsecs: 0                        
-  frame_id: ''                                                                                                  
+    sec: 0
+    nanosec: 0
+  frame_id: ''
 joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7', 'kuka_lbr_r_joint_1', 'kuka_lbr_r_joint_2', 'kuka_lbr_r_joint_3', 'kuka_lbr_r_joint_4', 'kuka_lbr_r_joint_5', 'kuka_lbr_r_joint_6', 'kuka_lbr_r_joint_7']
 points:
 - positions: [0,0,0,0,0,0,0, 0,0,0,0,0,0,0]

@@ -2,31 +2,27 @@
 #include "../conversions.hpp"
 
 using namespace ctrl_lib;
+using namespace std;
+using namespace rclcpp;
 
-JointPositionControllerNode::JointPositionControllerNode(int argc, char** argv) : ControllerNode(argc, argv){
+JointPositionControllerNode::JointPositionControllerNode(const string& node_name) : ControllerNode(node_name){
 
-    checkParam("joint_names");
-    XmlRpc::XmlRpcValue val;
-    ros::param::get("joint_names", joint_names);
+    declare_parameter("joint_names", std::vector<string>());
+    joint_names = get_parameter("joint_names").as_string_array();
 
     controller = new JointPosPDController(joint_names);
 
-    checkParam("p_gain");
-    checkParam("d_gain");
-    checkParam("ff_gain");
-    checkParam("max_control_output");
-    checkParam("dead_zone");
+    declare_parameter("p_gain", std::vector<double>());
+    declare_parameter("d_gain", std::vector<double>());
+    declare_parameter("ff_gain", std::vector<double>());
+    declare_parameter("max_control_output", std::vector<double>());
+    declare_parameter("dead_zone", std::vector<double>());
 
-    std::vector<double> p_gain;
-    ros::param::get("p_gain", p_gain);
-    std::vector<double> d_gain;
-    ros::param::get("d_gain", d_gain);
-    std::vector<double> ff_gain;
-    ros::param::get("ff_gain", ff_gain);
-    std::vector<double> max_control_output;
-    ros::param::get("max_control_output", max_control_output);
-    std::vector<double> dead_zone;
-    ros::param::get("dead_zone", dead_zone);
+    vector<double> p_gain = get_parameter("p_gain").as_double_array();
+    vector<double> d_gain = get_parameter("p_gain").as_double_array();
+    vector<double> ff_gain = get_parameter("p_gain").as_double_array();
+    vector<double> max_control_output = get_parameter("p_gain").as_double_array();
+    vector<double> dead_zone = get_parameter("p_gain").as_double_array();
 
     controller->setPGain(Eigen::Map<Eigen::VectorXd>(p_gain.data(),p_gain.size()));
     controller->setDGain(Eigen::Map<Eigen::VectorXd>(d_gain.data(),d_gain.size()));
@@ -35,23 +31,23 @@ JointPositionControllerNode::JointPositionControllerNode(int argc, char** argv) 
     controller->setDeadZone(Eigen::Map<Eigen::VectorXd>(dead_zone.data(),dead_zone.size()));
 
     // controller setpoint
-    sub_setpoint = nh->subscribe("setpoint", 1, &JointPositionControllerNode::setpointCallback, this);
+    sub_setpoint = create_subscription<trajectory_msgs::msg::JointTrajectory>("setpoint", 1, bind(&JointPositionControllerNode::setpointCallback, this, placeholders::_1));
     // controller feedback
-    sub_feedback = nh->subscribe("feedback", 1, &JointPositionControllerNode::feedbackCallback, this);
+    sub_feedback = create_subscription<sensor_msgs::msg::JointState>("feedback", 1, bind(&JointPositionControllerNode::feedbackCallback, this, placeholders::_1));
     // Ctrl output
-    control_output_publisher = nh->advertise<trajectory_msgs::JointTrajectory>("control_output", 1);
+    control_output_publisher = create_publisher<trajectory_msgs::msg::JointTrajectory>("control_output", 1);
 }
 
 JointPositionControllerNode::~JointPositionControllerNode(){
     delete controller;
 }
 
-void JointPositionControllerNode::setpointCallback(const trajectory_msgs::JointTrajectory& msg){
+void JointPositionControllerNode::setpointCallback(const trajectory_msgs::msg::JointTrajectory& msg){
     has_setpoint = true;
     fromROS(msg, setpoint);
 }
 
-void JointPositionControllerNode::feedbackCallback(const sensor_msgs::JointState& msg){
+void JointPositionControllerNode::feedbackCallback(const sensor_msgs::msg::JointState& msg){
     has_feedback = true;
     fromROS(msg, feedback);
 }
@@ -59,11 +55,11 @@ void JointPositionControllerNode::feedbackCallback(const sensor_msgs::JointState
 void JointPositionControllerNode::updateController(){
     control_output = controller->update(setpoint, feedback);
     toROS(control_output, control_output_msg);
-    control_output_publisher.publish(control_output_msg);
+    control_output_publisher->publish(control_output_msg);
 }
 
 int main(int argc, char** argv){
-    JointPositionControllerNode node(argc, argv);
-    node.run();
+    init(argc, argv);
+    spin(make_shared<JointPositionControllerNode>("joint_position_controller"));
     return 0;
 }

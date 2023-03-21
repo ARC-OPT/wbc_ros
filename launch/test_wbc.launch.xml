@@ -1,32 +1,14 @@
 <launch>
-
-
-    <!-- TODO: This is quite ugly, is there a better way?-->
-    <!-- Map controller output to WBC input-->
-    <!--remap from="/kuka_lbr/wbc/joint_position/control_output" to="/kuka_lbr/wbc/ref_joint_position"/>
-    <remap from="/kuka_lbr/wbc/right_arm/control_output" to="/kuka_lbr/wbc/ref_right_arm"/>
-    <remap from="/kuka_lbr/wbc/joint_limits/control_output" to="/kuka_lbr/wbc/ref_joint_limits"/>
-    <remap from="/kuka_lbr/wbc/contact_force_left/control_output" to="/kuka_lbr/wbc/ref_contact_force_left"/>
-    <remap from="/kuka_lbr/wbc/collision_avoidance_left/control_output" to="/kuka_lbr/wbc/ref_collision_avoidance_left"/-->
-
-    <!-- Map WBC output to controller feedback-->
-    <!--remap from="/kuka_lbr/wbc/joint_position/feedback" to="/kuka_lbr/wbc/joint_states"/>
-    <remap from="/kuka_lbr/wbc/right_arm/feedback" to="/kuka_lbr/wbc/status_right_arm"/>
-    <remap from="/kuka_lbr/wbc/joint_limits/feedback" to="/kuka_lbr/wbc/joint_states"/>
-    <remap from="/kuka_lbr/wbc/collision_avoidance_left/feedback" to="/kuka_lbr/wbc/status_collision_avoidance_left"/-->
-
-    <!-- Map joint command to solver output -->
-    <!--remap from="/kuka_lbr/wbc/command" to="/kuka_lbr/wbc/solver_output"/-->
-
     <group>
         <push_ros_namespace namespace="kuka_lbr"/>
         <group>
             <push_ros_namespace namespace="wbc"/>
             <node pkg="wbc_ros" exec="wbc_node" name="wbc" output="screen">
-                <param from="$(find-pkg-prefix wbc_ros)/test/config/wbc.yml" />
+                <param from="$(find-pkg-share wbc_ros)/config/wbc.yml" />
+                <remap from="/kuka_lbr/wbc/solver_output" to="/kuka_lbr/wbc/command"/>
             </node>
             <node pkg="wbc_ros" exec="loop_back_driver_node" name="joints" output="screen">
-                <param from="$(find-pkg-prefix wbc_ros)/test/config/joints.yml" />
+                <param from="$(find-pkg-share wbc_ros)/config/joints.yml" />
             </node>
             <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher">
                 <param name="robot_description" value="$(command 'xacro $(find-pkg-share kuka_lbr_description)/urdf/kuka_lbr.urdf.xacro')" />
@@ -36,27 +18,45 @@
                 <param name="source_list" value="['/kuka_lbr/wbc/joint_states']" />
             </node>
 
-            <!--group ns="joint_position">
-                <node pkg="wbc_ros" type="joint_position_controller_node" name="controller" output="screen">
-                    <param from="$(find wbc_ros)/test/config/joint_position.yml" />
+            <group>
+                <push_ros_namespace namespace="joint_position"/>
+                <node pkg="wbc_ros" exec="joint_position_controller_node" name="controller" output="screen">
+                    <param from="$(find-pkg-share wbc_ros)/config/joint_position.yml" />
+                    <remap from="/kuka_lbr/wbc/joint_position/feedback" to="/kuka_lbr/wbc/joint_states"/>
+                    <remap from="/kuka_lbr/wbc/joint_position/control_output" to="/kuka_lbr/wbc/ref_joint_position"/>
                 </node>
             </group>
-            <group ns="right_arm">
-                <param from="$(find wbc_ros)/test/config/right_arm.yml" />
-                <node pkg="wbc_ros" type="cartesian_position_controller_node" name="controller" output="screen"/>
+            <group>
+                <push_ros_namespace namespace="right_arm"/>
+                <node pkg="wbc_ros" exec="cartesian_position_controller_node" name="controller" output="screen">
+                    <param from="$(find-pkg-share wbc_ros)/config/right_arm.yml" />
+                    <remap from="/kuka_lbr/wbc/right_arm/feedback" to="/kuka_lbr/wbc/status_right_arm"/>
+                    <remap from="/kuka_lbr/wbc/right_arm/control_output" to="/kuka_lbr/wbc/ref_right_arm"/>
+                </node>
             </group>
-            <group ns="joint_limits">
-                <param from="$(find wbc_ros)/test/config/joint_limits.yml" />
-                <node pkg="wbc_ros" type="joint_limit_avoidance_node" name="controller" output="screen"/>
+            <group>
+                <push_ros_namespace namespace="joint_limits"/>
+                <node pkg="wbc_ros" exec="joint_limit_avoidance_node" name="controller" output="screen">
+                    <param from="$(find-pkg-share wbc_ros)/config/joint_limits.yml" />
+                    <remap from="/kuka_lbr/wbc/joint_limits/feedback" to="/kuka_lbr/wbc/joint_states"/>
+                    <remap from="/kuka_lbr/wbc/joint_limits/control_output" to="/kuka_lbr/wbc/ref_joint_limits"/>
+                </node>
             </group>
-            <group ns="collision_avoidance_left">
-                <param from="$(find wbc_ros)/test/config/collision_avoidance.yml" />
-                <node pkg="wbc_ros" type="cartesian_radial_potential_fields_node" name="controller" output="screen"/>
+            <group>
+                <push_ros_namespace namespace="collision_avoidance_left"/>
+                <node pkg="wbc_ros" exec="cartesian_radial_potential_fields_node" name="controller" output="screen">
+                    <param from="$(find-pkg-share wbc_ros)/config/collision_avoidance.yml" />
+                    <remap from="/kuka_lbr/wbc/collision_avoidance_left/feedback" to="/kuka_lbr/wbc/status_collision_avoidance_left"/>
+                    <remap from="/kuka_lbr/wbc/collision_avoidance_left/control_output" to="/kuka_lbr/wbc/ref_collision_avoidance_left"/>
+                </node>
             </group>
-            <group ns="contact_force_left">
-                <param from="$(find wbc_ros)/test/config/contact_force.yml" />
-                <node pkg="wbc_ros" type="cartesian_force_controller_node" name="controller" output="screen"/>
-            </group-->
+            <group>
+                <push_ros_namespace namespace="contact_force_left"/>
+                <node pkg="wbc_ros" exec="cartesian_force_controller_node" name="controller" output="screen">
+                    <param from="$(find-pkg-share wbc_ros)/config/contact_force.yml" />
+                    <remap from="/kuka_lbr/wbc/contact_force_left/control_output" to="/kuka_lbr/wbc/ref_contact_force_left"/>
+                </node>
+            </group>
         </group>
     </group>
 

@@ -1,6 +1,5 @@
-rostopic pub /kuka_lbr/wbc/right_arm/setpoint wbc_msgs/RigidBodyState "header:
-  seq: 0
-  stamp: {secs: 0, nsecs: 0}
+ros2 topic pub /kuka_lbr/wbc/right_arm/setpoint --once wbc_msgs/msg/RigidBodyState "header:
+  stamp: {sec: 0, nanosec: 0}
   frame_id: ''
 pose:
   position: {x: 0.8, y: -1.0, z: 1.0}
