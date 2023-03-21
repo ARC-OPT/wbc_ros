@@ -4,6 +4,7 @@
         <group>
             <push_ros_namespace namespace="wbc"/>
             <node pkg="wbc_ros" exec="wbc_node" name="wbc" output="screen">
+                <param name="robot_model_config.file" value="$(find-pkg-share kuka_lbr_description)/urdf/kuka_lbr.urdf" />
                 <param from="$(find-pkg-share wbc_ros)/config/wbc.yml" />
                 <remap from="/kuka_lbr/wbc/solver_output" to="/kuka_lbr/wbc/command"/>
             </node>

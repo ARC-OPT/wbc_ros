@@ -2,7 +2,6 @@
   ros__parameters:
     control_rate: 250.0
     robot_model_config:
-        file: /home/dennis/ros2_ws/src/kuka_lbr_ros/kuka_lbr_description/urdf/kuka_lbr.urdf
         type: pinocchio
     wbc_config:
         names: ["right_arm", "collision_avoidance_left", "contact_force_left", "joint_position", "joint_limits"]
