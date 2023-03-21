@@ -17,26 +17,17 @@ include(FindPkgConfig)
 pkg_check_modules(wbc-core REQUIRED wbc-core)
 pkg_check_modules(wbc-scenes REQUIRED wbc-scenes)
 pkg_check_modules(wbc-controllers REQUIRED wbc-controllers)
-pkg_check_modules(wbc-robot_models-pinocchio REQUIRED wbc-robot_models-pinocchio)
-pkg_check_modules(wbc-solvers-hls REQUIRED wbc-solvers-hls)
-pkg_check_modules(wbc-solvers-qpoases REQUIRED wbc-solvers-qpoases)
 
 include_directories(
   ${wbc-core_INCLUDE_DIRS}
   ${wbc-scenes_INCLUDE_DIRS}
   ${wbc-controllers_INCLUDE_DIRS}
-  ${wbc-robot_models-kdl_INCLUDE_DIRS}
-  ${wbc-solvers-hls_INCLUDE_DIRS}
-  ${wbc-solvers-qpoases_INCLUDE_DIRS}
 )
 
 link_directories(
   ${wbc-core_LIBRARIES}
   ${wbc-scenes_LIBRARIES}
   ${wbc-controllers_LIBRARIES}
-  ${wbc-robot_models-kdl_LIBRARIES}
-  ${wbc-solvers-hls_LIBRARIES}
-  ${wbc-solvers-qpoases_LIBRARIES}
 )
 
 add_executable(wbc_node src/wbc_node.cpp src/controllers/controller_node.cpp src/conversions.cpp)
@@ -58,9 +49,6 @@ ament_target_dependencies(joint_limit_avoidance_node rclcpp wbc_msgs sensor_msgs
 target_link_libraries(wbc_node dl
    ${wbc-core_LIBRARIES}
    ${wbc-scenes_LIBRARIES}
-   ${wbc-robot_models-kdl_LIBRARIES}
-   ${wbc-solvers-hls_LIBRARIES}
-   ${wbc-solvers-qpoases_LIBRARIES}
 )
 target_link_libraries(cartesian_position_controller_node
    ${wbc-controllers_LIBRARIES}
