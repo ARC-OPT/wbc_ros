@@ -16,22 +16,4 @@
   <depend>sensor_msgs</depend>
   <depend>trajectory_msgs</depend>
   <depend>std_msgs</depend>
-
-  <tags>stable</tags>
-  <keywords>
-     <keyword>Control</keyword>
-     <keyword>Whole-Body Control</keyword>
-     <keyword>Optimization</keyword>
-     <keyword>Redundancy Resolution</keyword>
-   </keywords>
-
-  <stage>0</stage>
-  <use>single project</use>
-  <activity>active</activity>
-
-  <classifiers>
-    <classifier>c++</classifier>
-    <classifier>ROS</classifier>
-    <classifier>ubuntu</classifier>
-  </classifiers>
 </package>

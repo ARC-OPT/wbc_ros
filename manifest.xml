@@ -1,0 +1,27 @@
+<package>
+  <name>wbc_ros</name>
+  <description brief="ROS interface for wbc library">
+  </description>
+  <author>Dennis Mronga/dennis.mronga@dfki.de</author>
+  <maintainer>Dennis Mronga/dennis.mronga@dfki.de</maintainer>
+  <license>BSD-3-Clause</license>
+  <url>"https://arc-opt.github.io/Documentation"</url>
+  <logo>https://github.com/ARC-OPT/wbc/doc/images/arcopt_logo_v3_github.jpg</logo>
+  <tags>stable</tags>
+  <keywords>
+     <keyword>Control</keyword>
+     <keyword>Whole-Body Control</keyword>
+     <keyword>Optimization</keyword>
+     <keyword>Redundancy Resolution</keyword>
+   </keywords>
+
+  <stage>0</stage>
+  <use>single project</use>
+  <activity>active</activity>
+
+  <classifiers>
+    <classifier>c++</classifier>
+    <classifier>ROS</classifier>
+    <classifier>ubuntu</classifier>
+  </classifiers>
+</package>
