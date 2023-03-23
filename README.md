@@ -8,20 +8,6 @@ WBC was initiated and is currently developed at the [Robotics Innovation Center]
 
 <img src="doc/images/DFKI_Logo_e_schrift.jpg" alt="drawing" width="300"/>
 
-## Motivation
-
-WBC is a framework for optimization-based control of redundant robots. It contains various implementations of whole-body feedback control approaches on velocity-, acceleration- and force/torque-level. WBC is meant for controlling robots with redundant degrees of freedom, like humanoids or other legged robots with floating base, but also fixed-base systems like mobile manipulators, dual-arm systems or even simple manipulators. It is also meant for controlling multiple tasks simultaneously while taking into account the physical constraints of the robot. E.g., on a humanoid robot do ... (1) keep balance (2) Grasp an object with one arm (3) maintaining an upright body posture (4) Consider the joint torque limits,  etc... WBC is a purely reactive approach, i.e., it does not involve any motion planning or trajectory optimization. However, it can be used to stabilize trajectories coming from a motion planner or trajectory optimizer and integrate them with other objectives and physical constraints of the robot.
-
-
-The general idea of optimization-based robot control is to formulate simultaneously running robot tasks as constraints or within the cost function of an instantaneous optimization problem. 
-Now, in each control cycle ...
-
-  * The constraints/cost functions are updated with the current robot state/control reference
-  * The optimization problem is solved
-  * The solution is applied to the actuators of the robot
-
-The online solution of this problem is the robot joint control signal that complies with all tasks, while integrating physical constraints like actuator limits. An advantage of this approach is that complex tasks can be composed from low-dimensional descriptors, which are typically  easier to specify and control than the complete task are once. Also, the redundancy of the robot is nicely exploited utilizing  all the dof of the system (whole body).
-
 ## Getting Started
 
 * Please check out the tutorials section in the [documentation](https://arc-opt.github.io/Documentation/) for examples of usage.
@@ -47,7 +33,7 @@ wbc_ros requires a bare-bones ROS installation (noetic is the only tested distri
  rosdep install wbc_ros
  catkin_make wbc_ros
  ```
- 
+
 ## Documentation
 
 Doygen documentation can be generated with [rosdoc_lite](http://wiki.ros.org/rosdoc_lite)
@@ -62,7 +48,7 @@ The unit tests for the wbc library can be found [here](https://github.com/ARC-OP
 
 Please use the [issue tracker](TODO) to submit bug reports and feature requests.
 
-Please use merge requests as described [here](TODO) to add/adapt functionality. 
+Please use merge requests as described [here](TODO) to add/adapt functionality.
 
 ## License
 
@@ -90,5 +76,3 @@ WBC has been developed in the research projects [TransFit](https://robotik.dfki-
 Dennis Mronga, dennis.mronga@dfki.de
 
 Copyright 2017, DFKI GmbH / Robotics Innovation Center
-
-
