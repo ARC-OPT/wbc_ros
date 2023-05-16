@@ -30,7 +30,7 @@ wbc_ros requires a bare-bones ROS2 installation (humble is the only tested distr
  git clone https://git.hb.dfki.de/dfki-control/wbc/wbc_ros
  git clone https://git.hb.dfki.de/dfki-control/wbc/wbc_msgs
  cd ..
- rosdep install --from-paths src/wbc_pkgs
+ rosdep install --from-paths src/wbc_msgs
  colcon build
  ```
 
