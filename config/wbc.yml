@@ -2,7 +2,7 @@
   ros__parameters:
     control_rate: 250.0
     robot_model_config:
-        type: pinocchio
+        type: rbdl
     wbc_config:
         names: ["right_arm", "collision_avoidance_left", "contact_force_left", "joint_position", "joint_limits"]
         right_arm:
