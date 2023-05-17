@@ -4,20 +4,20 @@
         <group>
             <push_ros_namespace namespace="wbc"/>
             <node pkg="wbc_ros" exec="wbc_node" name="wbc" output="screen">
-                <param name="robot_model_config.file" value="$(find-pkg-share kuka_lbr_description)/urdf/kuka_lbr.urdf" />
+                <param name="robot_model_config.file" value="$(find-pkg-share wbc_ros)/models/urdf/kuka_iiwa.urdf" />
                 <param from="$(find-pkg-share wbc_ros)/config/wbc.yml" />
                 <remap from="/kuka_lbr/wbc/solver_output" to="/kuka_lbr/wbc/command"/>
             </node>
             <node pkg="wbc_ros" exec="loop_back_driver_node" name="joints" output="screen">
                 <param from="$(find-pkg-share wbc_ros)/config/joints.yml" />
             </node>
-            <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher">
+            <!--node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher">
                 <param name="robot_description" value="$(command 'xacro $(find-pkg-share kuka_lbr_description)/urdf/kuka_lbr.urdf.xacro')" />
             </node>
             <node pkg="joint_state_publisher" exec="joint_state_publisher" name="joint_state_publisher">
                 <param name="robot_description" value="$(command 'xacro $(find-pkg-share kuka_lbr_description)/urdf/kuka_lbr.urdf.xacro')" />
                 <param name="source_list" value="['/kuka_lbr/wbc/joint_states']" />
-            </node>
+            </node-->
 
             <group>
                 <push_ros_namespace namespace="joint_position"/>
