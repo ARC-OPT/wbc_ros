@@ -2,48 +2,44 @@
   ros__parameters:
     control_rate: 250.0
     robot_model_config:
-        type: pinocchio
+        type: rbdl
     wbc_config:
-        names: ["right_arm", "collision_avoidance_left", "contact_force_left", "joint_position", "joint_limits"]
-        right_arm:
+        names: ["left_arm", "collision_avoidance_left", "contact_force_left", "joint_position", "joint_limits"]
+        left_arm:
           type: 1
           priority: 0
-          root: kuka_lbr_base
-          tip: kuka_lbr_r_tcp
-          ref_frame: kuka_lbr_base
+          root: kuka_lbr_l_link_0
+          tip: kuka_lbr_l_tcp
+          ref_frame: kuka_lbr_l_link_0
           weights: [1.0,1.0,1.0,1.0,1.0,1.0]
           activation: 1.0
         collision_avoidance_left:
           type: 1
           priority: 0
-          root: kuka_lbr_base
+          root: kuka_lbr_l_link_0
           tip: kuka_lbr_l_tcp
-          ref_frame: kuka_lbr_base
+          ref_frame: kuka_lbr_l_link_0
           weights: [1.0,1.0,1.0,0.0,0.0,0.0]
           activation: 0.0
         contact_force_left:
           type: 1
           priority: 0
-          root: kuka_lbr_base
+          root: kuka_lbr_l_link_0
           tip: kuka_lbr_l_tcp
-          ref_frame: kuka_lbr_base
+          ref_frame: kuka_lbr_l_link_0
           weights: [1.0,1.0,1.0,1.0,1.0,1.0]
           activation: 0.0
         joint_position:
           type: 0
           priority: 0
-          joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7',
-                        'kuka_lbr_r_joint_1', 'kuka_lbr_r_joint_2', 'kuka_lbr_r_joint_3', 'kuka_lbr_r_joint_4', 'kuka_lbr_r_joint_5', 'kuka_lbr_r_joint_6', 'kuka_lbr_r_joint_7']
-          weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
-                    1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+          joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7']
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
           activation: 0.0
         joint_limits:
           type: 0
           priority: 0
-          joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7',
-                        'kuka_lbr_r_joint_1', 'kuka_lbr_r_joint_2', 'kuka_lbr_r_joint_3', 'kuka_lbr_r_joint_4', 'kuka_lbr_r_joint_5', 'kuka_lbr_r_joint_6', 'kuka_lbr_r_joint_7']
-          weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0,
-                    1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+          joint_names: ['kuka_lbr_l_joint_1', 'kuka_lbr_l_joint_2', 'kuka_lbr_l_joint_3', 'kuka_lbr_l_joint_4', 'kuka_lbr_l_joint_5', 'kuka_lbr_l_joint_6', 'kuka_lbr_l_joint_7']
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
           activation: 0.0
     qp_solver: qpoases
     integrate: true
