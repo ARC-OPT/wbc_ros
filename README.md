@@ -41,10 +41,43 @@ Doygen documentation can be generated using TODO
 
 ## Testing
 
-* Run ```colcon test --packages-select wbc_ros``` to execute all launch tests which can be found [here](https://git.hb.dfki.de/dfki-control/wbc/wbc_ros/-/tree/main/test). For more verbosity, you can also execute the tests manually by typing ```launch_test install/wbc_ros/share/wbc_ros/test/<test_name>.test.py```
-* Run ```ros2 launch wbc_ros cartesian_space_example.py``` to run an example for Cartesian end effector control on the kuka iiwa robot. You can use rviz for visualization: ```rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz```
-* Run ```ros2 launch wbc_ros joint_space_example.py``` to run an example for Joint space control on the kuka iiwa robot. You can use rviz for visualization: ```rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz```
-* The unit tests for the wbc library can be found [here](https://github.com/ARC-OPT/wbc/tree/master/test).
+### Unit tests
+
+The unit tests for the wbc library can be found [here](https://github.com/ARC-OPT/wbc/tree/master/test).
+
+### Launch Tests
+
+Run 
+```
+colcon test --packages-select wbc_ros
+``` 
+to execute all launch tests which can be found [here](https://git.hb.dfki.de/dfki-control/wbc/wbc_ros/-/tree/main/test). For more verbosity, you can also execute the tests manually by typing 
+```
+launch_test install/wbc_ros/share/wbc_ros/test/<test_name>.test.py
+```
+
+### Examples
+
+Ensure that robot and joint state publisher are installed:
+```
+sudo apt-get install ros-humble-robot-state-publisher ros-humble-joint-state-publisher -y
+```
+For visualizing the resulting robot motion install rviz:
+```
+sudo apt-get install ros-humble-rviz2
+source install/setup.bash
+```
+For the Cartesian space example run 
+```
+ros2 launch wbc_ros cartesian_space_example.py
+rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz
+``` 
+You should see the kuka iiwa robot executing a circular end effector motion in the xy-plane. For the joint space example run
+```
+ros2 launch wbc_ros joint_space_example.py
+rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz
+```
+You can see the kuka iiwa robot executing a sinusoidal movement with the elbow joint. 
 
 ## Contributing
 
