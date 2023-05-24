@@ -20,7 +20,7 @@ wbc_ros requires a bare-bones ROS2 installation (humble is the only tested distr
 
 ## Installation
 
-* Install ROS2 humble as described [here](https://docs.ros.org/en/humble/Installation.html)
+* Install ROS2 humble as described [here](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html), base install + dev_tools are mimimum required
 * Install the WBC library as described [here](https://arc-opt.github.io/Documentation/installation/installation_no_rock.html)
 * Create a ROS2 workspace as described [here](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html) or use an existing one
 * If not yet done, install rosdep as described [here](wiki.ros.org/rosdep)
@@ -32,17 +32,19 @@ wbc_ros requires a bare-bones ROS2 installation (humble is the only tested distr
  cd ..
  rosdep install --from-paths src/wbc_msgs
  colcon build
+ source install/setup.bash
  ```
 
 ## Documentation
 
-Doygen documentation can be generated with TODO.
+Doygen documentation can be generated using TODO
 
 ## Testing
 
-TODO
-
-The unit tests for the wbc library can be found [here](https://github.com/ARC-OPT/wbc/tree/master/test).
+* Run ```colcon test --packages-select wbc_ros``` to execute all launch tests which can be found [here](https://git.hb.dfki.de/dfki-control/wbc/wbc_ros/-/tree/main/test). For more verbosity, you can also execute the tests manually by typing ```launch_test install/wbc_ros/share/wbc_ros/test/<test_name>.test.py```
+* Run ```ros2 launch wbc_ros cartesian_space_example.py``` to run an example for Cartesian end effector control on the kuka iiwa robot. You can use rviz for visualization: ```rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz```
+* Run ```ros2 launch wbc_ros joint_space_example.py``` to run an example for Joint space control on the kuka iiwa robot. You can use rviz for visualization: ```rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz```
+* The unit tests for the wbc library can be found [here](https://github.com/ARC-OPT/wbc/tree/master/test).
 
 ## Contributing
 
