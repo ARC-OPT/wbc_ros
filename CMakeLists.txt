@@ -87,6 +87,9 @@ install(TARGETS wbc_node
 install(DIRECTORY launch config models
   DESTINATION share/${PROJECT_NAME}
 )
+install(DIRECTORY models
+        DESTINATION share/${PROJECT_NAME}/
+)        
 
 ament_package()
 
