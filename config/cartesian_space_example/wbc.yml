@@ -1,0 +1,17 @@
+/kuka_iiwa/wbc/wbc:
+  ros__parameters:
+    control_rate: 250.0
+    robot_model_config:
+        type: rbdl
+    wbc_config:
+        names: ["ee_pose"]
+        ee_pose:
+          type: 1
+          priority: 0
+          root: world
+          tip: link_ee
+          ref_frame: world
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+          activation: 1.0
+    qp_solver: qpoases
+    integrate: true

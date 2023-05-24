@@ -1,11 +1,14 @@
 #include "joint_limit_avoidance_node.hpp"
 #include "../conversions.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 
 using namespace ctrl_lib;
 using namespace std;
 using namespace rclcpp;
 
-JointLimitAvoidanceNode::JointLimitAvoidanceNode(const string& node_name) : ControllerNode(node_name){
+namespace wbc_ros{
+
+JointLimitAvoidanceNode::JointLimitAvoidanceNode(const rclcpp::NodeOptions &options) : ControllerNode("joint_limit_avoidance", options){
 
     // ROS2 does not support lists of complex data types as parameters, so we have to refer to this ugly hack here
     declare_parameter("joint_limits.names", vector<string>());
@@ -56,8 +59,6 @@ void JointLimitAvoidanceNode::updateController(){
     control_output_publisher->publish(control_output_msg);
 }
 
-int main(int argc, char** argv){
-    init(argc, argv);
-    spin(make_shared<JointLimitAvoidanceNode>("joint_limit_avoidance"));
-    return 0;
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(wbc_ros::JointLimitAvoidanceNode)

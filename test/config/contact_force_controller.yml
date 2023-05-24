@@ -1,4 +1,4 @@
-/kuka_lbr/wbc/contact_force_left/controller:
+/wbc/contact_force/controller:
   ros__parameters:
     control_rate: 250.0
     p_gain: [1.0,1.0,1.0,1.0,1.0,1.0]

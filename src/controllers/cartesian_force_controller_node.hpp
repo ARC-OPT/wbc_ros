@@ -12,6 +12,9 @@
 /**
 @brief Force controller in Cartesian space. See <a href="https://github.com/ARC-OPT/wbc/blob/master/src/controllers/CartesianForcePIDController.hpp">here</a> for details.
 */
+
+namespace wbc_ros{
+
 class CartesianForceControllerNode : public ControllerNode{
 protected:
     wbc_msgs::msg::RigidBodyState control_output_msg;
@@ -25,12 +28,14 @@ protected:
     rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr sub_feedback;
     rclcpp::Publisher<wbc_msgs::msg::RigidBodyState>::SharedPtr control_output_publisher;
 public:
-    CartesianForceControllerNode(const std::string& node_name);
+    CartesianForceControllerNode(const rclcpp::NodeOptions &options);
     ~CartesianForceControllerNode();
 
     void setpointCallback(const geometry_msgs::msg::WrenchStamped& msg);
     void feedbackCallback(const geometry_msgs::msg::WrenchStamped& msg);
     virtual void updateController();
 };
+
+}
 
 #endif

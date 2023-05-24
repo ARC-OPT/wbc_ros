@@ -5,6 +5,8 @@
 #include <trajectory_msgs/msg/joint_trajectory.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+namespace wbc_ros{
+
 /**
 @brief A simple loopback driver for testing WBC or other controllers. It will set the current position
 to the reference position, plus configurable white noise.
@@ -30,11 +32,13 @@ protected:
     double whiteNoise(const double std_dev);
 
 public:
-    LoopBackDriverNode(std::string node_name);
+    LoopBackDriverNode(const rclcpp::NodeOptions & options);
     ~LoopBackDriverNode();
 
     void commandCallback(const trajectory_msgs::msg::JointTrajectory& msg);
     void update();
 };
+
+}
 
 #endif

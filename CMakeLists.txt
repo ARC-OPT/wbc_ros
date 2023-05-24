@@ -7,6 +7,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
@@ -30,21 +31,21 @@ link_directories(
   ${wbc-controllers_LIBRARIES}
 )
 
-add_executable(wbc_node src/wbc_node.cpp src/controllers/controller_node.cpp src/conversions.cpp)
-add_executable(loop_back_driver_node src/loop_back_driver_node.cpp)
-add_executable(cartesian_position_controller_node src/controllers/cartesian_position_controller_node.cpp src/controllers/controller_node.cpp src/conversions.cpp)
-add_executable(joint_position_controller_node src/controllers/joint_position_controller_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
-add_executable(cartesian_force_controller_node src/controllers/cartesian_force_controller_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
-add_executable(cartesian_radial_potential_fields_node src/controllers/cartesian_radial_potential_fields_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
-add_executable(joint_limit_avoidance_node src/controllers/joint_limit_avoidance_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
+add_library(wbc_node SHARED src/wbc_node.cpp src/controllers/controller_node.cpp src/conversions.cpp)
+add_library(loop_back_driver_node SHARED src/loop_back_driver_node.cpp)
+add_library(cartesian_position_controller_node SHARED src/controllers/cartesian_position_controller_node.cpp src/controllers/controller_node.cpp src/conversions.cpp)
+add_library(joint_position_controller_node SHARED src/controllers/joint_position_controller_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
+add_library(cartesian_force_controller_node SHARED src/controllers/cartesian_force_controller_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
+add_library(cartesian_radial_potential_fields_node SHARED src/controllers/cartesian_radial_potential_fields_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
+add_library(joint_limit_avoidance_node SHARED src/controllers/joint_limit_avoidance_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)
 
-ament_target_dependencies(wbc_node rclcpp std_msgs trajectory_msgs sensor_msgs wbc_msgs)
-ament_target_dependencies(loop_back_driver_node rclcpp trajectory_msgs sensor_msgs)
-ament_target_dependencies(cartesian_position_controller_node rclcpp wbc_msgs sensor_msgs trajectory_msgs)
-ament_target_dependencies(joint_position_controller_node rclcpp wbc_msgs sensor_msgs trajectory_msgs)
-ament_target_dependencies(cartesian_force_controller_node rclcpp wbc_msgs sensor_msgs trajectory_msgs geometry_msgs)
-ament_target_dependencies(cartesian_radial_potential_fields_node rclcpp wbc_msgs sensor_msgs trajectory_msgs)
-ament_target_dependencies(joint_limit_avoidance_node rclcpp wbc_msgs sensor_msgs trajectory_msgs)
+ament_target_dependencies(wbc_node rclcpp rclcpp_components std_msgs trajectory_msgs sensor_msgs wbc_msgs)
+ament_target_dependencies(loop_back_driver_node rclcpp rclcpp_components trajectory_msgs sensor_msgs)
+ament_target_dependencies(cartesian_position_controller_node rclcpp rclcpp_components wbc_msgs sensor_msgs trajectory_msgs)
+ament_target_dependencies(joint_position_controller_node rclcpp rclcpp_components wbc_msgs sensor_msgs trajectory_msgs)
+ament_target_dependencies(cartesian_force_controller_node rclcpp rclcpp_components wbc_msgs sensor_msgs trajectory_msgs geometry_msgs)
+ament_target_dependencies(cartesian_radial_potential_fields_node rclcpp_components rclcpp wbc_msgs sensor_msgs trajectory_msgs)
+ament_target_dependencies(joint_limit_avoidance_node rclcpp rclcpp_components wbc_msgs sensor_msgs trajectory_msgs)
 
 target_link_libraries(wbc_node dl
    ${wbc-core_LIBRARIES}
@@ -66,6 +67,14 @@ target_link_libraries(joint_limit_avoidance_node
     ${wbc-controllers_LIBRARIES}
 )
 
+rclcpp_components_register_node(wbc_node PLUGIN "wbc_ros::WbcNode" EXECUTABLE wbc)
+rclcpp_components_register_node(loop_back_driver_node PLUGIN "wbc_ros::LoopBackDriverNode" EXECUTABLE loop_back_driver)
+rclcpp_components_register_node(cartesian_position_controller_node PLUGIN "wbc_ros::CartesianPositionControllerNode" EXECUTABLE cartesian_position_controller)
+rclcpp_components_register_node(joint_position_controller_node PLUGIN "wbc_ros::JointPositionControllerNode" EXECUTABLE joint_position_controller)
+rclcpp_components_register_node(cartesian_force_controller_node PLUGIN "wbc_ros::CartesianForceControllerNode" EXECUTABLE cartesian_force_controller)
+rclcpp_components_register_node(cartesian_radial_potential_fields_node PLUGIN "wbc_ros::CartesianRadialPotentialFieldsNode" EXECUTABLE cartesian_radial_potential_fields)
+rclcpp_components_register_node(joint_limit_avoidance_node PLUGIN "wbc_ros::JointLimitAvoidanceNode" EXECUTABLE joint_limit_avoidance)
+
 install(TARGETS wbc_node
                 loop_back_driver_node
                 cartesian_position_controller_node
@@ -73,16 +82,37 @@ install(TARGETS wbc_node
                 cartesian_force_controller_node
                 cartesian_radial_potential_fields_node
                 joint_limit_avoidance_node
-        DESTINATION lib/${PROJECT_NAME})
-install(DIRECTORY config
-        DESTINATION share/${PROJECT_NAME}/
+        LIBRARY DESTINATION lib)
+
+install(DIRECTORY launch config models
+  DESTINATION share/${PROJECT_NAME}
 )
-install(DIRECTORY models
-        DESTINATION share/${PROJECT_NAME}/
-)        
 
 ament_package()
+
+##############
+## Examples ##
+##############
+
+add_executable(joint_trajectory_publisher src/examples/joint_trajectory_publisher.cpp)
+add_executable(cartesian_trajectory_publisher src/examples/cartesian_trajectory_publisher.cpp)
+ament_target_dependencies(joint_trajectory_publisher rclcpp trajectory_msgs)
+ament_target_dependencies(cartesian_trajectory_publisher rclcpp wbc_msgs)
+install(TARGETS joint_trajectory_publisher
+                cartesian_trajectory_publisher
+        RUNTIME DESTINATION lib/${PROJECT_NAME})
+
 
 #############
 ## Testing ##
 #############
+
+if(BUILD_TESTING)
+find_package(launch_testing_ament_cmake)
+add_launch_test(test/simple_launch.test.py)
+add_launch_test(test/topics.test.py)
+add_launch_test(test/complex_launch.test.py)
+add_launch_test(test/solver_output.test.py)
+install(DIRECTORY test
+        DESTINATION share/${PROJECT_NAME})
+endif()

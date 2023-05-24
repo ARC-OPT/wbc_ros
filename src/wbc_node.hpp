@@ -1,5 +1,5 @@
-#ifndef WBC_ROS_NODE_HPP
-#define WBC_ROS_NODE_HPP
+#ifndef WBC_NODE_HPP
+#define WBC_NODE_HPP
 
 #include <wbc_msgs/msg/rigid_body_state.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -18,6 +18,8 @@
 
 #include <base/commands/Joints.hpp>
 
+namespace wbc_ros{
+
 /**
 @brief WBCNode - Main ROS interface for the WBC libary (https://github.com/ARC-OPT/wbc). This node implements a peridic control loop,
 which does the following in every control cycle:
@@ -29,7 +31,7 @@ which does the following in every control cycle:
    5. Publish debug info about the task status and the QP
 
 Subscribed Topics:
- - `joint_state` (`sensor_msgs/JointState`): The current joint state of the entire robot. Must contain all non-fixed joints from the URDF used in WBC. Must contain
+ - `joint_states` (`sensor_msgs/JointState`): The current joint state of the entire robot. Must contain all non-fixed joints from the URDF used in WBC. Must contain
     at least positions for Veloicty-based WBC and positions/velocities for acceleration-based WBC, e.g., TSID
  - `floating_base_state` (`wbc_msgs/RigidBodyState`): The state of the floating base. Only required if floating_base is set to true in the wbc configuration. Must contain
     at least pose for Veloicty-based WBC and pose/twist for acceleration-based WBC, e.g., TSID
@@ -106,11 +108,13 @@ protected:
    void floatingBaseStateCallback(const wbc_msgs::msg::RigidBodyState& msg);
 
 public:
-   WbcNode(std::string node_name);
+   WbcNode(const rclcpp::NodeOptions & options);
    ~WbcNode();
    virtual void updateController();
    void publishTaskStatus();
    void publishTaskInfo();
 };
+
+}
 
 #endif

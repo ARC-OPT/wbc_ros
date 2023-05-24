@@ -1,4 +1,4 @@
-/kuka_lbr/wbc/left_arm/controller:
+/kuka_iiwa/wbc/ee_pose/controller:
   ros__parameters:
     control_rate: 250.0
     p_gain: [5.0,5.0,5.0,5.0,5.0,5.0]

@@ -8,6 +8,8 @@
 #include <base/samples/Joints.hpp>
 #include <wbc/controllers/JointLimitAvoidanceController.hpp>
 
+namespace wbc_ros{
+
 /**
 @brief Joint limit avoidance controller. See <a href="https://github.com/ARC-OPT/wbc/blob/master/src/controllers/JointLimitAvoidanceController.hpp">here</a> for details.
 */
@@ -23,11 +25,13 @@ protected:
     rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr control_output_publisher;
 
 public:
-    JointLimitAvoidanceNode(const std::string& node_name);
+    JointLimitAvoidanceNode(const rclcpp::NodeOptions &options);
     ~JointLimitAvoidanceNode();
 
     void feedbackCallback(const sensor_msgs::msg::JointState& msg);
     virtual void updateController();
 };
+
+}
 
 #endif

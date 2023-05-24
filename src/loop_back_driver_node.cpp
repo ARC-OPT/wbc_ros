@@ -1,11 +1,13 @@
 #include "loop_back_driver_node.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 
 using namespace std;
 using namespace rclcpp;
 
-LoopBackDriverNode::LoopBackDriverNode(string node_name) : Node(node_name){
+namespace wbc_ros{
 
-    RCLCPP_INFO(get_logger(), "Initializing Controller: %s", node_name.c_str());
+LoopBackDriverNode::LoopBackDriverNode(const rclcpp::NodeOptions& options) : Node("joints", options){
+    RCLCPP_INFO(get_logger(), "Initializing Controller: %s", "joints");
 
     declare_parameter("control_rate", 1000.0);
     double control_rate = get_parameter("control_rate").get_parameter_value().get<double>();
@@ -60,8 +62,6 @@ void LoopBackDriverNode::update(){
     pub_joint_state->publish(joint_state);
 }
 
-int main(int argc, char** argv){
-    init(argc, argv);
-    spin(make_shared<LoopBackDriverNode>("joints"));
-    return 0;
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(wbc_ros::LoopBackDriverNode)

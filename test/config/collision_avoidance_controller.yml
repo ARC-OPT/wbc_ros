@@ -1,4 +1,4 @@
-/kuka_lbr/wbc/collision_avoidance_left/controller:
+/wbc/collision_avoidance/controller:
   ros__parameters:
     control_rate: 250.0
     influence_distance: 0.1

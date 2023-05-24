@@ -8,6 +8,8 @@
 #include <wbc/controllers/JointPosPDController.hpp>
 #include <base/commands/Joints.hpp>
 
+namespace wbc_ros{
+
 /**
 @brief Position controller in joint space. See <a href="https://github.com/ARC-OPT/wbc/blob/master/src/controllers/JointPosPDController.hpp">here</a> for details.
 */
@@ -26,12 +28,14 @@ protected:
     rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr control_output_publisher;
 
 public:
-    JointPositionControllerNode(const std::string& node_name);
+    JointPositionControllerNode(const rclcpp::NodeOptions &options);
     ~JointPositionControllerNode();
 
     void setpointCallback(const trajectory_msgs::msg::JointTrajectory& msg);
     void feedbackCallback(const sensor_msgs::msg::JointState& msg);
     virtual void updateController();
 };
+
+}
 
 #endif

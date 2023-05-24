@@ -3,7 +3,9 @@
 using namespace rclcpp;
 using namespace std;
 
-ControllerNode::ControllerNode(string node_name) : Node(node_name), state(PRE_OPERATIONAL), has_feedback(false), has_setpoint(false){
+namespace wbc_ros{
+
+ControllerNode::ControllerNode(string node_name, const rclcpp::NodeOptions &options) : Node(node_name, options), state(PRE_OPERATIONAL), has_feedback(false), has_setpoint(false){
 
     RCLCPP_INFO(this->get_logger(), "Initializing Controller: %s", node_name.c_str());
 
@@ -29,14 +31,14 @@ void ControllerNode::update(){
             if(has_feedback)
                 state = NO_SETPOINT;
             else
-                RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000, "%s: No feedback", node_name.c_str());
+                RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "%s: No feedback", node_name.c_str());
             break;
         }
         case NO_SETPOINT:{
             if(has_setpoint)
                 state = RUNNING;
             else
-                RCLCPP_DEBUG_THROTTLE(this->get_logger(), *this->get_clock(), 1000, "%s: No setpoint", node_name.c_str());
+                RCLCPP_DEBUG_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "%s: No setpoint", node_name.c_str());
             break;
         }
         case RUNNING:{
@@ -48,4 +50,6 @@ void ControllerNode::update(){
             abort();
         }
     }
+}
+
 }

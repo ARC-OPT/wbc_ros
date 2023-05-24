@@ -1,11 +1,14 @@
 #include "joint_position_controller_node.hpp"
 #include "../conversions.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 
 using namespace ctrl_lib;
 using namespace std;
 using namespace rclcpp;
 
-JointPositionControllerNode::JointPositionControllerNode(const string& node_name) : ControllerNode(node_name){
+namespace wbc_ros{
+
+JointPositionControllerNode::JointPositionControllerNode(const rclcpp::NodeOptions &options) : ControllerNode("joint_position_controller", options){
 
     declare_parameter("joint_names", std::vector<string>());
     joint_names = get_parameter("joint_names").as_string_array();
@@ -19,10 +22,10 @@ JointPositionControllerNode::JointPositionControllerNode(const string& node_name
     declare_parameter("dead_zone", std::vector<double>());
 
     vector<double> p_gain = get_parameter("p_gain").as_double_array();
-    vector<double> d_gain = get_parameter("p_gain").as_double_array();
-    vector<double> ff_gain = get_parameter("p_gain").as_double_array();
-    vector<double> max_control_output = get_parameter("p_gain").as_double_array();
-    vector<double> dead_zone = get_parameter("p_gain").as_double_array();
+    vector<double> d_gain = get_parameter("d_gain").as_double_array();
+    vector<double> ff_gain = get_parameter("ff_gain").as_double_array();
+    vector<double> max_control_output = get_parameter("max_control_output").as_double_array();
+    vector<double> dead_zone = get_parameter("dead_zone").as_double_array();
 
     controller->setPGain(Eigen::Map<Eigen::VectorXd>(p_gain.data(),p_gain.size()));
     controller->setDGain(Eigen::Map<Eigen::VectorXd>(d_gain.data(),d_gain.size()));
@@ -45,6 +48,7 @@ JointPositionControllerNode::~JointPositionControllerNode(){
 void JointPositionControllerNode::setpointCallback(const trajectory_msgs::msg::JointTrajectory& msg){
     has_setpoint = true;
     fromROS(msg, setpoint);
+
 }
 
 void JointPositionControllerNode::feedbackCallback(const sensor_msgs::msg::JointState& msg){
@@ -58,8 +62,6 @@ void JointPositionControllerNode::updateController(){
     control_output_publisher->publish(control_output_msg);
 }
 
-int main(int argc, char** argv){
-    init(argc, argv);
-    spin(make_shared<JointPositionControllerNode>("joint_position_controller"));
-    return 0;
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(wbc_ros::JointPositionControllerNode)

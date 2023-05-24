@@ -9,6 +9,8 @@
 #include <wbc/controllers/CartesianPotentialFieldsController.hpp>
 #include <wbc/controllers/PotentialField.hpp>
 
+namespace wbc_ros{
+
 /**
 @brief Radial potential fields in Cartesian space. See <a href="https://github.com/ARC-OPT/wbc/blob/master/src/controllers/CartesianPotentialFieldsController.hpp">here</a> for details.
 */
@@ -27,12 +29,14 @@ protected:
     rclcpp::Publisher<wbc_msgs::msg::RigidBodyState>::SharedPtr control_output_publisher;
 
 public:
-    CartesianRadialPotentialFieldsNode(const std::string& node_name);
+    CartesianRadialPotentialFieldsNode(const rclcpp::NodeOptions &options);
     ~CartesianRadialPotentialFieldsNode();
 
     void feedbackCallback(const wbc_msgs::msg::RigidBodyState& msg);
     void potFieldsCallback(const wbc_msgs::msg::RadialPotentialFieldVector& msg);
     virtual void updateController();
 };
+
+}
 
 #endif

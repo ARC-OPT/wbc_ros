@@ -1,11 +1,14 @@
 #include "cartesian_position_controller_node.hpp"
 #include "../conversions.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 
 using namespace ctrl_lib;
 using namespace std;
 using namespace rclcpp;
 
-CartesianPositionControllerNode::CartesianPositionControllerNode(const string & node_name) : ControllerNode(node_name){
+namespace wbc_ros{
+
+CartesianPositionControllerNode::CartesianPositionControllerNode(const rclcpp::NodeOptions &options) : ControllerNode("cartesian_position_controller", options){
 
     controller = new CartesianPosPDController();
 
@@ -55,8 +58,6 @@ void CartesianPositionControllerNode::updateController(){
     control_output_publisher->publish(control_output_msg);
 }
 
-int main(int argc, char** argv){
-    init(argc, argv);
-    spin(make_shared<CartesianPositionControllerNode>("cartesian_position_controller"));
-    return 0;
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(wbc_ros::CartesianPositionControllerNode)

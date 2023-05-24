@@ -1,0 +1,45 @@
+/wbc/wbc:
+  ros__parameters:
+    control_rate: 250.0
+    robot_model_config:
+        type: rbdl
+    wbc_config:
+        names: ["ee_pose", "collision_avoidance", "contact_force", "joint_position", "joint_limits"]
+        ee_pose:
+          type: 1
+          priority: 0
+          root: world
+          tip: link_ee
+          ref_frame: world
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+          activation: 1.0
+        collision_avoidance:
+          type: 1
+          priority: 0
+          root: world
+          tip: link_ee
+          ref_frame: world
+          weights: [1.0,1.0,1.0,0.0,0.0,0.0]
+          activation: 0.0
+        contact_force:
+          type: 1
+          priority: 0
+          root: world
+          tip: link_ee
+          ref_frame: world
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+          activation: 0.0
+        joint_position:
+          type: 0
+          priority: 0
+          joint_names: ["joint_0","joint_1","joint_2","joint_3","joint_4","joint_5","joint_6"]
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+          activation: 0.0
+        joint_limits:
+          type: 0
+          priority: 0
+          joint_names: ["joint_0","joint_1","joint_2","joint_3","joint_4","joint_5","joint_6"]
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+          activation: 0.0
+    qp_solver: qpoases
+    integrate: true

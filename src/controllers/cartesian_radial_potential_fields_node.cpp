@@ -1,12 +1,15 @@
 #include "cartesian_radial_potential_fields_node.hpp"
 #include <wbc/controllers/RadialPotentialField.hpp>
 #include "../conversions.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 
 using namespace ctrl_lib;
 using namespace std;
 using namespace rclcpp;
 
-CartesianRadialPotentialFieldsNode::CartesianRadialPotentialFieldsNode(const string& node_name) : ControllerNode(node_name){
+namespace wbc_ros{
+
+CartesianRadialPotentialFieldsNode::CartesianRadialPotentialFieldsNode(const rclcpp::NodeOptions &options) : ControllerNode("cartesian_radial_potential_fields", options){
 
     controller = new CartesianPotentialFieldsController();
 
@@ -62,8 +65,6 @@ void CartesianRadialPotentialFieldsNode::updateController(){
     control_output_publisher->publish(control_output_msg);
 }
 
-int main(int argc, char** argv){
-    init(argc, argv);
-    spin(make_shared<CartesianRadialPotentialFieldsNode>("cartesian_radial_potential_fields_node"));
-    return 0;
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(wbc_ros::CartesianRadialPotentialFieldsNode)

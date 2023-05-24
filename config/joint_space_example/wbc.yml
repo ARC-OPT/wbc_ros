@@ -1,0 +1,15 @@
+/kuka_iiwa/wbc/wbc:
+  ros__parameters:
+    control_rate: 250.0
+    robot_model_config:
+        type: rbdl
+    wbc_config:
+        names: ["joint_position"]
+        joint_position:
+          type: 0
+          priority: 0
+          joint_names: ["joint_0","joint_1","joint_2","joint_3","joint_4","joint_5","joint_6"]
+          weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+          activation: 1.0
+    qp_solver: qpoases
+    integrate: true

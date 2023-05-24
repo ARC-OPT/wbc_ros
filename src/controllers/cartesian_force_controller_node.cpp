@@ -1,11 +1,14 @@
 #include "cartesian_force_controller_node.hpp"
 #include "../conversions.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 
 using namespace ctrl_lib;
 using namespace std;
 using namespace rclcpp;
 
-CartesianForceControllerNode::CartesianForceControllerNode(const string &node_name) : ControllerNode(node_name){
+namespace wbc_ros{
+
+CartesianForceControllerNode::CartesianForceControllerNode(const rclcpp::NodeOptions &options) : ControllerNode("cartesian_force_controller", options){
 
     controller = new CartesianForcePIDController();
 
@@ -59,8 +62,6 @@ void CartesianForceControllerNode::updateController(){
     control_output_publisher->publish(control_output_msg);
 }
 
-int main(int argc, char** argv){
-    init(argc, argv);
-    spin(make_shared<CartesianForceControllerNode>("cartesian_force_controller"));
-    return 0;
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(wbc_ros::CartesianForceControllerNode)

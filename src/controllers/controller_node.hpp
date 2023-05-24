@@ -4,6 +4,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
 
+namespace wbc_ros{
+
 /**
 @brief Base class for all controllers including wbc_node. Will peridically call updateController() if feedback
 and setpoint are available.
@@ -42,9 +44,11 @@ protected:
     virtual void updateController() = 0;
     void publishState();
 public:
-    ControllerNode(std::string node_name);
+    ControllerNode(std::string node_name, const rclcpp::NodeOptions &options);
     virtual ~ControllerNode(){}
     void update();
 };
+
+}
 
 #endif

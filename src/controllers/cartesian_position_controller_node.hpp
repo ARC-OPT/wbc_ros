@@ -7,6 +7,8 @@
 #include <wbc/controllers/CartesianPosPDController.hpp>
 #include <base/samples/RigidBodyStateSE3.hpp>
 
+namespace wbc_ros{
+
 /**
 @brief Position controller in Cartesian space. See <a href="https://github.com/ARC-OPT/wbc/blob/master/src/controllers/CartesianPosPDController.hpp">here</a> for details.
 */
@@ -24,12 +26,14 @@ protected:
     rclcpp::Publisher<wbc_msgs::msg::RigidBodyState>::SharedPtr control_output_publisher;
 
 public:
-    CartesianPositionControllerNode(const std::string & node_name);
+    CartesianPositionControllerNode(const rclcpp::NodeOptions &options);
     ~CartesianPositionControllerNode();
 
     void setpointCallback(const wbc_msgs::msg::RigidBodyState& msg);
     void feedbackCallback(const wbc_msgs::msg::RigidBodyState& msg);
     virtual void updateController();
 };
+
+}
 
 #endif

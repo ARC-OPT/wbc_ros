@@ -4,12 +4,15 @@
 #include <wbc/core/RobotModelFactory.hpp>
 #include <wbc/core/QPSolverFactory.hpp>
 #include "conversions.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 
 using namespace std;
 using namespace wbc;
 using namespace rclcpp;
 
-WbcNode::WbcNode(string node_name) : ControllerNode(node_name), has_floating_base_state(false){
+namespace wbc_ros{
+
+WbcNode::WbcNode(const rclcpp::NodeOptions &options) : ControllerNode("wbc", options), has_floating_base_state(false){
 
     declare_parameter("integrate", true);
     integrate = get_parameter("integrate").as_bool();
@@ -243,7 +246,6 @@ void WbcNode::publishTaskInfo(){
     }
 }
 
-int main(int argc, char** argv){
-    init(argc, argv);
-    spin(make_shared<WbcNode>("wbc"));
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(wbc_ros::WbcNode)
