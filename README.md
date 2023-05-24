@@ -23,7 +23,7 @@ wbc_ros requires a bare-bones ROS2 installation (humble is the only tested distr
 * Install ROS2 humble as described [here](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html), base install + dev_tools are mimimum required
 * Install the WBC library as described [here](https://arc-opt.github.io/Documentation/installation/installation_no_rock.html)
 * Create a ROS2 workspace as described [here](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html) or use an existing one
-* If not yet done, install rosdep as described [here](http://wiki.ros.org/rosdep)
+* If not yet done, init rosdep: ```sudo rosdep init & rosdep update```
 * In a console type
  ```
  cd ~/my_ros_workspace/src
