@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:config/cartesian_space_example/ee_pose_controller.yml
 /kuka_iiwa/wbc/ee_pose/controller:
+========
+/kuka_lbr/wbc/left_arm/controller:
+>>>>>>>> ros2:config/left_arm.yml
   ros__parameters:
     control_rate: 250.0
     p_gain: [5.0,5.0,5.0,5.0,5.0,5.0]

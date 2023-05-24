@@ -1,4 +1,4 @@
-/kuka_iiwa/joints:
+/kuka_lbr/wbc/joints:
   ros__parameters:
     noise_std_dev: 1e-4
     initial_joint_state:
