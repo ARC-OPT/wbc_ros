@@ -27,8 +27,8 @@ wbc_ros requires a bare-bones ROS2 installation (humble is the only tested distr
 * In a console type
  ```
  cd ~/my_ros_workspace/src
- git clone https://git.hb.dfki.de/dfki-control/wbc/wbc_ros
- git clone https://git.hb.dfki.de/dfki-control/wbc/wbc_msgs
+ git clone git@git.hb.dfki.de:dfki-control/wbc/wbc_ros.git
+ git clone git@git.hb.dfki.de:dfki-control/wbc/wbc_msgs.git
  cd ..
  rosdep install --from-paths src/wbc_msgs
  colcon build
