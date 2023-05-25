@@ -1,4 +1,4 @@
-# wbc_ros - A ROS interface for the Whole-Body Control library in ARC-OPT
+# wbc_ros - A ROS interface for the WBC library
 
 [Code API](TODO)  | [Full Documentation](https://arc-opt.github.io/Documentation/)
 
@@ -27,8 +27,8 @@ wbc_ros requires a bare-bones ROS2 installation (humble is the only tested distr
 * In a console type
  ```
  cd ~/my_ros_workspace/src
- git clone https://git.hb.dfki.de/dfki-control/wbc/wbc_ros
- git clone https://git.hb.dfki.de/dfki-control/wbc/wbc_msgs
+ git clone https://github.com/ARC-OPT/wbc_msgs.git
+ git clone https://github.com/ARC-OPT/wbc_ros.git
  cd ..
  rosdep install --from-paths src/wbc_msgs
  colcon build
@@ -42,7 +42,6 @@ Doygen documentation can be generated as follows:
 sudo apt-get install doxygen -y
 colcon build --packages-select wbc_ros  --cmake-args -DBUILD_DOC=1
 ```
-Documentation will be installed to ```$CMAKE_CURRENT_BINARY_DIR/doc```.
 
 ## Testing
 
@@ -56,14 +55,14 @@ Run
 ```
 colcon test --packages-select wbc_ros
 ``` 
-to execute all launch tests which can be found [here](https://git.hb.dfki.de/dfki-control/wbc/wbc_ros/-/tree/main/test). For more verbosity, you can also execute the tests manually by typing 
+to execute all launch tests which can be found [here](https://github.com/ARC-OPT/wbc_ros/tree/main/test). For more verbosity, you can also execute the tests manually by typing 
 ```
 launch_test install/wbc_ros/share/wbc_ros/test/<test_name>.test.py
 ```
 
 ### Examples
 
-Ensure that robot and joint state publisher are installed:
+Ensure that robot state publisher and joint state publisher are installed:
 ```
 sudo apt-get install ros-humble-robot-state-publisher ros-humble-joint-state-publisher -y
 ```
@@ -86,9 +85,9 @@ You can see the kuka iiwa robot executing a sinusoidal movement with the elbow j
 
 ## Contributing
 
-Please use the [issue tracker](TODO) to submit bug reports and feature requests.
+Please use the [issue tracker](https://github.com/ARC-OPT/wbc_ros/issues) to submit bug reports and feature requests.
 
-Please use merge requests as described [here](TODO) to add/adapt functionality.
+Please use merge requests as described [here](https://github.com/ARC-OPT/wbc_ros/blob/main/CONTRIBUTING.md) to add/adapt functionality.
 
 ## License
 
