@@ -37,7 +37,12 @@ wbc_ros requires a bare-bones ROS2 installation (humble is the only tested distr
 
 ## Documentation
 
-Doygen documentation can be generated using TODO
+Doygen documentation can be generated as follows:
+```
+sudo apt-get install doxygen -y
+colcon build --packages-select wbc_ros  --cmake-args -DBUILD_DOC=1
+```
+Documentation will be installed to ```$CMAKE_CURRENT_BINARY_DIR/doc```.
 
 ## Testing
 
