@@ -32,7 +32,8 @@ jobs:
        git clone https://github.com/ARC-OPT/wbc.git
        sh wbc/scripts/install.sh
        
-       mkdir -p ros_ws/src & cd ros_ws/src
+       mkdir -p ros_ws/src
+       cd ros_ws/src
        git clone https://github.com/ARC-OPT/wbc_msgs.git
        git clone https://github.com/ARC-OPT/wbc_ros.git
        cd ..
