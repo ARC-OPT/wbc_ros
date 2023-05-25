@@ -1,3 +1,5 @@
+[![Ubuntu 22.04](https://github.com/ARC-OPT/wbc_ros/actions/workflows/build_and_test_ubuntu22.04.yml/badge.svg)](https://github.com/ARC-OPT/wbc_ros/actions/workflows/build_and_test_ubuntu22.04.yml)
+
 # wbc_ros - A ROS interface for the WBC library
 
 [Code API](https://arc-opt.github.io/wbc_ros/)  | [Full Documentation](https://arc-opt.github.io/Documentation/)
