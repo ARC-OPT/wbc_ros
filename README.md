@@ -10,13 +10,13 @@ WBC was initiated and is currently developed at the [Robotics Innovation Center]
 
 ## Getting Started
 
-* Please check out the tutorials section in the [documentation](https://arc-opt.github.io/Documentation/) for examples of usage.
+Please check out the tutorials section in the [documentation](https://arc-opt.github.io/Documentation/) for examples of usage.
 
 ## Requirements / Dependencies
 
 Currently supported OS: Ubuntu20.04, Ubuntu22.04
 
-wbc_ros requires a bare-bones ROS2 installation (humble is the only tested distribution) as well as the [WBC library](https://github.com/ARC-OPT/wbc). See package.xml for further dependencies.
+wbc_ros requires a ROS2 installation (humble is the only tested distribution) as well as the [WBC library](https://github.com/ARC-OPT/wbc). See package.xml for further dependencies.
 
 ## Installation
 
@@ -34,15 +34,6 @@ wbc_ros requires a bare-bones ROS2 installation (humble is the only tested distr
  colcon build
  source install/setup.bash
  ```
-
-## Documentation
-
-Doygen documentation can be generated as follows:
-```
-sudo apt-get install doxygen -y
-colcon build --packages-select wbc_ros  --cmake-args -DBUILD_DOC=1
-```
-
 ## Testing
 
 ### Unit tests
