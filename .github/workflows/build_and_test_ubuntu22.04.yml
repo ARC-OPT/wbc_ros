@@ -1,0 +1,47 @@
+name: Ubuntu 22.04
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_test_22_04:
+    runs-on: ubuntu-22.04
+
+    steps:
+    # Check out repository under $GITHUB_WORKSPACE
+    - uses: actions/checkout@v2
+    # Build and install
+    - name: install
+      run: |
+       sudo apt install software-properties-common
+       sudo add-apt-repository universe
+       sudo apt update && sudo apt install curl -y
+       sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+       echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+       sudo apt update
+       sudo apt upgrade -y
+       sudo apt install ros-humble-ros-base
+       sudo apt install ros-dev-tools       
+       source /opt/ros/humble/setup.bash  
+         
+       sudo rosdep init
+       rosdep update   
+       
+       mkdir arc-opt & cd arc-opt
+       git clone https://github.com/ARC-OPT/wbc.git
+       sh wbc/scripts/install.sh
+       
+       mkdir -p ros_ws/src / ros_ws/src
+       git clone https://github.com/ARC-OPT/wbc_msgs.git
+       git clone https://github.com/ARC-OPT/wbc_ros.git
+       cd ..
+       rosdep install --from-paths src/wbc_msgs
+       colcon build
+       source install/setup.bash
+    # Run all tests
+    - name: test
+      run: |
+        colcon test --packages-select wbc_ros
