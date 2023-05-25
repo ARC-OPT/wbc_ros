@@ -28,8 +28,7 @@ jobs:
          
        sudo rosdep init
        rosdep update   
-       
-       mkdir arc-opt & cd arc-opt
+     
        git clone https://github.com/ARC-OPT/wbc.git
        sh wbc/scripts/install.sh
        
