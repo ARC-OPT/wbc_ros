@@ -119,3 +119,25 @@ add_launch_test(test/solver_output.test.py)
 install(DIRECTORY test
         DESTINATION share/${PROJECT_NAME})
 endif()
+
+#############
+## Doxygen ##
+#############
+
+find_package(Doxygen)
+if(BUILD_DOC)
+  if(DOXYGEN_FOUND)    
+    set(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+    set(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    configure_file(${doxyfile_in} ${doxyfile} @ONLY)
+    message("Doxygen build started.")
+    add_custom_target(doc ALL
+                      COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
+                      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                      COMMENT "Generating API documentation with Doxygen"
+                      VERBATIM)
+   install(DIRECTORY doc/images DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/doc)
+  else(DOXYGEN_FOUND)
+     message("Doxygen needs to be installed to generate the doxygen documentation")
+  endif(DOXYGEN_FOUND)
+endif (BUILD_DOC)
