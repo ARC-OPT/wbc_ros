@@ -1,6 +1,6 @@
 # wbc_ros - A ROS interface for the WBC library
 
-[Code API]([TODO](https://arc-opt.github.io/wbc_ros/))  | [Full Documentation](https://arc-opt.github.io/Documentation/)
+[Code API](https://arc-opt.github.io/wbc_ros/)  | [Full Documentation](https://arc-opt.github.io/Documentation/)
 
 This task library provides a ROS/ROS2 interface for the [Whole-Body Control library](https://github.com/ARC-OPT/wbc).
 
