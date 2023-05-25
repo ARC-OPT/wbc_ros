@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.7"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>wbc_ros: wbc_ros - A ROS interface for the WBC library</title>
+<title>wbc_ros: wbc_ros</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -46,22 +46,25 @@ $(function() {
 <div id="main-nav"></div>
 </div><!-- top -->
 <div><div class="header">
-  <div class="headertitle"><div class="title"><a class="el" href="namespacewbc__ros.html" title="Force controller in Cartesian space. See here for details.">wbc_ros</a> - A ROS interface for the WBC library </div></div>
+  <div class="headertitle"><div class="title"><a class="el" href="namespacewbc__ros.html" title="Force controller in Cartesian space. See here for details.">wbc_ros</a> </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md_README"></a> <a href="https://arc-opt.github.io/wbc_ros/">Code API</a> | <a href="https://arc-opt.github.io/Documentation/">Full Documentation</a></p>
+<div class="textblock"><p><a class="anchor" id="md_README"></a> <a href="https://github.com/ARC-OPT/wbc_ros/actions/workflows/build_and_test_ubuntu22.04.yml"><img src="https://github.com/ARC-OPT/wbc_ros/actions/workflows/build_and_test_ubuntu22.04.yml/badge.svg" alt="Ubuntu 22.04" style="pointer-events: none;" class="inline"/></a></p>
+<h1><a class="anchor" id="autotoc_md0"></a>
+wbc_ros - A ROS interface for the WBC library</h1>
+<p><a href="https://arc-opt.github.io/wbc_ros/">Code API</a> | <a href="https://arc-opt.github.io/Documentation/">Full Documentation</a></p>
 <p>This task library provides a ROS/ROS2 interface for the <a href="https://github.com/ARC-OPT/wbc">Whole-Body Control library</a>.</p>
 <p>WBC was initiated and is currently developed at the <a href="http://robotik.dfki-bremen.de/en/startpage.html">Robotics Innovation Center</a> of the <a href="http://www.dfki.de">German Research Center for Artificial Intelligence (DFKI)</a> in Bremen.</p>
 <p><img src="doc/images/DFKI_Logo_e_schrift.jpg" alt="drawing" width="300" class="inline"/></p>
-<h1><a class="anchor" id="autotoc_md1"></a>
-Getting Started</h1>
+<h2><a class="anchor" id="autotoc_md1"></a>
+Getting Started</h2>
 <p>Please check out the tutorials section in the <a href="https://arc-opt.github.io/Documentation/">documentation</a> for examples of usage.</p>
-<h1><a class="anchor" id="autotoc_md2"></a>
-Requirements / Dependencies</h1>
+<h2><a class="anchor" id="autotoc_md2"></a>
+Requirements / Dependencies</h2>
 <p>Currently supported OS: Ubuntu20.04, Ubuntu22.04</p>
 <p><a class="el" href="namespacewbc__ros.html" title="Force controller in Cartesian space. See here for details.">wbc_ros</a> requires a ROS2 installation (humble is the only tested distribution) as well as the <a href="https://github.com/ARC-OPT/wbc">WBC library</a>. See package.xml for further dependencies.</p>
-<h1><a class="anchor" id="autotoc_md3"></a>
-Installation</h1>
+<h2><a class="anchor" id="autotoc_md3"></a>
+Installation</h2>
 <ul>
 <li>Install ROS2 humble as described <a href="https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html">here</a>, base install + dev_tools are mimimum required</li>
 <li>Install the WBC library as described <a href="https://arc-opt.github.io/Documentation/installation/installation_no_rock.html">here</a></li>
@@ -76,17 +79,17 @@ Installation</h1>
 <div class="line">source install/setup.bash</div>
 </div><!-- fragment --> </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md4"></a>
-Testing</h1>
-<h2><a class="anchor" id="autotoc_md5"></a>
-Unit tests</h2>
+<h2><a class="anchor" id="autotoc_md4"></a>
+Testing</h2>
+<h3><a class="anchor" id="autotoc_md5"></a>
+Unit tests</h3>
 <p>The unit tests for the wbc library can be found <a href="https://github.com/ARC-OPT/wbc/tree/master/test">here</a>.</p>
-<h2><a class="anchor" id="autotoc_md6"></a>
-Launch Tests</h2>
+<h3><a class="anchor" id="autotoc_md6"></a>
+Launch Tests</h3>
 <p>Run </p><div class="fragment"><div class="line">colcon test --packages-select wbc_ros</div>
 </div><!-- fragment --><p> to execute all launch tests which can be found <a href="https://github.com/ARC-OPT/wbc_ros/tree/main/test">here</a>. For more verbosity, you can also execute the tests manually by typing </p><div class="fragment"><div class="line">launch_test install/wbc_ros/share/wbc_ros/test/&lt;test_name&gt;.test.py</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
-Examples</h2>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md7"></a>
+Examples</h3>
 <p>Ensure that robot state publisher and joint state publisher are installed: </p><div class="fragment"><div class="line">sudo apt-get install ros-humble-robot-state-publisher ros-humble-joint-state-publisher -y</div>
 </div><!-- fragment --><p> For visualizing the resulting robot motion install rviz: </p><div class="fragment"><div class="line">sudo apt-get install ros-humble-rviz2</div>
 <div class="line">source install/setup.bash</div>
@@ -95,15 +98,15 @@ Examples</h2>
 </div><!-- fragment --><p> You should see the kuka iiwa robot executing a circular end effector motion in the xy-plane. For the joint space example run </p><div class="fragment"><div class="line">ros2 launch wbc_ros joint_space_example.py</div>
 <div class="line">rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz</div>
 </div><!-- fragment --><p> You can see the kuka iiwa robot executing a sinusoidal movement with the elbow joint.</p>
-<h1><a class="anchor" id="autotoc_md8"></a>
-Contributing</h1>
+<h2><a class="anchor" id="autotoc_md8"></a>
+Contributing</h2>
 <p>Please use the <a href="https://github.com/ARC-OPT/wbc_ros/issues">issue tracker</a> to submit bug reports and feature requests.</p>
 <p>Please use merge requests as described <a href="https://github.com/ARC-OPT/wbc_ros/blob/main/CONTRIBUTING.md">here</a> to add/adapt functionality.</p>
-<h1><a class="anchor" id="autotoc_md9"></a>
-License</h1>
+<h2><a class="anchor" id="autotoc_md9"></a>
+License</h2>
 <p><a class="el" href="namespacewbc__ros.html" title="Force controller in Cartesian space. See here for details.">wbc_ros</a> is distributed under the <a href="https://opensource.org/licenses/BSD-3-Clause">3-clause BSD license</a>.</p>
-<h1><a class="anchor" id="autotoc_md10"></a>
-Acknowledge WBC</h1>
+<h2><a class="anchor" id="autotoc_md10"></a>
+Acknowledge WBC</h2>
 <p>If you use WBC within your scientific work, please cite the following publication:</p>
 <div class="fragment"><div class="line">@INPROCEEDINGS{mronga2022,</div>
 <div class="line">author = &quot;D. Mronga and S.Kumar and F.Kirchner&quot;,</div>
@@ -111,11 +114,11 @@ Acknowledge WBC</h1>
 <div class="line">year = &quot;2022&quot;,</div>
 <div class="line">note = &quot;{2022 IEEE International Conference on Robotics and Automation (ICRA)}, Accepted for publication&quot;,</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>
-Funding</h1>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md11"></a>
+Funding</h2>
 <p>WBC has been developed in the research projects <a href="https://robotik.dfki-bremen.de/en/research/projects/transfit/">TransFit</a> (Grant number 50RA1701) and <a href="https://robotik.dfki-bremen.de/en/research/projects/besman.html">BesMan</a> (Grant number 50RA1216) funded by the German Aerospace Center (DLR) with funds from the German Federal Ministry for Economic Affairs and Climate Action (BMWK). It is further developed in the <a href="https://robotik.dfki-bremen.de/en/research/projects/m-rock/">M-Rock</a> (Grant number 01IW21002) and <a href="https://robotik.dfki-bremen.de/en/research/projects/veryhuman/">VeryHuman</a> (Grant number 01IW20004) projects funded by the German Aerospace Center (DLR) with federal funds from the German Federal Ministry of Education and Research (BMBF).</p>
-<h1><a class="anchor" id="autotoc_md12"></a>
-Maintainer / Authors / Contributers</h1>
+<h2><a class="anchor" id="autotoc_md12"></a>
+Maintainer / Authors / Contributers</h2>
 <p>Dennis Mronga, <a href="#" onclick="location.href='mai'+'lto:'+'den'+'ni'+'s.m'+'ro'+'nga'+'@d'+'fki'+'.d'+'e'; return false;">denni<span class="obfuscator">.nosp@m.</span>s.mr<span class="obfuscator">.nosp@m.</span>onga@<span class="obfuscator">.nosp@m.</span>dfki<span class="obfuscator">.nosp@m.</span>.de</a></p>
 <p>Copyright 2017, DFKI GmbH / Robotics Innovation Center </p>
 </div></div><!-- PageDoc -->
