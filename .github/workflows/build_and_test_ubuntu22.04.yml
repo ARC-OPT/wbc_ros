@@ -39,8 +39,9 @@ jobs:
        cd ..
        rosdep install --from-paths src/wbc_msgs
        colcon build
-       source install/setup.bash
     # Run all tests
     - name: test
       run: |
+        cd ros_ws
+        source install/setup.bash        
         colcon test --packages-select wbc_ros
