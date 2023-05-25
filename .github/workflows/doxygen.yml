@@ -2,9 +2,9 @@ name: Doxygen Action
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   
 jobs:
   generate_doc:
