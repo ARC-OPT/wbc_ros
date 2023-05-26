@@ -16,18 +16,15 @@ find_package(sensor_msgs REQUIRED)
 
 include(FindPkgConfig)
 pkg_check_modules(wbc-core REQUIRED wbc-core)
-pkg_check_modules(wbc-scenes REQUIRED wbc-scenes)
 pkg_check_modules(wbc-controllers REQUIRED wbc-controllers)
 
 include_directories(
   ${wbc-core_INCLUDE_DIRS}
-  ${wbc-scenes_INCLUDE_DIRS}
   ${wbc-controllers_INCLUDE_DIRS}
 )
 
 link_directories(
   ${wbc-core_LIBRARIES}
-  ${wbc-scenes_LIBRARIES}
   ${wbc-controllers_LIBRARIES}
 )
 
@@ -49,7 +46,6 @@ ament_target_dependencies(joint_limit_avoidance_node rclcpp rclcpp_components wb
 
 target_link_libraries(wbc_node dl
    ${wbc-core_LIBRARIES}
-   ${wbc-scenes_LIBRARIES}
 )
 target_link_libraries(cartesian_position_controller_node
    ${wbc-controllers_LIBRARIES}
@@ -89,7 +85,7 @@ install(DIRECTORY launch config models
 )
 install(DIRECTORY models
         DESTINATION share/${PROJECT_NAME}/
-)        
+)
 
 ament_package()
 

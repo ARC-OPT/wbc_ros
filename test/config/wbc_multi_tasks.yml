@@ -3,7 +3,7 @@
     control_rate: 250.0
     robot_model_config:
         type: rbdl
-    wbc_config:
+    task_config:
         names: ["ee_pose", "collision_avoidance", "contact_force", "joint_position", "joint_limits"]
         ee_pose:
           type: 1
@@ -41,5 +41,8 @@
           joint_names: ["joint_0","joint_1","joint_2","joint_3","joint_4","joint_5","joint_6"]
           weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
           activation: 0.0
-    qp_solver: qpoases
+    solver_config:
+        type: qpoases
+    scene_config:
+        type: velocity_qp
     integrate: true
