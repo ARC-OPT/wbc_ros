@@ -1,8 +1,7 @@
 #include "wbc_node.hpp"
-#include <wbc/scenes/VelocitySceneQuadraticCost.hpp>
 #include <wbc/solvers/qpoases/QPOasesSolver.hpp>
-#include <wbc/core/RobotModelFactory.hpp>
-#include <wbc/core/QPSolverFactory.hpp>
+#include <wbc/core/RobotModel.hpp>
+#include <wbc/core/QPSolver.hpp>
 #include "conversions.hpp"
 #include "rclcpp_components/register_node_macro.hpp"
 
@@ -41,6 +40,7 @@ WbcNode::WbcNode(const rclcpp::NodeOptions &options) : ControllerNode("wbc", opt
         robot_model_cfg.contact_points[n].wx     = get_parameter(rcn + ".wx").as_double();
         robot_model_cfg.contact_points[n].wy     = get_parameter(rcn + ".wy").as_double();
     }
+    robot_model_cfg.validate();
 
     RCLCPP_INFO(get_logger(), "Configuring robot model: %s", robot_model_cfg.type.c_str());
     PluginLoader::loadPlugin("libwbc-robot_models-" + robot_model_cfg.type + ".so");
@@ -50,18 +50,21 @@ WbcNode::WbcNode(const rclcpp::NodeOptions &options) : ControllerNode("wbc", opt
         abort();
     }
 
-    declare_parameter("qp_solver", "qpoases");
-    std::string qp_solver = get_parameter("qp_solver").as_string();
+    declare_parameter("solver_config.type", "qpoases");
+    declare_parameter("solver_config.file", "");
+    QPSolverConfig solver_cfg(get_parameter("solver_config.type").as_string(),
+                              get_parameter("solver_config.file").as_string());
+    solver_cfg.validate();
 
-    RCLCPP_INFO(get_logger(), "Configuring solver: %s", qp_solver.c_str());
-    PluginLoader::loadPlugin("libwbc-solvers-" + qp_solver + ".so");
-    solver = shared_ptr<QPSolver>(QPSolverFactory::createInstance(qp_solver));
+    RCLCPP_INFO(get_logger(), "Configuring solver: %s", solver_cfg.type.c_str());
+    PluginLoader::loadPlugin("libwbc-solvers-" + solver_cfg.type + ".so");
+    solver = shared_ptr<QPSolver>(QPSolverFactory::createInstance(solver_cfg.type));
 
-    declare_parameter("wbc_config.names", vector<string>());
-    vector<string> task_names = get_parameter("wbc_config.names").as_string_array();
+    declare_parameter("task_config.names", vector<string>());
+    vector<string> task_names = get_parameter("task_config.names").as_string_array();
     for(auto n : task_names){
         TaskConfig cfg;
-        string wcn = "wbc_config." + n;
+        string wcn = "task_config." + n;
         declare_parameter(wcn + ".priority", cfg.priority);
         declare_parameter(wcn + ".type", (int)cfg.type);
         declare_parameter(wcn + ".root", cfg.root);
@@ -81,12 +84,20 @@ WbcNode::WbcNode(const rclcpp::NodeOptions &options) : ControllerNode("wbc", opt
         cfg.joint_names = get_parameter(wcn + ".joint_names").as_string_array();
         cfg.activation  = get_parameter(wcn + ".activation").as_double();
         cfg.timeout     = get_parameter(wcn + ".timeout").as_double();
-        wbc_config.push_back(cfg);
+        task_config.push_back(cfg);
     }
 
-    RCLCPP_INFO(get_logger(), "Configuring scene: %s", "VelocitySceneQuadraticCost");
-    scene = std::make_shared<VelocitySceneQuadraticCost>(robot_model, solver);
-    if(!scene->configure(wbc_config)){
+    declare_parameter("scene_config.type", "velocity");
+    declare_parameter("scene_config.file", "");
+    SceneConfig scene_cfg(get_parameter("scene_config.type").as_string(),
+                          get_parameter("scene_config.file").as_string());
+    scene_cfg.validate();
+
+    RCLCPP_INFO(get_logger(), "Configuring scene: %s", scene_cfg.type.c_str());
+
+    PluginLoader::loadPlugin("libwbc-scenes-" + scene_cfg.type + ".so");
+    scene = std::shared_ptr<Scene>(SceneFactory::createInstance(scene_cfg.type, robot_model, solver, 1.0/control_rate));
+    if(!scene->configure(task_config)){
         RCLCPP_ERROR(get_logger(), "Failed to configure scene");
         abort();
     }
@@ -103,7 +114,7 @@ WbcNode::WbcNode(const rclcpp::NodeOptions &options) : ControllerNode("wbc", opt
         sub_floating_base = create_subscription<wbc_msgs::msg::RigidBodyState>("floating_base_state", 1, bind(&WbcNode::floatingBaseStateCallback, this, placeholders::_1));
 
     // Input references, task weights and activations
-    for(auto w : wbc_config){
+    for(auto w : task_config){
         if(w.type == cart){
             function<void(const wbc_msgs::msg::RigidBodyState& msg)> fcn = bind(&WbcNode::cartReferenceCallback, this, placeholders::_1, w.name);
             sub_cart_ref.push_back(create_subscription<wbc_msgs::msg::RigidBodyState>("ref_" + w.name, 1, fcn));
@@ -120,7 +131,7 @@ WbcNode::WbcNode(const rclcpp::NodeOptions &options) : ControllerNode("wbc", opt
     }
 
     // Output task states
-    for(auto w : wbc_config){
+    for(auto w : task_config){
         if(w.type == cart)
             publishers_task_status_cart.push_back(create_publisher<wbc_msgs::msg::RigidBodyState>("status_" + w.name, 1));
         else
@@ -128,7 +139,7 @@ WbcNode::WbcNode(const rclcpp::NodeOptions &options) : ControllerNode("wbc", opt
     }
 
     // Output task info
-    for(auto w : wbc_config)
+    for(auto w : task_config)
         publishers_task_info.push_back(create_publisher<wbc_msgs::msg::TaskStatus>("task_" + w.name, 1));
 
     // Input joint weights
@@ -224,8 +235,8 @@ void WbcNode::updateController(){
 
 void WbcNode::publishTaskStatus(){
     int idx_cart = 0, idx_jnt = 0;
-    for(uint i = 0; i < wbc_config.size(); i++){
-        const TaskConfig& w = wbc_config[i];
+    for(uint i = 0; i < task_config.size(); i++){
+        const TaskConfig& w = task_config[i];
         if(w.type == cart){
             toROS(robot_model->rigidBodyState(w.ref_frame, w.tip), status_cart);
             publishers_task_status_cart[idx_cart++]->publish(status_cart);

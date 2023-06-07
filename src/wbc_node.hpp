@@ -61,7 +61,7 @@ Subscribed Topics:
 */
 class WbcNode : public ControllerNode{
 protected:
-   wbc::WbcScenePtr scene;
+   wbc::ScenePtr scene;
    wbc::RobotModelPtr robot_model;
    wbc::QPSolverPtr solver;
 
@@ -75,7 +75,7 @@ protected:
    wbc::HierarchicalQP qp;
    base::commands::Joints solver_output;
    wbc::JointIntegrator joint_integrator;
-   std::vector<wbc::TaskConfig> wbc_config;
+   std::vector<wbc::TaskConfig> task_config;
    bool has_floating_base_state;
    wbc::TasksStatus tasks_status;
    std::vector<wbc_msgs::msg::TaskStatus> task_status_msgs;

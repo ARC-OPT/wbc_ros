@@ -3,7 +3,7 @@
     control_rate: 250.0
     robot_model_config:
         type: rbdl
-    wbc_config:
+    task_config:
         names: ["joint_position"]
         joint_position:
           type: 0
@@ -12,4 +12,8 @@
           weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
           activation: 1.0
     qp_solver: qpoases
+    solver_config:
+      type: qpoases
+    scene_config:
+      type: velocity_qp
     integrate: true

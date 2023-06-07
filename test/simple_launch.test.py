@@ -49,5 +49,6 @@ class TestBringup(unittest.TestCase):
         try:
             node = TestNode()
             assert node.wait_for_node('wbc'), 'WBC Node not found !'
+            time.sleep(1)
         finally:
             rclpy.shutdown()
