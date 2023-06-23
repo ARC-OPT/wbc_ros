@@ -31,6 +31,7 @@ void fromROS(const std_msgs::msg::Float64MultiArray& in, base::VectorXd& out);
 void fromROS(const std_msgs::msg::Float64MultiArray& in, const std::vector<std::string>& joint_names, wbc::JointWeights& out);
 void fromROS(const geometry_msgs::msg::WrenchStamped& in, base::samples::Wrench& out);
 void toROS(const base::commands::Joints& in, trajectory_msgs::msg::JointTrajectory& out);
+void toROS(const base::VectorXd& in, std_msgs::msg::Float64MultiArray& out);
 void toROS(const base::Pose& in, geometry_msgs::msg::Pose& out);
 void toROS(const base::Twist& in, geometry_msgs::msg::Twist& out);
 void toROS(const base::Acceleration& in, geometry_msgs::msg::Accel& out);

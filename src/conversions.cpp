@@ -72,6 +72,12 @@ void fromROS(const geometry_msgs::msg::WrenchStamped& in, base::samples::Wrench&
     out.torque = base::Vector3d(in.wrench.torque.x, in.wrench.torque.y, in.wrench.torque.z);
 }
 
+void toROS(const base::VectorXd& in, std_msgs::msg::Float64MultiArray& out){
+    out.data.resize(in.size());
+    for(uint i = 0; i < in.size(); i++)
+        out.data[i] = in[i];
+}
+
 void toROS(const base::commands::Joints& in, trajectory_msgs::msg::JointTrajectory& out){
     out.header.stamp.sec = in.time.toTimeval().tv_sec;
     out.header.stamp.nanosec = in.time.toTimeval().tv_usec*1000;

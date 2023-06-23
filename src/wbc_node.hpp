@@ -93,11 +93,13 @@ protected:
 
    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr sub_feedback;
    rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr solver_output_publisher;
+   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr solver_output_raw_publisher;
    rclcpp::Publisher<wbc_msgs::msg::WbcTimingStats>::SharedPtr pub_timing_stats;
    wbc_msgs::msg::RigidBodyState status_cart;
    sensor_msgs::msg::JointState status_jnt;
    wbc_msgs::msg::WbcTimingStats timing_stats;
    rclcpp::Time stamp;
+   std_msgs::msg::Float64MultiArray solver_output_raw;
 
    void jointStateCallback(const sensor_msgs::msg::JointState& msg);
    void cartReferenceCallback(const wbc_msgs::msg::RigidBodyState& msg, const std::string& constraint_name);
@@ -111,6 +113,7 @@ public:
    WbcNode(const rclcpp::NodeOptions & options);
    ~WbcNode();
    virtual void updateController();
+   void publishSolverOutput();
    void publishTaskStatus();
    void publishTaskInfo();
 };

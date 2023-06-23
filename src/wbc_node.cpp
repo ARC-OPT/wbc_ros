@@ -150,6 +150,7 @@ WbcNode::WbcNode(const rclcpp::NodeOptions &options) : ControllerNode("wbc", opt
 
     // Solver output
     solver_output_publisher = create_publisher<trajectory_msgs::msg::JointTrajectory>("solver_output", 1);
+    solver_output_raw_publisher = create_publisher<std_msgs::msg::Float64MultiArray>("solver_output_raw", 1);
 
     // WBC should send zeros if no setpoint is given from any controller, so set has_setpoint = true
     has_setpoint = true;
@@ -221,16 +222,21 @@ void WbcNode::updateController(){
 
     if(integrate)
         joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/control_rate);
-    toROS(solver_output, solver_output_ros);
-    solver_output_publisher->publish(solver_output_ros);
 
-
+    publishSolverOutput();
     publishTaskStatus();
     publishTaskInfo();
 
     timing_stats.time_per_cycle = (get_clock()->now() - stamp).seconds();
     timing_stats.header.stamp = get_clock()->now();
     pub_timing_stats->publish(timing_stats);
+}
+
+void WbcNode::publishSolverOutput(){
+    toROS(solver_output, solver_output_ros);
+    solver_output_publisher->publish(solver_output_ros);
+    toROS(scene->getSolverOutputRaw(), solver_output_raw);
+    solver_output_raw_publisher->publish(solver_output_raw);
 }
 
 void WbcNode::publishTaskStatus(){
