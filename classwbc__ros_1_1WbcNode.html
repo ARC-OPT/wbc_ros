@@ -81,6 +81,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae3884aecfded55c546f87a3fc36fa726"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5689d99b611d45889500921c02654f7a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1WbcNode.html#a5689d99b611d45889500921c02654f7a">updateController</a> ()</td></tr>
 <tr class="separator:a5689d99b611d45889500921c02654f7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9486661009d6d5c4e897288715c8cb76"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1WbcNode.html#a9486661009d6d5c4e897288715c8cb76">publishSolverOutput</a> ()</td></tr>
+<tr class="separator:a9486661009d6d5c4e897288715c8cb76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34a0d89b8ac53314f1fc54067f4ef8d1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1WbcNode.html#a34a0d89b8ac53314f1fc54067f4ef8d1">publishTaskStatus</a> ()</td></tr>
 <tr class="separator:a34a0d89b8ac53314f1fc54067f4ef8d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa672840cfd2e610cfe0655de8368bf5f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1WbcNode.html#aa672840cfd2e610cfe0655de8368bf5f">publishTaskInfo</a> ()</td></tr>
@@ -175,6 +177,8 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a3e28e908ba9beb291b79c2e0656642b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c6c7328154575c5e485a055fed6e8de"><td class="memItemLeft" align="right" valign="top">rclcpp::Publisher&lt; trajectory_msgs::msg::JointTrajectory &gt;::SharedPtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1WbcNode.html#a4c6c7328154575c5e485a055fed6e8de">solver_output_publisher</a></td></tr>
 <tr class="separator:a4c6c7328154575c5e485a055fed6e8de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a535da186b063b966b2993f8ff022383a"><td class="memItemLeft" align="right" valign="top">rclcpp::Publisher&lt; std_msgs::msg::Float64MultiArray &gt;::SharedPtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1WbcNode.html#a535da186b063b966b2993f8ff022383a">solver_output_raw_publisher</a></td></tr>
+<tr class="separator:a535da186b063b966b2993f8ff022383a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae42aebcbb000361dd6b4de70f17358b5"><td class="memItemLeft" align="right" valign="top">rclcpp::Publisher&lt; wbc_msgs::msg::WbcTimingStats &gt;::SharedPtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1WbcNode.html#ae42aebcbb000361dd6b4de70f17358b5">pub_timing_stats</a></td></tr>
 <tr class="separator:ae42aebcbb000361dd6b4de70f17358b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf8d8a0e592f3fdfe0447a0d868135f9"><td class="memItemLeft" align="right" valign="top">wbc_msgs::msg::RigidBodyState&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1WbcNode.html#adf8d8a0e592f3fdfe0447a0d868135f9">status_cart</a></td></tr>
@@ -185,6 +189,8 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a5b7e4da81ed006d1c11ea7995eb06ce6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a496d5bf696107ece78c9bd00bf424d69"><td class="memItemLeft" align="right" valign="top">rclcpp::Time&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1WbcNode.html#a496d5bf696107ece78c9bd00bf424d69">stamp</a></td></tr>
 <tr class="separator:a496d5bf696107ece78c9bd00bf424d69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43896774b5bbde51ed171ab84be79fb9"><td class="memItemLeft" align="right" valign="top">std_msgs::msg::Float64MultiArray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1WbcNode.html#a43896774b5bbde51ed171ab84be79fb9">solver_output_raw</a></td></tr>
+<tr class="separator:a43896774b5bbde51ed171ab84be79fb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_classwbc__ros_1_1ControllerNode"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_classwbc__ros_1_1ControllerNode')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classwbc__ros_1_1ControllerNode.html">wbc_ros::ControllerNode</a></td></tr>
 <tr class="memitem:abad22e1fc8267d0f3cc2f3527a978a38 inherit pro_attribs_classwbc__ros_1_1ControllerNode"><td class="memItemLeft" align="right" valign="top">rclcpp::Publisher&lt; std_msgs::msg::String &gt;::SharedPtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classwbc__ros_1_1ControllerNode.html#abad22e1fc8267d0f3cc2f3527a978a38">state_publisher</a></td></tr>
 <tr class="separator:abad22e1fc8267d0f3cc2f3527a978a38 inherit pro_attribs_classwbc__ros_1_1ControllerNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -416,6 +422,23 @@ Protected Attributes</h2></td></tr>
 <span class="mlabels"><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9486661009d6d5c4e897288715c8cb76" name="a9486661009d6d5c4e897288715c8cb76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9486661009d6d5c4e897288715c8cb76">&#9670;&#160;</a></span>publishSolverOutput()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void wbc_ros::WbcNode::publishSolverOutput </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
@@ -939,6 +962,50 @@ Protected Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">rclcpp::Publisher&lt;trajectory_msgs::msg::JointTrajectory&gt;::SharedPtr wbc_ros::WbcNode::solver_output_publisher</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a43896774b5bbde51ed171ab84be79fb9" name="a43896774b5bbde51ed171ab84be79fb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43896774b5bbde51ed171ab84be79fb9">&#9670;&#160;</a></span>solver_output_raw</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std_msgs::msg::Float64MultiArray wbc_ros::WbcNode::solver_output_raw</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a535da186b063b966b2993f8ff022383a" name="a535da186b063b966b2993f8ff022383a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a535da186b063b966b2993f8ff022383a">&#9670;&#160;</a></span>solver_output_raw_publisher</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">rclcpp::Publisher&lt;std_msgs::msg::Float64MultiArray&gt;::SharedPtr wbc_ros::WbcNode::solver_output_raw_publisher</td>
         </tr>
       </table>
   </td>
