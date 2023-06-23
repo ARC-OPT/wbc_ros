@@ -93,9 +93,9 @@ Examples</h3>
 <p>Ensure that robot state publisher and joint state publisher are installed: </p><div class="fragment"><div class="line">sudo apt-get install ros-humble-robot-state-publisher ros-humble-joint-state-publisher -y</div>
 </div><!-- fragment --><p> For visualizing the resulting robot motion install rviz: </p><div class="fragment"><div class="line">sudo apt-get install ros-humble-rviz2</div>
 <div class="line">source install/setup.bash</div>
-</div><!-- fragment --><p> For the Cartesian space example run </p><div class="fragment"><div class="line">ros2 launch wbc_ros cartesian_space_example.py</div>
+</div><!-- fragment --><p> For the Cartesian space example run </p><div class="fragment"><div class="line">ros2 launch wbc_ros cartesian_space_example.launch.py</div>
 <div class="line">rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz</div>
-</div><!-- fragment --><p> You should see the kuka iiwa robot executing a circular end effector motion in the xy-plane. For the joint space example run </p><div class="fragment"><div class="line">ros2 launch wbc_ros joint_space_example.py</div>
+</div><!-- fragment --><p> You should see the kuka iiwa robot executing a circular end effector motion in the xy-plane. For the joint space example run </p><div class="fragment"><div class="line">ros2 launch wbc_ros joint_space_example.launch.py</div>
 <div class="line">rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz</div>
 </div><!-- fragment --><p> You can see the kuka iiwa robot executing a sinusoidal movement with the elbow joint.</p>
 <h2><a class="anchor" id="autotoc_md8"></a>
