@@ -66,12 +66,12 @@ source install/setup.bash
 ```
 For the Cartesian space example run 
 ```
-ros2 launch wbc_ros cartesian_space_example.py
+ros2 launch wbc_ros cartesian_space_example.launch.py
 rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz
 ``` 
 You should see the kuka iiwa robot executing a circular end effector motion in the xy-plane. For the joint space example run
 ```
-ros2 launch wbc_ros joint_space_example.py
+ros2 launch wbc_ros joint_space_example.launch.py
 rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz
 ```
 You can see the kuka iiwa robot executing a sinusoidal movement with the elbow joint. 

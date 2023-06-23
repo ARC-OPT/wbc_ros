@@ -7,14 +7,17 @@
 
 using namespace std::chrono_literals;
 
-
+/**
+@brief Publishes a sinudoidal trajectory in Cartesian space. 
+*/
 class CartesianTrajectoryPublisher : public rclcpp::Node
 {
   public:
     CartesianTrajectoryPublisher() : Node("cartesian_trajectory_publisher"){
         publisher_ = this->create_publisher<wbc_msgs::msg::RigidBodyState>("setpoint", 10);
 
-        declare_parameter("amplitude", 0.1);    
+        declare_parameter("amplitude", 0.1);
+        declare_parameter("frequency", 1.0);
         declare_parameter("plane", "xy");
         declare_parameter("init_pos_x", 0.0);
         declare_parameter("init_pos_y", 0.0);
@@ -25,6 +28,7 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
         declare_parameter("init_ori_qw", 1.0);    
          
         amplitude       = get_parameter("amplitude").as_double();
+        frequency       = get_parameter("frequency").as_double();
         plane           = get_parameter("plane").as_string();
         init_pos_x      = get_parameter("init_pos_x").as_double();
         init_pos_y      = get_parameter("init_pos_y").as_double();
@@ -43,19 +47,19 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
     {
         auto msg = wbc_msgs::msg::RigidBodyState();
         if(plane == "xy"){
-	    msg.pose.position.x = init_pos_x + amplitude*sin(dt);
-            msg.pose.position.y = init_pos_y + amplitude*cos(dt);
+	    msg.pose.position.x = init_pos_x + amplitude*sin(2*M_PI*frequency*dt);
+            msg.pose.position.y = init_pos_y + amplitude*cos(2*M_PI*frequency*dt);
  	    msg.pose.position.z = init_pos_z;
 	}
 	else if(plane == "xz"){
-	    msg.pose.position.x = init_pos_x + amplitude*sin(dt);
+	    msg.pose.position.x = init_pos_x + amplitude*sin(2*M_PI*frequency*dt);
             msg.pose.position.y = init_pos_y;
- 	    msg.pose.position.z = init_pos_z + amplitude*cos(dt);
+ 	    msg.pose.position.z = init_pos_z + amplitude*cos(2*M_PI*frequency*dt);
 	}
 	else if(plane == "yz"){
 	    msg.pose.position.x = init_pos_x;
-            msg.pose.position.y = init_pos_y + amplitude*sin(dt);
- 	    msg.pose.position.z = init_pos_z + amplitude*cos(dt);
+            msg.pose.position.y = init_pos_y + amplitude*sin(2*M_PI*frequency*dt);
+ 	    msg.pose.position.z = init_pos_z + amplitude*cos(2*M_PI*frequency*dt);
 	}
 	else
             throw std::runtime_error("Invalid parameter: plane: " + plane);
@@ -71,6 +75,7 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
     rclcpp::Publisher<wbc_msgs::msg::RigidBodyState>::SharedPtr publisher_;
     double dt;
     double amplitude;
+    double frequency;
     std::string plane;
     double init_pos_x;
     double init_pos_y;

@@ -1,6 +1,7 @@
 /kuka_iiwa/wbc/ee_pose/trajectory:
   ros__parameters:
     amplitude: 0.1
+    frequency: 0.3
     plane: "xy"
     init_pos_x: 0.0
     init_pos_y: 0.0
