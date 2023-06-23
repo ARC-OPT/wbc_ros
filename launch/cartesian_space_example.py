@@ -8,6 +8,7 @@ def generate_launch_description():
     wbc_config          = os.path.join(get_package_share_directory('wbc_ros'),'config','cartesian_space_example','wbc.yml')
     joints_config       = os.path.join(get_package_share_directory('wbc_ros'),'config','joints.yml')
     ee_pose_ctrl_config = os.path.join(get_package_share_directory('wbc_ros'),'config','cartesian_space_example','ee_pose_controller.yml')
+    ee_pose_traj_config = os.path.join(get_package_share_directory('wbc_ros'),'config','cartesian_space_example','ee_pose_trajectory.yml')
     urdf_file           = os.path.join(get_package_share_directory('wbc_ros'),'models','urdf','kuka_iiwa.urdf')
     with open(urdf_file, 'r') as f:
         robot_desc = f.read()
@@ -37,7 +38,8 @@ def generate_launch_description():
             package='wbc_ros',
             namespace='wbc/'+task_name,
             executable='cartesian_trajectory_publisher',
-            name='trajectory'
+            name='trajectory',
+            parameters=[ee_pose_traj_config]
         ),
         Node(
             package='wbc_ros',
