@@ -95,10 +95,13 @@ ament_package()
 
 add_executable(joint_trajectory_publisher src/examples/joint_trajectory_publisher.cpp)
 add_executable(cartesian_trajectory_publisher src/examples/cartesian_trajectory_publisher.cpp)
+add_executable(cartesian_pose_publisher src/examples/cartesian_pose_publisher.cpp)
 ament_target_dependencies(joint_trajectory_publisher rclcpp trajectory_msgs)
 ament_target_dependencies(cartesian_trajectory_publisher rclcpp wbc_msgs)
+ament_target_dependencies(cartesian_pose_publisher rclcpp wbc_msgs)
 install(TARGETS joint_trajectory_publisher
                 cartesian_trajectory_publisher
+                cartesian_pose_publisher
         RUNTIME DESTINATION lib/${PROJECT_NAME})
 
 
