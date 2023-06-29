@@ -50,16 +50,25 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
 	    msg.pose.position.x = init_pos_x + amplitude*sin(2*M_PI*frequency*dt);
             msg.pose.position.y = init_pos_y + amplitude*cos(2*M_PI*frequency*dt);
  	    msg.pose.position.z = init_pos_z;
+ 	    msg.twist.linear.x = amplitude*cos(2*M_PI*frequency*dt);
+     	    msg.twist.linear.y = -amplitude*sin(2*M_PI*frequency*dt);
+            msg.twist.linear.z = 0.0;
 	}
 	else if(plane == "xz"){
 	    msg.pose.position.x = init_pos_x + amplitude*sin(2*M_PI*frequency*dt);
             msg.pose.position.y = init_pos_y;
  	    msg.pose.position.z = init_pos_z + amplitude*cos(2*M_PI*frequency*dt);
+ 	    msg.twist.linear.x = amplitude*cos(2*M_PI*frequency*dt);
+     	    msg.twist.linear.y = 0.0;
+            msg.twist.linear.z = -amplitude*sin(2*M_PI*frequency*dt);
 	}
 	else if(plane == "yz"){
 	    msg.pose.position.x = init_pos_x;
             msg.pose.position.y = init_pos_y + amplitude*sin(2*M_PI*frequency*dt);
  	    msg.pose.position.z = init_pos_z + amplitude*cos(2*M_PI*frequency*dt);
+ 	    msg.twist.linear.x = 0.0;
+     	    msg.twist.linear.y = amplitude*cos(2*M_PI*frequency*dt);
+            msg.twist.linear.z = -amplitude*sin(2*M_PI*frequency*dt);
 	}
 	else
             throw std::runtime_error("Invalid parameter: plane: " + plane);
@@ -68,6 +77,9 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
         msg.pose.orientation.y = init_ori_qy;
         msg.pose.orientation.z = init_ori_qz;
         msg.pose.orientation.w = init_ori_qw;
+        msg.twist.angular.x = 0.0;
+        msg.twist.angular.y = 0.0;
+        msg.twist.angular.z = 0.0;               
         publisher_->publish(msg);
         dt += 0.01;
     }
