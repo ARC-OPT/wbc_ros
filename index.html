@@ -65,20 +65,7 @@ Requirements / Dependencies</h2>
 <p><a class="el" href="namespacewbc__ros.html" title="Force controller in Cartesian space. See here for details.">wbc_ros</a> requires a ROS2 installation (humble is the only tested distribution) as well as the <a href="https://github.com/ARC-OPT/wbc">WBC library</a>. See package.xml for further dependencies.</p>
 <h2><a class="anchor" id="autotoc_md3"></a>
 Installation</h2>
-<ul>
-<li>Install ROS2 humble as described <a href="https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html">here</a>, base install + dev_tools are mimimum required</li>
-<li>Install the WBC library as described <a href="https://arc-opt.github.io/Documentation/installation/installation_no_rock.html">here</a></li>
-<li>Create a ROS2 workspace as described <a href="https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html">here</a> or use an existing one</li>
-<li>If not yet done, init rosdep: <code>sudo rosdep init &amp; rosdep update</code></li>
-<li>In a console type <div class="fragment"><div class="line">cd ~/my_ros_workspace/src</div>
-<div class="line">git clone https://github.com/ARC-OPT/wbc_msgs.git</div>
-<div class="line">git clone https://github.com/ARC-OPT/wbc_ros.git</div>
-<div class="line">cd ..</div>
-<div class="line">rosdep install --from-paths src/wbc_msgs</div>
-<div class="line">colcon build</div>
-<div class="line">source install/setup.bash</div>
-</div><!-- fragment --> </li>
-</ul>
+<p>See <a href="https://arc-opt.github.io/Documentation/installation/installation_ros.html">here</a> for installation instructions.</p>
 <h2><a class="anchor" id="autotoc_md4"></a>
 Testing</h2>
 <h3><a class="anchor" id="autotoc_md5"></a>
