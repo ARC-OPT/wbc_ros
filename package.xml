@@ -10,11 +10,21 @@
   <author email="dennis.mronga@dfki.de">Dennis Mronga</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <build_depend>pluginlib</build_depend>
+  <build_depend>realtime_tools</build_depend>
+
+  <exec_depend>pluginlib</exec_depend>
+  <exec_depend>realtime_tools</exec_depend>
+
   <depend>wbc_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>controller_interface</depend>
+  <depend>rclcpp_lifecycle</depend>
   <depend>sensor_msgs</depend>
   <depend>trajectory_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>generate_parameter_library</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
