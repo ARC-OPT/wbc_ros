@@ -5,7 +5,6 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
 def generate_launch_description():
-
     iiwa_controllers = PathJoinSubstitution([FindPackageShare('wbc_ros'), 'config', 'iiwa_controllers.yaml'])
     robot_description = Command([
         PathJoinSubstitution([FindExecutable(name='xacro')]),' ',
@@ -30,6 +29,7 @@ def generate_launch_description():
             package='controller_manager',
             executable='spawner',
             arguments=['whole_body_controller', '--controller-manager', ['/', 'controller_manager']],
+            parameters=[{'robot_model.file': robot_description}],
             namespace='/'
         ),
         Node(

@@ -1,20 +1,36 @@
 controller_manager:
-  ros__parameters:
-    update_rate: 1000  # Hz
+    ros__parameters:
+        update_rate: 1000 # Hz
 
-    joint_state_broadcaster:
-      type: joint_state_broadcaster/JointStateBroadcaster
+        joint_state_broadcaster:
+          type: joint_state_broadcaster/JointStateBroadcaster
 
-    whole_body_controller:
-      type: wbc_ros/WholeBodyController
+        whole_body_controller:
+          type: wbc_ros/WholeBodyController
 
 whole_body_controller:
-  ros__parameters:
-    joints:
-      - joint_0
-      - joint_1
-      - joint_2
-      - joint_3
-      - joint_4
-      - joint_5
-      - joint_6
+    ros__parameters:
+        command_interfaces:
+            - position
+        state_interfaces:
+            - position
+            - velocity
+        task_names: ["ee_pose"]
+        joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+        robot_model:
+            file: /home/dennis/ros2_ws/src/wbc_ros/models/urdf/iiwa.urdf
+            type: rbdl
+        tasks:
+            ee_pose:
+                type: cart
+                priority: 0
+                root: world
+                tip: tool0
+                ref_frame: world
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+                activation: 1.0
+        solver:
+            type: qpoases
+        scene:
+            type: velocity_qp
+        integrate: true

@@ -12,96 +12,7 @@ namespace wbc_ros{
 
 WholeBodyController::WholeBodyController() : ControllerInterface(), has_floating_base_state(false){
 
-    /*declare_parameter("integrate", true);
-    integrate = get_parameter("integrate").as_bool();
-
-    RobotModelConfig robot_model_cfg;
-    string r = "robot_model_config.";
-    declare_parameter(r + "file", robot_model_cfg.file);
-    declare_parameter(r + "type", robot_model_cfg.type);
-    declare_parameter(r + "submechanism_file", robot_model_cfg.submechanism_file);
-    declare_parameter(r + "floating_base", robot_model_cfg.floating_base);
-    declare_parameter(r + "contact_points.names", robot_model_cfg.contact_points.names);
-    robot_model_cfg.file                 = get_parameter(r + "file").as_string();
-    robot_model_cfg.type                 = get_parameter(r + "type").as_string();
-    robot_model_cfg.submechanism_file    = get_parameter(r + "submechanism_file").as_string();
-    robot_model_cfg.floating_base        = get_parameter(r + "floating_base").as_bool();
-    robot_model_cfg.contact_points.names = get_parameter(r + "contact_points.names").as_string_array();
-    // ROS2 does not support lists of complex data types as parameters, so we have to refer to this ugly hack here
-    for(auto n : robot_model_cfg.contact_points.names){
-        string rcn = "robot_model_config.contact_points." + n;
-        declare_parameter(rcn + ".active", ActiveContact().active);
-        declare_parameter(rcn + ".mu",     ActiveContact().mu);
-        declare_parameter(rcn + ".wx",     ActiveContact().wx);
-        declare_parameter(rcn + ".wy",     ActiveContact().wy);
-        robot_model_cfg.contact_points[n].active = get_parameter(rcn + ".active").as_int();
-        robot_model_cfg.contact_points[n].mu     = get_parameter(rcn + ".mu").as_double();
-        robot_model_cfg.contact_points[n].wx     = get_parameter(rcn + ".wx").as_double();
-        robot_model_cfg.contact_points[n].wy     = get_parameter(rcn + ".wy").as_double();
-    }
-    robot_model_cfg.validate();
-
-    RCLCPP_INFO(get_logger(), "Configuring robot model: %s", robot_model_cfg.type.c_str());
-    PluginLoader::loadPlugin("libwbc-robot_models-" + robot_model_cfg.type + ".so");
-    robot_model = shared_ptr<RobotModel>(RobotModelFactory::createInstance(robot_model_cfg.type));
-    if(!robot_model->configure(robot_model_cfg)){
-        RCLCPP_ERROR(get_logger(), "Failed to configure robot model");
-        abort();
-    }
-
-    declare_parameter("solver_config.type", "qpoases");
-    declare_parameter("solver_config.file", "");
-    QPSolverConfig solver_cfg(get_parameter("solver_config.type").as_string(),
-                              get_parameter("solver_config.file").as_string());
-    solver_cfg.validate();
-
-    RCLCPP_INFO(get_logger(), "Configuring solver: %s", solver_cfg.type.c_str());
-    PluginLoader::loadPlugin("libwbc-solvers-" + solver_cfg.type + ".so");
-    solver = shared_ptr<QPSolver>(QPSolverFactory::createInstance(solver_cfg.type));
-
-    declare_parameter("task_config.names", vector<string>());
-    vector<string> task_names = get_parameter("task_config.names").as_string_array();
-    for(auto n : task_names){
-        TaskConfig cfg;
-        string wcn = "task_config." + n;
-        declare_parameter(wcn + ".priority", cfg.priority);
-        declare_parameter(wcn + ".type", (int)cfg.type);
-        declare_parameter(wcn + ".root", cfg.root);
-        declare_parameter(wcn + ".tip", cfg.tip);
-        declare_parameter(wcn + ".ref_frame", cfg.ref_frame);
-        declare_parameter(wcn + ".weights", cfg.weights);
-        declare_parameter(wcn + ".joint_names", cfg.joint_names);
-        declare_parameter(wcn + ".activation", cfg.activation);
-        declare_parameter(wcn + ".timeout", cfg.timeout);
-        cfg.name = n;
-        cfg.priority    = get_parameter(wcn + ".priority").as_int();
-        cfg.type        = (TaskType)get_parameter(wcn + ".type").as_int();
-        cfg.root        = get_parameter(wcn + ".root").as_string();
-        cfg.tip         = get_parameter(wcn + ".tip").as_string();
-        cfg.ref_frame   = get_parameter(wcn + ".ref_frame").as_string();
-        cfg.weights     = get_parameter(wcn + ".weights").as_double_array();
-        cfg.joint_names = get_parameter(wcn + ".joint_names").as_string_array();
-        cfg.activation  = get_parameter(wcn + ".activation").as_double();
-        cfg.timeout     = get_parameter(wcn + ".timeout").as_double();
-        task_config.push_back(cfg);
-    }
-
-    declare_parameter("scene_config.type", "velocity");
-    declare_parameter("scene_config.file", "");
-    SceneConfig scene_cfg(get_parameter("scene_config.type").as_string(),
-                          get_parameter("scene_config.file").as_string());
-    scene_cfg.validate();
-
-    RCLCPP_INFO(get_logger(), "Configuring scene: %s", scene_cfg.type.c_str());
-
-    PluginLoader::loadPlugin("libwbc-scenes-" + scene_cfg.type + ".so");
-    scene = std::shared_ptr<Scene>(SceneFactory::createInstance(scene_cfg.type, robot_model, solver, 1.0/control_rate));
-    if(!scene->configure(task_config)){
-        RCLCPP_ERROR(get_logger(), "Failed to configure scene");
-        abort();
-    }
-
-    RCLCPP_INFO(get_logger(), "Creating interfaces");
+    /*
 
     // Input joint state
     joint_state.resize(robot_model->noOfJoints());
@@ -163,15 +74,59 @@ WholeBodyController::~WholeBodyController(){
 
 controller_interface::InterfaceConfiguration WholeBodyController::command_interface_configuration() const{
     controller_interface::InterfaceConfiguration conf;
+    conf.type = controller_interface::interface_configuration_type::ALL;
     return conf;
 }
 
 controller_interface::InterfaceConfiguration WholeBodyController::state_interface_configuration() const{
     controller_interface::InterfaceConfiguration conf;
+    conf.type = controller_interface::interface_configuration_type::ALL;
     return conf;
 }
 
+void WholeBodyController::read_state_from_hardware(){
+    for(uint i = 0; i < state_position_indices.size(); i++)
+        joint_state[i].position = state_interfaces_[state_position_indices[i]].get_value();
+    for(uint i = 0; i < state_velocity_indices.size(); i++)
+        joint_state[i].speed = state_interfaces_[state_velocity_indices[i]].get_value();
+    for(uint i = 0; i < state_acceleration_indices.size(); i++)
+        joint_state[i].acceleration = state_interfaces_[state_acceleration_indices[i]].get_value();
+    for(uint i = 0; i < state_effort_indices.size(); i++)
+        joint_state[i].effort = state_interfaces_[state_effort_indices[i]].get_value();
+    joint_state.time = base::Time::now();
+}
+
 controller_interface::return_type WholeBodyController::update(const rclcpp::Time & time, const rclcpp::Duration & period){
+    timing_stats.desired_period = 0;
+    //timing_stats.actual_period = (get_node()->get_clock()->now() - stamp).seconds();
+    stamp = get_node()->get_clock()->now();
+
+    read_state_from_hardware();
+
+    rclcpp::Time start = get_node()->get_clock()->now();
+    robot_model->update(joint_state, floating_base_state);
+    timing_stats.time_robot_model_update = (get_node()->get_clock()->now() - start).seconds();
+
+    start = get_node()->get_clock()->now();
+    qp = scene->update();
+    timing_stats.time_scene_update = (get_node()->get_clock()->now() - start).seconds();
+
+    start = get_node()->get_clock()->now();
+    solver_output = scene->solve(qp);
+    timing_stats.time_solve = (get_node()->get_clock()->now() - start).seconds();
+
+    //tasks_status = scene->updateTasksStatus();
+
+    if(integrate)
+        joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/1.0);
+
+    publishSolverOutput();
+    // publishTaskStatus();
+    // publishTaskInfo();
+
+    timing_stats.time_per_cycle = (get_node()->get_clock()->now() - stamp).seconds();
+    timing_stats.header.stamp = get_node()->get_clock()->now();
+    //pub_timing_stats->publish(timing_stats);
     return controller_interface::return_type::OK;
 }
 
@@ -189,10 +144,101 @@ controller_interface::CallbackReturn WholeBodyController::on_init(){
 }
 
 controller_interface::CallbackReturn WholeBodyController::on_configure(const rclcpp_lifecycle::State & previous_state){
+
+    integrate = params.integrate;
+
+    RobotModelConfig robot_model_cfg;
+    robot_model_cfg.file                 = params.robot_model.file;
+    robot_model_cfg.type                 = params.robot_model.type;
+    robot_model_cfg.submechanism_file    = params.robot_model.submechanism_file;
+    robot_model_cfg.floating_base        = params.robot_model.floating_base;
+    robot_model_cfg.contact_points.names = params.contact_names;
+    robot_model_cfg.floating_base        = params.robot_model.floating_base;
+    for(auto name : params.contact_names){
+        const auto &c = params.robot_model.contact_points.contact_names_map.at(name);
+        robot_model_cfg.contact_points.elements.push_back(ActiveContact(c.active, c.mu, c.wx, c.wy));
+    }
+    robot_model_cfg.validate();
+
+    RCLCPP_INFO(get_node()->get_logger(), "Configuring robot model: %s", robot_model_cfg.type.c_str());
+    PluginLoader::loadPlugin("libwbc-robot_models-" + robot_model_cfg.type + ".so");
+    robot_model = shared_ptr<RobotModel>(RobotModelFactory::createInstance(robot_model_cfg.type));
+    if(!robot_model->configure(robot_model_cfg)){
+        RCLCPP_ERROR(get_node()->get_logger(), "Failed to configure robot model");
+        return CallbackReturn::ERROR;
+    }
+
+    QPSolverConfig solver_cfg(params.solver.type, params.solver.file);
+    solver_cfg.validate();
+
+    RCLCPP_INFO(get_node()->get_logger(), "Configuring solver: %s", solver_cfg.type.c_str());
+    PluginLoader::loadPlugin("libwbc-solvers-" + solver_cfg.type + ".so");
+    solver = shared_ptr<QPSolver>(QPSolverFactory::createInstance(solver_cfg.type));
+
+    task_config.clear();
+    for(auto name : params.task_names){
+        TaskConfig cfg;
+        const auto& task_param = params.tasks.task_names_map.at(name);
+        cfg.name        = name;
+        cfg.priority    = task_param.priority;
+        if(task_param.type == "cart")
+            cfg.type = TaskType::cart;
+        else if(task_param.type == "jnt")
+            cfg.type = TaskType::jnt;
+        else
+            cfg.type = TaskType::com;
+        cfg.weights     = task_param.weights;
+        cfg.root        = task_param.root;
+        cfg.tip         = task_param.tip;
+        cfg.ref_frame   = task_param.ref_frame;
+        cfg.joint_names = task_param.joint_names;
+        cfg.timeout     = task_param.timeout;
+        cfg.activation  = task_param.activation;
+        task_config.push_back(cfg);
+    }
+    SceneConfig scene_cfg(params.scene.type, params.scene.file);
+    scene_cfg.validate();
+
+    RCLCPP_INFO(get_node()->get_logger(), "Configuring scene: %s", scene_cfg.type.c_str());
+
+    PluginLoader::loadPlugin("libwbc-scenes-" + scene_cfg.type + ".so");
+    scene = std::shared_ptr<Scene>(SceneFactory::createInstance(scene_cfg.type, robot_model, solver, 1.0/update_rate_));
+    if(!scene->configure(task_config)){
+        RCLCPP_ERROR(get_node()->get_logger(), "Failed to configure scene");
+        return CallbackReturn::ERROR;
+    }
+
+    // Allocate memory
+    joint_state.resize(robot_model->noOfJoints());
+    joint_state.names = robot_model->jointNames();
+
+
+    solver_output_publisher = get_node()->create_publisher<trajectory_msgs::msg::JointTrajectory>("solver_output", 1);
+
     return CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn WholeBodyController::on_activate(const rclcpp_lifecycle::State & previous_state){
+
+    // Create state interface maps here, since we need the state interfaces to be configured first
+    state_position_indices.clear();
+    state_velocity_indices.clear();
+    state_acceleration_indices.clear();
+    state_effort_indices.clear();
+    for(const auto &joint_name : joint_state.names){
+        for(uint i = 0; i < state_interfaces_.size(); i++){
+            const auto &s = state_interfaces_[i];
+            if(s.get_interface_name() == "position" && (s.get_name().find(joint_name) != string::npos))
+                state_position_indices.push_back(i);
+            if(s.get_interface_name() == "velocity" && s.get_name().find(joint_name) != string::npos)
+                state_velocity_indices.push_back(i);
+            if(s.get_interface_name() == "acceleration" && s.get_name().find(joint_name) != string::npos)
+                state_acceleration_indices.push_back(i);
+            if(s.get_interface_name() == "effort" && s.get_name().find(joint_name) != string::npos)
+                state_effort_indices.push_back(i);
+        }
+    }
+
     return CallbackReturn::SUCCESS;
 }
 
@@ -281,14 +327,14 @@ void WholeBodyController::updateController(){
     timing_stats.time_per_cycle = (get_clock()->now() - stamp).seconds();
     timing_stats.header.stamp = get_clock()->now();
     pub_timing_stats->publish(timing_stats);
-}
+}*/
 void WholeBodyController::publishSolverOutput(){
     toROS(solver_output, solver_output_ros);
     solver_output_publisher->publish(solver_output_ros);
-    toROS(scene->getSolverOutputRaw(), solver_output_raw);
-    solver_output_raw_publisher->publish(solver_output_raw);
+    //toROS(scene->getSolverOutputRaw(), solver_output_raw);
+    //solver_output_raw_publisher->publish(solver_output_raw);
 }
-
+/*
 void WholeBodyController::publishTaskStatus(){
     int idx_cart = 0, idx_jnt = 0;
     for(uint i = 0; i < task_config.size(); i++){

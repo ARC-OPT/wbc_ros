@@ -68,26 +68,31 @@ Subscribed Topics:
 */
 class WholeBodyController : public controller_interface::ControllerInterface{
 protected:
-   // wbc::ScenePtr scene;
-   // wbc::RobotModelPtr robot_model;
-   // wbc::QPSolverPtr solver;
-   //
-   // base::samples::Joints joint_state;
+   wbc::ScenePtr scene;
+   wbc::RobotModelPtr robot_model;
+   wbc::QPSolverPtr solver;
+
+   base::samples::Joints joint_state;
    // base::samples::RigidBodyStateSE3 reference_cart;
-   // base::samples::RigidBodyStateSE3 floating_base_state;
+   base::samples::RigidBodyStateSE3 floating_base_state;
    // base::commands::Joints reference_jnt;
    // base::VectorXd task_weights;
-   // wbc::JointWeights joint_weights;
-   // bool integrate;
-   // wbc::HierarchicalQP qp;
-   // base::commands::Joints solver_output;
-   // wbc::JointIntegrator joint_integrator;
-   // std::vector<wbc::TaskConfig> task_config;
+   wbc::JointWeights joint_weights;
+   bool integrate;
+   uint no_of_joints;
+   wbc::HierarchicalQP qp;
+   base::commands::Joints solver_output;
+   wbc::JointIntegrator joint_integrator;
+   std::vector<wbc::TaskConfig> task_config;
    bool has_floating_base_state;
+   std::vector<int> state_position_indices;
+   std::vector<int> state_velocity_indices;
+   std::vector<int> state_acceleration_indices;
+   std::vector<int> state_effort_indices;
    // wbc::TasksStatus tasks_status;
    // std::vector<wbc_msgs::msg::TaskStatus> task_status_msgs;
    //
-   // trajectory_msgs::msg::JointTrajectory solver_output_ros;
+   trajectory_msgs::msg::JointTrajectory solver_output_ros;
    // std::vector<rclcpp::Publisher<wbc_msgs::msg::RigidBodyState>::SharedPtr> publishers_task_status_cart;
    // std::vector<rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr> publishers_task_status_jnt;
    // std::vector<rclcpp::Publisher<wbc_msgs::msg::TaskStatus>::SharedPtr> publishers_task_info;
@@ -99,13 +104,13 @@ protected:
    // std::vector<rclcpp::Subscription<trajectory_msgs::msg::JointTrajectory>::SharedPtr> sub_jnt_ref;
    //
    // rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr sub_feedback;
-   // rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr solver_output_publisher;
+   rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr solver_output_publisher;
    // rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr solver_output_raw_publisher;
    // rclcpp::Publisher<wbc_msgs::msg::WbcTimingStats>::SharedPtr pub_timing_stats;
    // wbc_msgs::msg::RigidBodyState status_cart;
    // sensor_msgs::msg::JointState status_jnt;
-   // wbc_msgs::msg::WbcTimingStats timing_stats;
-   // rclcpp::Time stamp;
+   wbc_msgs::msg::WbcTimingStats timing_stats;
+   rclcpp::Time stamp;
    // std_msgs::msg::Float64MultiArray solver_output_raw;
    //
    // void jointStateCallback(const sensor_msgs::msg::JointState& msg);
@@ -115,6 +120,8 @@ protected:
    // void taskWeightsCallback(const std_msgs::msg::Float64MultiArray& msg, const std::string& constraint_name);
    // void jointWeightsCallback(const std_msgs::msg::Float64MultiArray& msg);
    // void floatingBaseStateCallback(const wbc_msgs::msg::RigidBodyState& msg);
+
+   void read_state_from_hardware();
 
    // Parameters from ROS
    std::shared_ptr<whole_body_controller::ParamListener> param_listener;
@@ -136,7 +143,7 @@ public:
    controller_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
 
    // virtual void updateController();
-   // void publishSolverOutput();
+   void publishSolverOutput();
    // void publishTaskStatus();
    // void publishTaskInfo();
 };
