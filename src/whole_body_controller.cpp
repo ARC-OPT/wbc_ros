@@ -7,6 +7,7 @@
 
 using namespace std;
 using namespace wbc;
+using namespace hardware_interface;
 
 namespace wbc_ros{
 
@@ -85,14 +86,21 @@ controller_interface::InterfaceConfiguration WholeBodyController::state_interfac
 }
 
 void WholeBodyController::read_state_from_hardware(){
-    for(uint i = 0; i < state_position_indices.size(); i++)
-        joint_state[i].position = state_interfaces_[state_position_indices[i]].get_value();
-    for(uint i = 0; i < state_velocity_indices.size(); i++)
-        joint_state[i].speed = state_interfaces_[state_velocity_indices[i]].get_value();
-    for(uint i = 0; i < state_acceleration_indices.size(); i++)
-        joint_state[i].acceleration = state_interfaces_[state_acceleration_indices[i]].get_value();
-    for(uint i = 0; i < state_effort_indices.size(); i++)
-        joint_state[i].effort = state_interfaces_[state_effort_indices[i]].get_value();
+    uint idx;
+    for(uint i = 0; i < joint_state.size(); i++){
+        idx = state_indices[HW_IF_POSITION][i];
+        if(idx != -1)
+            joint_state[i].position = state_interfaces_[idx].get_value();
+        idx = state_indices[HW_IF_VELOCITY][i];
+        if(idx != -1)
+            joint_state[i].speed = state_interfaces_[idx].get_value();
+        idx = state_indices[HW_IF_ACCELERATION][i];
+        if(idx != -1)
+            joint_state[i].acceleration = state_interfaces_[idx].get_value();
+        idx = state_indices[HW_IF_EFFORT][i];
+        if(idx != -1)
+            joint_state[i].effort = state_interfaces_[idx].get_value();
+    }
     joint_state.time = base::Time::now();
 }
 
@@ -120,7 +128,7 @@ controller_interface::return_type WholeBodyController::update(const rclcpp::Time
     if(integrate)
         joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/1.0);
 
-    publishSolverOutput();
+    write_command_to_hardware();
     // publishTaskStatus();
     // publishTaskInfo();
 
@@ -218,31 +226,51 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
     return CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn WholeBodyController::on_activate(const rclcpp_lifecycle::State & previous_state){
+int WholeBodyController::get_state_idx(const std::string &joint_name, const std::string & interface_name){
+    for(uint i = 0; i < state_interfaces_.size(); i++){
+        const auto &s = state_interfaces_[i];
+        if(s.get_interface_name() == interface_name && s.get_name().find(joint_name) != string::npos)
+            return i;
+    }
+    return -1;
+}
 
-    // Create state interface maps here, since we need the state interfaces to be configured first
-    state_position_indices.clear();
-    state_velocity_indices.clear();
-    state_acceleration_indices.clear();
-    state_effort_indices.clear();
-    for(const auto &joint_name : joint_state.names){
-        for(uint i = 0; i < state_interfaces_.size(); i++){
-            const auto &s = state_interfaces_[i];
-            if(s.get_interface_name() == "position" && (s.get_name().find(joint_name) != string::npos))
-                state_position_indices.push_back(i);
-            if(s.get_interface_name() == "velocity" && s.get_name().find(joint_name) != string::npos)
-                state_velocity_indices.push_back(i);
-            if(s.get_interface_name() == "acceleration" && s.get_name().find(joint_name) != string::npos)
-                state_acceleration_indices.push_back(i);
-            if(s.get_interface_name() == "effort" && s.get_name().find(joint_name) != string::npos)
-                state_effort_indices.push_back(i);
+int WholeBodyController::get_command_idx(const std::string &joint_name, const std::string & interface_name){
+    for(uint i = 0; i < command_interfaces_.size(); i++){
+        const LoanedCommandInterface &s = command_interfaces_[i];
+        if(s.get_interface_name() == interface_name && s.get_name().find(joint_name) != string::npos)
+            return i;
+    }
+    return -1;
+}
+
+controller_interface::CallbackReturn WholeBodyController::on_activate(const rclcpp_lifecycle::State & previous_state){
+    // Create state and command index maps here, since we need the interfaces to be configured first
+    state_indices.clear();
+    command_indices.clear();
+    for(const std::string &joint_name : joint_state.names){
+        for(const std::string &iface_name : allowed_interface_types){
+            state_indices[iface_name].push_back(get_state_idx(joint_name, iface_name));
+            command_indices[iface_name].push_back(get_command_idx(joint_name, iface_name));
         }
+    }
+    for(auto s : allowed_interface_types){
+        std::cout<<s<<std::endl;
+        for(uint i = 0; i < state_indices[s].size(); i++)
+            std::cout<<state_indices[s][i]<<std::endl;
+    }
+    for(auto s : allowed_interface_types){
+        std::cout<<s<<std::endl;
+        for(uint i = 0; i < command_indices[s].size(); i++)
+            std::cout<<command_indices[s][i]<<std::endl;
     }
 
     return CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn WholeBodyController::on_deactivate(const rclcpp_lifecycle::State & previous_state){
+    state_indices.clear();
+    command_indices.clear();
     return CallbackReturn::SUCCESS;
 }
 
@@ -328,9 +356,27 @@ void WholeBodyController::updateController(){
     timing_stats.header.stamp = get_clock()->now();
     pub_timing_stats->publish(timing_stats);
 }*/
-void WholeBodyController::publishSolverOutput(){
+void WholeBodyController::write_command_to_hardware(){
     toROS(solver_output, solver_output_ros);
     solver_output_publisher->publish(solver_output_ros);
+
+    // Write to hardware interfaces
+    int idx;
+    for(uint i = 0; i < solver_output.size(); i++){
+        idx = command_indices[HW_IF_POSITION][i];
+        if(idx != -1)
+            command_interfaces_[idx].set_value(solver_output[i].position);
+        idx = command_indices[HW_IF_VELOCITY][i];
+        if(idx != -1)
+            command_interfaces_[idx].set_value(solver_output[i].speed);
+        idx = command_indices[HW_IF_ACCELERATION][i];
+        if(idx != -1)
+            command_interfaces_[idx].set_value(solver_output[i].acceleration);
+        idx = command_indices[HW_IF_ACCELERATION][i];
+        if(idx != -1)
+            command_interfaces_[idx].set_value(solver_output[i].effort);
+    }
+
     //toROS(scene->getSolverOutputRaw(), solver_output_raw);
     //solver_output_raw_publisher->publish(solver_output_raw);
 }

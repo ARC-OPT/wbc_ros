@@ -4,6 +4,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <controller_interface/controller_interface.hpp>
+#include <hardware_interface/types/hardware_interface_type_values.hpp>
 
 #include <wbc_msgs/msg/rigid_body_state.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -68,6 +69,13 @@ Subscribed Topics:
 */
 class WholeBodyController : public controller_interface::ControllerInterface{
 protected:
+    const std::vector<std::string> allowed_interface_types = {
+        hardware_interface::HW_IF_POSITION,
+        hardware_interface::HW_IF_VELOCITY,
+        hardware_interface::HW_IF_ACCELERATION,
+        hardware_interface::HW_IF_EFFORT,
+    };
+
    wbc::ScenePtr scene;
    wbc::RobotModelPtr robot_model;
    wbc::QPSolverPtr solver;
@@ -85,10 +93,10 @@ protected:
    wbc::JointIntegrator joint_integrator;
    std::vector<wbc::TaskConfig> task_config;
    bool has_floating_base_state;
-   std::vector<int> state_position_indices;
-   std::vector<int> state_velocity_indices;
-   std::vector<int> state_acceleration_indices;
-   std::vector<int> state_effort_indices;
+
+   std::map<std::string, std::vector<int>> command_indices;
+   std::map<std::string, std::vector<int>> state_indices;
+
    // wbc::TasksStatus tasks_status;
    // std::vector<wbc_msgs::msg::TaskStatus> task_status_msgs;
    //
@@ -122,6 +130,8 @@ protected:
    // void floatingBaseStateCallback(const wbc_msgs::msg::RigidBodyState& msg);
 
    void read_state_from_hardware();
+   int get_state_idx(const std::string &joint_name, const std::string & interface_name);
+   int get_command_idx(const std::string &joint_name, const std::string & interface_name);
 
    // Parameters from ROS
    std::shared_ptr<whole_body_controller::ParamListener> param_listener;
@@ -143,7 +153,7 @@ public:
    controller_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
 
    // virtual void updateController();
-   void publishSolverOutput();
+   void write_command_to_hardware();
    // void publishTaskStatus();
    // void publishTaskInfo();
 };
