@@ -5,7 +5,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   realtime_tools
@@ -43,7 +42,8 @@ generate_parameter_library(whole_body_controller_parameters
   src/whole_body_controller_parameters.yaml
 )
 
-add_library(wbc_ros SHARED src/whole_body_controller.cpp src/conversions.cpp)
+add_library(wbc_ros SHARED src/whole_body_controller.cpp src/conversions.cpp
+                           src/cartesian_position_controller.cpp src/conversions.cpp)
 #add_library(loop_back_driver_node SHARED src/loop_back_driver_node.cpp)
 #add_library(cartesian_position_controller_node SHARED src/controllers/cartesian_position_controller_node.cpp src/controllers/controller_node.cpp src/conversions.cpp)
 #add_library(joint_position_controller_node SHARED src/controllers/joint_position_controller_node.cpp  src/controllers/controller_node.cpp src/conversions.cpp)

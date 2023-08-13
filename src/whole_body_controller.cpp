@@ -11,7 +11,7 @@ using namespace hardware_interface;
 
 namespace wbc_ros{
 
-WholeBodyController::WholeBodyController() : ControllerInterface(), has_floating_base_state(false){
+WholeBodyController::WholeBodyController() : ChainableControllerInterface(), has_floating_base_state(false){
 
     /*
 
@@ -86,25 +86,35 @@ controller_interface::InterfaceConfiguration WholeBodyController::state_interfac
 }
 
 void WholeBodyController::read_state_from_hardware(){
-    uint idx;
     for(uint i = 0; i < joint_state.size(); i++){
-        idx = state_indices[HW_IF_POSITION][i];
-        if(idx != -1)
-            joint_state[i].position = state_interfaces_[idx].get_value();
-        idx = state_indices[HW_IF_VELOCITY][i];
-        if(idx != -1)
-            joint_state[i].speed = state_interfaces_[idx].get_value();
-        idx = state_indices[HW_IF_ACCELERATION][i];
-        if(idx != -1)
-            joint_state[i].acceleration = state_interfaces_[idx].get_value();
-        idx = state_indices[HW_IF_EFFORT][i];
-        if(idx != -1)
-            joint_state[i].effort = state_interfaces_[idx].get_value();
+        if(has_state_interface(HW_IF_POSITION))
+            joint_state[i].position = state_interfaces_[state_indices[HW_IF_POSITION][i]].get_value();
+        if(has_state_interface(HW_IF_VELOCITY))
+            joint_state[i].speed = state_interfaces_[state_indices[HW_IF_VELOCITY][i]].get_value();
+        if(has_state_interface(HW_IF_ACCELERATION))
+            joint_state[i].acceleration = state_interfaces_[state_indices[HW_IF_ACCELERATION][i]].get_value();
+        if(has_state_interface(HW_IF_EFFORT))
+            joint_state[i].effort = state_interfaces_[state_indices[HW_IF_EFFORT][i]].get_value();
     }
     joint_state.time = base::Time::now();
 }
 
-controller_interface::return_type WholeBodyController::update(const rclcpp::Time & time, const rclcpp::Duration & period){
+std::vector<hardware_interface::CommandInterface>WholeBodyController::on_export_reference_interfaces(){
+    std::vector<hardware_interface::CommandInterface> chainable_command_interfaces;
+    reference_interfaces_.resize(6);
+    for(const auto &s : params.task_names){
+        const std::string iface_names[6] = {s+"/vx", s+"/vy", s+"/vz", s+"/wx", s+"/wy", s+"/wz"};
+        for(int i = 0; i < 6; i++)
+            chainable_command_interfaces.push_back(hardware_interface::CommandInterface(std::string(get_node()->get_name()), iface_names[i], reference_interfaces_.data() + i));
+    }
+    return chainable_command_interfaces;
+}
+
+controller_interface::return_type WholeBodyController::update_reference_from_subscribers(){
+    return controller_interface::return_type::OK;
+}
+
+controller_interface::return_type WholeBodyController::update_and_write_commands(const rclcpp::Time & time, const rclcpp::Duration & period){
     timing_stats.desired_period = 0;
     //timing_stats.actual_period = (get_node()->get_clock()->now() - stamp).seconds();
     stamp = get_node()->get_clock()->now();
@@ -226,45 +236,19 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
     return CallbackReturn::SUCCESS;
 }
 
-int WholeBodyController::get_state_idx(const std::string &joint_name, const std::string & interface_name){
-    for(uint i = 0; i < state_interfaces_.size(); i++){
-        const auto &s = state_interfaces_[i];
-        if(s.get_interface_name() == interface_name && s.get_name().find(joint_name) != string::npos)
-            return i;
-    }
-    return -1;
-}
-
-int WholeBodyController::get_command_idx(const std::string &joint_name, const std::string & interface_name){
-    for(uint i = 0; i < command_interfaces_.size(); i++){
-        const LoanedCommandInterface &s = command_interfaces_[i];
-        if(s.get_interface_name() == interface_name && s.get_name().find(joint_name) != string::npos)
-            return i;
-    }
-    return -1;
-}
-
 controller_interface::CallbackReturn WholeBodyController::on_activate(const rclcpp_lifecycle::State & previous_state){
     // Create state and command index maps here, since we need the interfaces to be configured first
     state_indices.clear();
     command_indices.clear();
+    int idx;
     for(const std::string &joint_name : joint_state.names){
         for(const std::string &iface_name : allowed_interface_types){
-            state_indices[iface_name].push_back(get_state_idx(joint_name, iface_name));
-            command_indices[iface_name].push_back(get_command_idx(joint_name, iface_name));
+            if(get_state_idx(joint_name, iface_name) != -1)
+                state_indices[iface_name].push_back(get_state_idx(joint_name, iface_name));
+            if(get_command_idx(joint_name, iface_name) != -1)
+                command_indices[iface_name].push_back(get_command_idx(joint_name, iface_name));
         }
     }
-    for(auto s : allowed_interface_types){
-        std::cout<<s<<std::endl;
-        for(uint i = 0; i < state_indices[s].size(); i++)
-            std::cout<<state_indices[s][i]<<std::endl;
-    }
-    for(auto s : allowed_interface_types){
-        std::cout<<s<<std::endl;
-        for(uint i = 0; i < command_indices[s].size(); i++)
-            std::cout<<command_indices[s][i]<<std::endl;
-    }
-
     return CallbackReturn::SUCCESS;
 }
 
@@ -361,20 +345,15 @@ void WholeBodyController::write_command_to_hardware(){
     solver_output_publisher->publish(solver_output_ros);
 
     // Write to hardware interfaces
-    int idx;
     for(uint i = 0; i < solver_output.size(); i++){
-        idx = command_indices[HW_IF_POSITION][i];
-        if(idx != -1)
-            command_interfaces_[idx].set_value(solver_output[i].position);
-        idx = command_indices[HW_IF_VELOCITY][i];
-        if(idx != -1)
-            command_interfaces_[idx].set_value(solver_output[i].speed);
-        idx = command_indices[HW_IF_ACCELERATION][i];
-        if(idx != -1)
-            command_interfaces_[idx].set_value(solver_output[i].acceleration);
-        idx = command_indices[HW_IF_ACCELERATION][i];
-        if(idx != -1)
-            command_interfaces_[idx].set_value(solver_output[i].effort);
+        if(has_command_interface(HW_IF_POSITION))
+            command_interfaces_[command_indices[HW_IF_POSITION][i]].set_value(solver_output[i].position);
+        if(has_command_interface(HW_IF_VELOCITY))
+            command_interfaces_[command_indices[HW_IF_VELOCITY][i]].set_value(solver_output[i].speed);
+        if(has_command_interface(HW_IF_ACCELERATION))
+            command_interfaces_[command_indices[HW_IF_ACCELERATION][i]].set_value(solver_output[i].acceleration);
+        if(has_command_interface(HW_IF_EFFORT))
+            command_interfaces_[command_indices[HW_IF_EFFORT][i]].set_value(solver_output[i].effort);
     }
 
     //toROS(scene->getSolverOutputRaw(), solver_output_raw);
@@ -407,4 +386,4 @@ void WholeBodyController::publishTaskInfo(){
 
 }
 
-PLUGINLIB_EXPORT_CLASS(wbc_ros::WholeBodyController, controller_interface::ControllerInterface)
+PLUGINLIB_EXPORT_CLASS(wbc_ros::WholeBodyController, controller_interface::ChainableControllerInterface)

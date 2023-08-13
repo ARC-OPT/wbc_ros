@@ -1,5 +1,13 @@
 <library path="wbc_ros">
-  <class name="wbc_ros/WholeBodyController" type="wbc_ros::WholeBodyController" base_class_type="controller_interface::ControllerInterface">
+  <class name="wbc_ros/WholeBodyController" type="wbc_ros::WholeBodyController" base_class_type="controller_interface::ChainableControllerInterface">
+    <description>
+      The whole-body controller simultaneously runs multiple controllers in task space. It integrates their outputs
+      into the cost function of a quadratic program (QP). The solution of the QP is the robot's joint position,
+      velocity, acceleration or torque, which regulates all tasks simulaneously, while considering the physical constraints
+      of the robot.
+    </description>
+  </class>
+  <class name="wbc_ros/CartesianPositionController" type="wbc_ros::CartesianPositionController" base_class_type="controller_interface::ChainableControllerInterface">
     <description>
       The whole-body controller simultaneously runs multiple controllers in task space. It integrates their outputs
       into the cost function of a quadratic program (QP). The solution of the QP is the robot's joint position,

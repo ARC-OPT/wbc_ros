@@ -3,7 +3,7 @@
 
 
 #include <rclcpp/rclcpp.hpp>
-#include <controller_interface/controller_interface.hpp>
+#include <controller_interface/chainable_controller_interface.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
 #include <wbc_msgs/msg/rigid_body_state.hpp>
@@ -67,7 +67,7 @@ Subscribed Topics:
  - `wbc_config` (dict): Tasks configuration. This contains information about each task, which is stacked inside the QP. See
    (see <a href="https://github.com/ARC-OPT/wbc/blob/master/src/core/TaskConfig.hpp">here</a>) for more information.
 */
-class WholeBodyController : public controller_interface::ControllerInterface{
+class WholeBodyController : public controller_interface::ChainableControllerInterface{
 protected:
     const std::vector<std::string> allowed_interface_types = {
         hardware_interface::HW_IF_POSITION,
@@ -130,9 +130,28 @@ protected:
    // void floatingBaseStateCallback(const wbc_msgs::msg::RigidBodyState& msg);
 
    void read_state_from_hardware();
-   int get_state_idx(const std::string &joint_name, const std::string & interface_name);
-   int get_command_idx(const std::string &joint_name, const std::string & interface_name);
-
+   bool has_state_interface(const std::string & interface_name){
+       return !state_indices[interface_name].empty();
+   }
+   bool has_command_interface(const std::string & interface_name){
+       return !command_indices[interface_name].empty();
+   }
+   int get_state_idx(const std::string &joint_name, const std::string & interface_name){
+       for(uint i = 0; i < state_interfaces_.size(); i++){
+           const hardware_interface::LoanedStateInterface &s = state_interfaces_[i];
+           if(s.get_interface_name() == interface_name && s.get_name().find(joint_name) != std::string::npos)
+               return i;
+       }
+       return -1;
+   }
+   int get_command_idx(const std::string &joint_name, const std::string & interface_name){
+       for(uint i = 0; i < command_interfaces_.size(); i++){
+           const hardware_interface::LoanedCommandInterface &s = command_interfaces_[i];
+           if(s.get_interface_name() == interface_name && s.get_name().find(joint_name) != std::string::npos)
+               return i;
+       }
+       return -1;
+   }
    // Parameters from ROS
    std::shared_ptr<whole_body_controller::ParamListener> param_listener;
    whole_body_controller::Params params;
@@ -141,16 +160,18 @@ public:
    WholeBodyController();
    ~WholeBodyController();
 
-   controller_interface::InterfaceConfiguration command_interface_configuration() const override;
-   controller_interface::InterfaceConfiguration state_interface_configuration() const override;
-   controller_interface::return_type update(const rclcpp::Time & time, const rclcpp::Duration & period) override;
-   controller_interface::CallbackReturn on_init() override;
-   controller_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
-   controller_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
-   controller_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
-   controller_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
-   controller_interface::CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
-   controller_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
+   virtual controller_interface::InterfaceConfiguration command_interface_configuration() const override;
+   virtual controller_interface::InterfaceConfiguration state_interface_configuration() const override;
+   virtual controller_interface::return_type update_and_write_commands(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+   virtual controller_interface::CallbackReturn on_init() override;
+   virtual controller_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+   virtual controller_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+   virtual controller_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+   virtual controller_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
+   virtual controller_interface::CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
+   virtual controller_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
+   virtual std::vector<hardware_interface::CommandInterface> on_export_reference_interfaces() override;
+   virtual controller_interface::return_type update_reference_from_subscribers();
 
    // virtual void updateController();
    void write_command_to_hardware();
