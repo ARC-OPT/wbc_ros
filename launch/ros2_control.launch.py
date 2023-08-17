@@ -24,7 +24,6 @@ def generate_launch_description():
         executable='spawner',
         arguments=['whole_body_controller', '--controller-manager', ['/', 'controller_manager']],
         namespace='/',
-        remappings=[("/whole_body_controller/status_ee_pose","/cartesian_position_controller/feedback")]
     )
     cartesian_position_controller_spawner = Node(
         package='controller_manager',
@@ -33,8 +32,8 @@ def generate_launch_description():
         namespace='/'
     )
 
-    # Delay start of forward_position_controller_spawner after `position_controller_spawner`
-    delay_cartesian_position_controller_spawner_after_whole_body_controller_spawner = (
+    # Delay start of cartesian_position_controller_spawner after `whole_body_controller_spawner`
+    delay_cartesian_position_controller_spawner = (
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=whole_body_controller_spawner,
@@ -51,7 +50,7 @@ def generate_launch_description():
             namespace='/'
         ),
         whole_body_controller_spawner,
-        delay_cartesian_position_controller_spawner_after_whole_body_controller_spawner,
+        delay_cartesian_position_controller_spawner,
         Node(
             package='controller_manager',
             executable='spawner',
