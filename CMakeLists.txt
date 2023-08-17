@@ -41,6 +41,9 @@ link_directories(
 generate_parameter_library(whole_body_controller_parameters
   src/whole_body_controller_parameters.yaml
 )
+generate_parameter_library(cartesian_position_controller_parameters
+  src/cartesian_position_controller_parameters.yaml
+)
 
 add_library(wbc_ros SHARED src/whole_body_controller.cpp src/conversions.cpp
                            src/cartesian_position_controller.cpp src/conversions.cpp)
@@ -59,7 +62,7 @@ ament_target_dependencies(wbc_ros PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 #ament_target_dependencies(cartesian_radial_potential_fields_node rclcpp_components rclcpp wbc_msgs sensor_msgs trajectory_msgs)
 #ament_target_dependencies(joint_limit_avoidance_node rclcpp rclcpp_components wbc_msgs sensor_msgs trajectory_msgs)
 
-target_link_libraries(wbc_ros PUBLIC dl ${wbc-core_LIBRARIES})
+target_link_libraries(wbc_ros PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-controllers_LIBRARIES})
 target_compile_features(wbc_ros PUBLIC cxx_std_17)
 target_include_directories(wbc_ros PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -67,6 +70,7 @@ target_include_directories(wbc_ros PUBLIC
 )
 target_link_libraries(wbc_ros PUBLIC
   whole_body_controller_parameters
+  cartesian_position_controller_parameters
 )
 pluginlib_export_plugin_description_file(controller_interface wbc_plugins.xml)
 
@@ -100,6 +104,7 @@ install(
 )
 install(TARGETS wbc_ros
                 whole_body_controller_parameters
+                cartesian_position_controller_parameters
                 #loop_back_driver_node
                 #cartesian_position_controller_node
                 #joint_position_controller_node

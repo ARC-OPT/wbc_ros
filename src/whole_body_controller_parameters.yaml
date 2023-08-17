@@ -1,20 +1,19 @@
 whole_body_controller:
+    control_mode: {
+        type: string,
+        default_value: "",
+        description: "Control mode of the wbc. Can be one of [velocity,acceleration].",
+        validation: {
+            not_empty<>: null,
+            one_of<>: [["velocity", "acceleration"]]
+        }
+    }
     command_interfaces: {
         type: string_array,
         default_value: [],
-        description: "Names of command interfaces to claim",
+        description: "Command interfaces to claim from hardware.",
         validation: {
-            unique<>: null,
-            subset_of<>: [["position", "velocity", "acceleration", "effort",]]
-        }
-    }
-    state_interfaces: {
-        type: string_array,
-        default_value: [],
-        description: "Names of state interfaces to claim",
-        validation: {
-            unique<>: null,
-            subset_of<>: [["position", "velocity", "acceleration",]]
+            not_empty<>: null,
         }
     }
     integrate: {

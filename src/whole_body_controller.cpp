@@ -12,77 +12,54 @@ using namespace hardware_interface;
 namespace wbc_ros{
 
 WholeBodyController::WholeBodyController() : ChainableControllerInterface(), has_floating_base_state(false){
-
-    /*
-
-    // Input joint state
-    joint_state.resize(robot_model->noOfJoints());
-    joint_state.names = robot_model->jointNames();
-    sub_feedback = create_subscription<sensor_msgs::msg::JointState>("joint_states", 1, bind(&WholeBodyController::jointStateCallback, this, placeholders::_1));
-
-    // Input floating base state
-    if(robot_model_cfg.floating_base)
-        sub_floating_base = create_subscription<wbc_msgs::msg::RigidBodyState>("floating_base_state", 1, bind(&WholeBodyController::floatingBaseStateCallback, this, placeholders::_1));
-
-    // Input references, task weights and activations
-    for(auto w : task_config){
-        if(w.type == cart){
-            function<void(const wbc_msgs::msg::RigidBodyState& msg)> fcn = bind(&WholeBodyController::cartReferenceCallback, this, placeholders::_1, w.name);
-            sub_cart_ref.push_back(create_subscription<wbc_msgs::msg::RigidBodyState>("ref_" + w.name, 1, fcn));
-        }
-        else{
-            function<void(const trajectory_msgs::msg::JointTrajectory& msg)> fcn = bind(&WholeBodyController::jntReferenceCallback, this, placeholders::_1, w.name);
-            sub_jnt_ref.push_back(create_subscription<trajectory_msgs::msg::JointTrajectory>("ref_" + w.name, 1, fcn));
-        }
-        function<void(const std_msgs::msg::Float64MultiArray& msg)> fcn = bind(&WholeBodyController::taskWeightsCallback, this, placeholders::_1, w.name);
-        sub_weights.push_back(create_subscription<std_msgs::msg::Float64MultiArray>("weights_" + w.name, 1, fcn));
-
-        function<void(const std_msgs::msg::Float64& msg)> fcn2 = bind(&WholeBodyController::taskActivationCallback, this, placeholders::_1, w.name);
-        sub_activation.push_back(create_subscription<std_msgs::msg::Float64>("activation_" + w.name, 1, fcn2));
-    }
-
-    // Output task states
-    for(auto w : task_config){
-        if(w.type == cart)
-            publishers_task_status_cart.push_back(create_publisher<wbc_msgs::msg::RigidBodyState>("status_" + w.name, 1));
-        else
-            publishers_task_status_jnt.push_back(create_publisher<sensor_msgs::msg::JointState>("status_" + w.name, 1));
-    }
-
-    // Output task info
-    for(auto w : task_config)
-        publishers_task_info.push_back(create_publisher<wbc_msgs::msg::TaskStatus>("task_" + w.name, 1));
-
-    // Input joint weights
-    sub_joint_weights = create_subscription<std_msgs::msg::Float64MultiArray>("joint_weights", 1, bind(&WholeBodyController::jointWeightsCallback, this, placeholders::_1));
-
-    // Stats on computation time
-    pub_timing_stats = create_publisher<wbc_msgs::msg::WbcTimingStats>("timing_stats", 1);
-
-    // Solver output
-    solver_output_publisher = create_publisher<trajectory_msgs::msg::JointTrajectory>("solver_output", 1);
-    solver_output_raw_publisher = create_publisher<std_msgs::msg::Float64MultiArray>("solver_output_raw", 1);
-
-    // WBC should send zeros if no setpoint is given from any controller, so set has_setpoint = true
-    has_setpoint = true;
-    stamp = get_clock()->now();
-
-    RCLCPP_INFO(get_logger(), "WBC Node is running");*/
-}
-
-WholeBodyController::~WholeBodyController(){
 }
 
 controller_interface::InterfaceConfiguration WholeBodyController::command_interface_configuration() const{
-    controller_interface::InterfaceConfiguration conf;
-    conf.type = controller_interface::interface_configuration_type::ALL;
-    return conf;
+    vector<string> iface_names;
+    for(const string &joint_name : robot_model->jointNames()){
+        for(const string &iface_name : params.command_interfaces)
+            iface_names.push_back("/" + joint_name + "/" + iface_name);
+    }
+    return { controller_interface::interface_configuration_type::INDIVIDUAL, iface_names};
 }
 
 controller_interface::InterfaceConfiguration WholeBodyController::state_interface_configuration() const{
     controller_interface::InterfaceConfiguration conf;
     conf.type = controller_interface::interface_configuration_type::ALL;
     return conf;
+}
+
+std::vector<CommandInterface> WholeBodyController::on_export_reference_interfaces(){
+    reference_interfaces_.resize(Scene::getNTaskVariables(task_config));
+    vector<CommandInterface> interfaces;
+    uint idx = 0;
+    for(const TaskConfig& w : task_config){
+        if(w.type == cart || w.type == com){
+            if(params.control_mode == "velocity"){
+                for(const string& s : cart_vel_interfaces)
+                    interfaces.push_back(CommandInterface(string(get_node()->get_name()), w.name + "/reference/" + s, reference_interfaces_.data() + idx++));
+            }
+            else if(params.control_mode == "acceleration"){
+                for(const string& s : cart_acc_interfaces)
+                    interfaces.push_back(CommandInterface(string(get_node()->get_name()), w.name + "/reference/" + s, reference_interfaces_.data() + idx++));
+            }
+        }
+        else{ // w.type == jnt
+            if(params.control_mode == "velocity"){
+                for(const string& name : w.joint_names)
+                    interfaces.push_back(CommandInterface(string(get_node()->get_name()), w.name + "/reference/" + name + "/velocity", reference_interfaces_.data() + idx++));
+            }
+            if(params.control_mode == "acceleration"){
+                for(const string& name : w.joint_names)
+                    interfaces.push_back(CommandInterface(string(get_node()->get_name()), w.name + "/reference/" + name + "/acceleration", reference_interfaces_.data() + idx++));
+            }
+        }
+    }
+    return interfaces;
+}
+
+controller_interface::return_type WholeBodyController::update_reference_from_subscribers(){
+    return controller_interface::return_type::OK;
 }
 
 void WholeBodyController::read_state_from_hardware(){
@@ -99,55 +76,6 @@ void WholeBodyController::read_state_from_hardware(){
     joint_state.time = base::Time::now();
 }
 
-std::vector<hardware_interface::CommandInterface>WholeBodyController::on_export_reference_interfaces(){
-    std::vector<hardware_interface::CommandInterface> chainable_command_interfaces;
-    reference_interfaces_.resize(6);
-    for(const auto &s : params.task_names){
-        const std::string iface_names[6] = {s+"/vx", s+"/vy", s+"/vz", s+"/wx", s+"/wy", s+"/wz"};
-        for(int i = 0; i < 6; i++)
-            chainable_command_interfaces.push_back(hardware_interface::CommandInterface(std::string(get_node()->get_name()), iface_names[i], reference_interfaces_.data() + i));
-    }
-    return chainable_command_interfaces;
-}
-
-controller_interface::return_type WholeBodyController::update_reference_from_subscribers(){
-    return controller_interface::return_type::OK;
-}
-
-controller_interface::return_type WholeBodyController::update_and_write_commands(const rclcpp::Time & time, const rclcpp::Duration & period){
-    timing_stats.desired_period = 0;
-    //timing_stats.actual_period = (get_node()->get_clock()->now() - stamp).seconds();
-    stamp = get_node()->get_clock()->now();
-
-    read_state_from_hardware();
-
-    rclcpp::Time start = get_node()->get_clock()->now();
-    robot_model->update(joint_state, floating_base_state);
-    timing_stats.time_robot_model_update = (get_node()->get_clock()->now() - start).seconds();
-
-    start = get_node()->get_clock()->now();
-    qp = scene->update();
-    timing_stats.time_scene_update = (get_node()->get_clock()->now() - start).seconds();
-
-    start = get_node()->get_clock()->now();
-    solver_output = scene->solve(qp);
-    timing_stats.time_solve = (get_node()->get_clock()->now() - start).seconds();
-
-    //tasks_status = scene->updateTasksStatus();
-
-    if(integrate)
-        joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/1.0);
-
-    write_command_to_hardware();
-    // publishTaskStatus();
-    // publishTaskInfo();
-
-    timing_stats.time_per_cycle = (get_node()->get_clock()->now() - stamp).seconds();
-    timing_stats.header.stamp = get_node()->get_clock()->now();
-    //pub_timing_stats->publish(timing_stats);
-    return controller_interface::return_type::OK;
-}
-
 controller_interface::CallbackReturn WholeBodyController::on_init(){
     try{
         // Create the parameter listener and read all ROS parameters
@@ -161,7 +89,7 @@ controller_interface::CallbackReturn WholeBodyController::on_init(){
     return CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn WholeBodyController::on_configure(const rclcpp_lifecycle::State & previous_state){
+controller_interface::CallbackReturn WholeBodyController::on_configure(const rclcpp_lifecycle::State & /*previous_state*/){
 
     integrate = params.integrate;
 
@@ -220,7 +148,7 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
     RCLCPP_INFO(get_node()->get_logger(), "Configuring scene: %s", scene_cfg.type.c_str());
 
     PluginLoader::loadPlugin("libwbc-scenes-" + scene_cfg.type + ".so");
-    scene = std::shared_ptr<Scene>(SceneFactory::createInstance(scene_cfg.type, robot_model, solver, 1.0/update_rate_));
+    scene = std::shared_ptr<Scene>(SceneFactory::createInstance(scene_cfg.type, robot_model, solver, 0.001));
     if(!scene->configure(task_config)){
         RCLCPP_ERROR(get_node()->get_logger(), "Failed to configure scene");
         return CallbackReturn::ERROR;
@@ -230,119 +158,130 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
     joint_state.resize(robot_model->noOfJoints());
     joint_state.names = robot_model->jointNames();
 
+    solver_output.resize(robot_model->noOfActuatedJoints());
+    solver_output.names = robot_model->actuatedJointNames();
 
-    solver_output_publisher = get_node()->create_publisher<trajectory_msgs::msg::JointTrajectory>("solver_output", 1);
+    // Subscribers/Publishers
 
-    return CallbackReturn::SUCCESS;
-}
+    // Solver output for easier debugging
+    solver_output_publisher = get_node()->create_publisher<CommandMsg>("~/solver_output", rclcpp::SystemDefaultsQoS());
+    rt_solver_output_publisher = make_unique<RTCommandPublisher>(solver_output_publisher);
 
-controller_interface::CallbackReturn WholeBodyController::on_activate(const rclcpp_lifecycle::State & previous_state){
-    // Create state and command index maps here, since we need the interfaces to be configured first
-    state_indices.clear();
-    command_indices.clear();
-    int idx;
-    for(const std::string &joint_name : joint_state.names){
-        for(const std::string &iface_name : allowed_interface_types){
-            if(get_state_idx(joint_name, iface_name) != -1)
-                state_indices[iface_name].push_back(get_state_idx(joint_name, iface_name));
-            if(get_command_idx(joint_name, iface_name) != -1)
-                command_indices[iface_name].push_back(get_command_idx(joint_name, iface_name));
+    // Task status as feedback for controllers
+    for(auto w : task_config){
+        if(w.type == cart || w.type == com){
+            RbsPublisher::SharedPtr pub = get_node()->create_publisher<RbsMsg>("~/status_" + w.name, rclcpp::SystemDefaultsQoS());
+            task_status_publishers_cart.push_back(pub);
+            rt_task_status_publishers_cart.push_back(make_unique<RTRbsPublisher>(pub));
+        }
+        else{
+            JointsPublisher::SharedPtr pub = get_node()->create_publisher<JointsMsg>("~/status_" + w.name, rclcpp::SystemDefaultsQoS());
+            task_status_publishers_jnt.push_back(pub);
+            rt_task_status_publishers_jnt.push_back(make_unique<RTJointsPublisher>(pub));
         }
     }
+
     return CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn WholeBodyController::on_deactivate(const rclcpp_lifecycle::State & previous_state){
-    state_indices.clear();
-    command_indices.clear();
-    return CallbackReturn::SUCCESS;
-}
+controller_interface::return_type WholeBodyController::update_and_write_commands(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
+    timing_stats.desired_period = 0;
+    if(stamp.nanoseconds() != 0)
+        timing_stats.actual_period = (get_node()->get_clock()->now() - stamp).seconds();
+    stamp = get_node()->get_clock()->now();
 
-controller_interface::CallbackReturn WholeBodyController::on_cleanup(const rclcpp_lifecycle::State & previous_state){
-    return CallbackReturn::SUCCESS;
-}
+    read_state_from_hardware();
 
-controller_interface::CallbackReturn WholeBodyController::on_error(const rclcpp_lifecycle::State & previous_state){
-    return CallbackReturn::SUCCESS;
-}
-
-controller_interface::CallbackReturn WholeBodyController::on_shutdown(const rclcpp_lifecycle::State & previous_state){
-    return CallbackReturn::SUCCESS;
-}
-
-
-/*void WholeBodyController::jointStateCallback(const sensor_msgs::msg::JointState& msg){
-    fromROS(msg,joint_state);
-    if(robot_model->hasFloatingBase()){
-        if(has_floating_base_state)
-            has_feedback = true;
-    }
-    else
-        has_feedback = true;
-}
-
-void WholeBodyController::cartReferenceCallback(const wbc_msgs::msg::RigidBodyState& msg, const string& constraint_name){
-    fromROS(msg, reference_cart);
-    scene->setReference(constraint_name, reference_cart);
-}
-
-void WholeBodyController::jntReferenceCallback(const trajectory_msgs::msg::JointTrajectory& msg, const string& constraint_name){
-    fromROS(msg, reference_jnt);
-    scene->setReference(constraint_name, reference_jnt);
-}
-
-void WholeBodyController::taskActivationCallback(const std_msgs::msg::Float64& msg, const string& constraint_name){
-    scene->setTaskActivation(constraint_name, msg.data);
-}
-
-void WholeBodyController::taskWeightsCallback(const std_msgs::msg::Float64MultiArray& msg, const string& constraint_name){
-    fromROS(msg, task_weights);
-    scene->setTaskWeights(constraint_name, task_weights);
-}
-
-void WholeBodyController::jointWeightsCallback(const std_msgs::msg::Float64MultiArray& msg){
-    fromROS(msg, robot_model->jointNames(), joint_weights);
-    scene->setJointWeights(joint_weights);
-}
-
-void WholeBodyController::floatingBaseStateCallback(const wbc_msgs::msg::RigidBodyState& msg){
-    fromROS(msg, floating_base_state);
-    has_floating_base_state = true;
-}
-
-void WholeBodyController::updateController(){
-    timing_stats.desired_period = 1.0 / control_rate;
-    timing_stats.actual_period = (get_clock()->now() - stamp).seconds();
-    stamp = get_clock()->now();
-
-    rclcpp::Time start = get_clock()->now();
+    rclcpp::Time start = get_node()->get_clock()->now();
     robot_model->update(joint_state, floating_base_state);
-    timing_stats.time_robot_model_update = (get_clock()->now() - start).seconds();
+    timing_stats.time_robot_model_update = (get_node()->get_clock()->now() - start).seconds();
 
-    start = get_clock()->now();
+    start = get_node()->get_clock()->now();
+
+    update_tasks_from_reference_interfaces();
+
     qp = scene->update();
-    timing_stats.time_scene_update = (get_clock()->now() - start).seconds();
+    timing_stats.time_scene_update = (get_node()->get_clock()->now() - start).seconds();
 
-    start = get_clock()->now();
+    start = get_node()->get_clock()->now();
     solver_output = scene->solve(qp);
-    timing_stats.time_solve = (get_clock()->now() - start).seconds();
+    timing_stats.time_solve = (get_node()->get_clock()->now() - start).seconds();
 
-    tasks_status = scene->updateTasksStatus();
+    //tasks_status = scene->updateTasksStatus();
 
     if(integrate)
-        joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/control_rate);
+        joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 0.001);
 
-    publishSolverOutput();
-    publishTaskStatus();
-    publishTaskInfo();
+    write_command_to_hardware();
+    publish_task_status();
+    // publishTaskInfo();
 
-    timing_stats.time_per_cycle = (get_clock()->now() - stamp).seconds();
-    timing_stats.header.stamp = get_clock()->now();
-    pub_timing_stats->publish(timing_stats);
-}*/
+    timing_stats.time_per_cycle = (get_node()->get_clock()->now() - stamp).seconds();
+    timing_stats.header.stamp = get_node()->get_clock()->now();
+    //pub_timing_stats->publish(timing_stats);
+    return controller_interface::return_type::OK;
+}
+
+void WholeBodyController::publish_task_status(){
+    int idx_cart = 0, idx_jnt = 0;
+    for(uint i = 0; i < task_config.size(); i++){
+        const TaskConfig& w = task_config[i];
+        if(w.type == cart){
+            rt_task_status_publishers_cart[idx_cart]->lock();
+            toROS(robot_model->rigidBodyState(w.ref_frame, w.tip), rt_task_status_publishers_cart[idx_cart]->msg_);
+            rt_task_status_publishers_cart[idx_cart]->unlockAndPublish();
+            idx_cart++;
+        }
+        else if(w.type == com){
+            rt_task_status_publishers_cart[idx_cart]->lock();
+            toROS(robot_model->centerOfMass(), rt_task_status_publishers_cart[idx_cart]->msg_);
+            rt_task_status_publishers_cart[idx_cart]->unlockAndPublish();
+            idx_cart++;
+        }
+        else{
+            rt_task_status_publishers_jnt[idx_jnt]->lock();
+            toROS(robot_model->jointState(w.joint_names), rt_task_status_publishers_jnt[idx_jnt]->msg_);
+            rt_task_status_publishers_jnt[idx_jnt]->unlockAndPublish();
+            idx_jnt++;
+        }
+    }
+}
+
+void WholeBodyController::update_tasks_from_reference_interfaces(){
+    uint idx = 0;
+    for(const TaskConfig& w : task_config){
+        if(w.type == cart || w.type == com){
+            if(params.control_mode == "velocity"){
+                reference_cart.twist.linear  = base::Vector3d(reference_interfaces_[idx],  reference_interfaces_[idx+1],reference_interfaces_[idx+2]);
+                reference_cart.twist.angular = base::Vector3d(reference_interfaces_[idx+3],reference_interfaces_[idx+4],reference_interfaces_[idx+5]);
+            }
+            else{
+                reference_cart.acceleration.linear  = base::Vector3d(reference_interfaces_[idx],  reference_interfaces_[idx+1],reference_interfaces_[idx+2]);
+                reference_cart.acceleration.angular = base::Vector3d(reference_interfaces_[idx+3],reference_interfaces_[idx+4],reference_interfaces_[idx+5]);
+            }
+            idx+=6;
+            scene->setReference(w.name, reference_cart);
+        }
+        else{
+            reference_jnt.resize(w.joint_names.size());
+            reference_jnt.names = w.joint_names;
+            if(params.control_mode == "velocity"){
+                for(const string& name : w.joint_names)
+                    reference_jnt[name].speed = reference_interfaces_[idx++];
+            }
+            else{
+                for(const string& name : w.joint_names)
+                    reference_jnt[name].acceleration = reference_interfaces_[idx++];
+            }
+            scene->setReference(w.name, reference_jnt);
+        }
+    }
+}
+
 void WholeBodyController::write_command_to_hardware(){
-    toROS(solver_output, solver_output_ros);
-    solver_output_publisher->publish(solver_output_ros);
+    rt_solver_output_publisher->lock();
+    toROS(solver_output, rt_solver_output_publisher->msg_);
+    rt_solver_output_publisher->unlockAndPublish();
 
     // Write to hardware interfaces
     for(uint i = 0; i < solver_output.size(); i++){
@@ -355,35 +294,52 @@ void WholeBodyController::write_command_to_hardware(){
         if(has_command_interface(HW_IF_EFFORT))
             command_interfaces_[command_indices[HW_IF_EFFORT][i]].set_value(solver_output[i].effort);
     }
-
-    //toROS(scene->getSolverOutputRaw(), solver_output_raw);
-    //solver_output_raw_publisher->publish(solver_output_raw);
-}
-/*
-void WholeBodyController::publishTaskStatus(){
-    int idx_cart = 0, idx_jnt = 0;
-    for(uint i = 0; i < task_config.size(); i++){
-        const TaskConfig& w = task_config[i];
-        if(w.type == cart){
-            toROS(robot_model->rigidBodyState(w.ref_frame, w.tip), status_cart);
-            publishers_task_status_cart[idx_cart++]->publish(status_cart);
-        }
-        else{
-            toROS(robot_model->jointState(w.joint_names), status_jnt);
-            publishers_task_status_jnt[idx_jnt++]->publish(status_jnt);
-        }
-    }
 }
 
-void WholeBodyController::publishTaskInfo(){
-    task_status_msgs.resize(tasks_status.size());
-    for(uint i = 0; i < tasks_status.size(); i++){
-        const TaskStatus& w = tasks_status[i];
-        toROS(w, task_status_msgs[i]);
-        publishers_task_info[i]->publish(task_status_msgs[i]);
+controller_interface::CallbackReturn WholeBodyController::on_activate(const rclcpp_lifecycle::State & /*previous_state*/){
+    // Create state and command index maps here, since we need the interfaces to be configured first
+    state_indices.clear();
+    command_indices.clear();
+    for(const std::string &joint_name : joint_state.names){
+        for(const std::string &iface_name : allowed_interface_types){
+            if(get_state_idx(joint_name, iface_name) != -1)
+                state_indices[iface_name].push_back(get_state_idx(joint_name, iface_name));
+            if(get_command_idx(joint_name, iface_name) != -1)
+                command_indices[iface_name].push_back(get_command_idx(joint_name, iface_name));
+        }
     }
-}*/
+    return CallbackReturn::SUCCESS;
+}
 
+controller_interface::CallbackReturn WholeBodyController::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/){
+    state_indices.clear();
+    command_indices.clear();
+    return CallbackReturn::SUCCESS;
+}
+
+controller_interface::CallbackReturn WholeBodyController::on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/){
+    joint_state.clear();
+    solver_output.clear();
+    joint_integrator.reinit();
+
+    PluginLoader::unloadPlugin("libwbc-robot_models-" + params.robot_model.type + ".so");
+    PluginLoader::unloadPlugin("libwbc-solvers-" + params.solver.type + ".so");
+    PluginLoader::unloadPlugin("libwbc-scenes-" + params.scene.type + ".so");
+
+    RobotModelFactory::clear();
+    QPSolverFactory::clear();
+    SceneFactory::clear();
+
+    return CallbackReturn::SUCCESS;
+}
+
+controller_interface::CallbackReturn WholeBodyController::on_error(const rclcpp_lifecycle::State & /*previous_state*/){
+    return CallbackReturn::SUCCESS;
+}
+
+controller_interface::CallbackReturn WholeBodyController::on_shutdown(const rclcpp_lifecycle::State & /*previous_state*/){
+    return CallbackReturn::SUCCESS;
+}
 }
 
 PLUGINLIB_EXPORT_CLASS(wbc_ros::WholeBodyController, controller_interface::ChainableControllerInterface)

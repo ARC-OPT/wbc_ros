@@ -5,6 +5,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <controller_interface/chainable_controller_interface.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
+#include <realtime_tools/realtime_buffer.h>
+#include <realtime_tools/realtime_publisher.h>
 
 #include <wbc_msgs/msg/rigid_body_state.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -68,7 +70,23 @@ Subscribed Topics:
    (see <a href="https://github.com/ARC-OPT/wbc/blob/master/src/core/TaskConfig.hpp">here</a>) for more information.
 */
 class WholeBodyController : public controller_interface::ChainableControllerInterface{
-protected:
+    const std::vector<std::string> cart_vel_interfaces = {"twist/linear/x","twist/linear/y","twist/linear/z",
+                                                          "twist/angular/x","twist/angular/y","twist/angular/z"};
+    const std::vector<std::string> cart_acc_interfaces = {"acc/linear/x","acc/linear/y","acc/linear/z",
+                                                          "acc/angular/x","acc/angular/y","acc/angular/z"};
+    // Some shortcuts
+    using CommandMsg = trajectory_msgs::msg::JointTrajectory;
+    using CommandPublisher = rclcpp::Publisher<CommandMsg>;
+    using RTCommandPublisher = realtime_tools::RealtimePublisher<CommandMsg>;
+
+    using RbsMsg = wbc_msgs::msg::RigidBodyState;
+    using RbsPublisher = rclcpp::Publisher<RbsMsg>;
+    using RTRbsPublisher = realtime_tools::RealtimePublisher<RbsMsg>;
+
+    using JointsMsg = sensor_msgs::msg::JointState;
+    using JointsPublisher = rclcpp::Publisher<JointsMsg>;
+    using RTJointsPublisher = realtime_tools::RealtimePublisher<JointsMsg>;
+
     const std::vector<std::string> allowed_interface_types = {
         hardware_interface::HW_IF_POSITION,
         hardware_interface::HW_IF_VELOCITY,
@@ -76,15 +94,16 @@ protected:
         hardware_interface::HW_IF_EFFORT,
     };
 
+protected:
+
    wbc::ScenePtr scene;
    wbc::RobotModelPtr robot_model;
    wbc::QPSolverPtr solver;
 
    base::samples::Joints joint_state;
-   // base::samples::RigidBodyStateSE3 reference_cart;
+   base::samples::RigidBodyStateSE3 reference_cart;
    base::samples::RigidBodyStateSE3 floating_base_state;
-   // base::commands::Joints reference_jnt;
-   // base::VectorXd task_weights;
+   base::commands::Joints reference_jnt;
    wbc::JointWeights joint_weights;
    bool integrate;
    uint no_of_joints;
@@ -97,39 +116,26 @@ protected:
    std::map<std::string, std::vector<int>> command_indices;
    std::map<std::string, std::vector<int>> state_indices;
 
-   // wbc::TasksStatus tasks_status;
-   // std::vector<wbc_msgs::msg::TaskStatus> task_status_msgs;
-   //
-   trajectory_msgs::msg::JointTrajectory solver_output_ros;
-   // std::vector<rclcpp::Publisher<wbc_msgs::msg::RigidBodyState>::SharedPtr> publishers_task_status_cart;
-   // std::vector<rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr> publishers_task_status_jnt;
-   // std::vector<rclcpp::Publisher<wbc_msgs::msg::TaskStatus>::SharedPtr> publishers_task_info;
-   // rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr sub_joint_weights;
-   // rclcpp::Subscription<wbc_msgs::msg::RigidBodyState>::SharedPtr sub_floating_base;
-   // std::vector<rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr> sub_activation;
-   // std::vector<rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr> sub_weights;
-   // std::vector<rclcpp::Subscription<wbc_msgs::msg::RigidBodyState>::SharedPtr> sub_cart_ref;
-   // std::vector<rclcpp::Subscription<trajectory_msgs::msg::JointTrajectory>::SharedPtr> sub_jnt_ref;
-   //
-   // rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr sub_feedback;
-   rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr solver_output_publisher;
-   // rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr solver_output_raw_publisher;
-   // rclcpp::Publisher<wbc_msgs::msg::WbcTimingStats>::SharedPtr pub_timing_stats;
-   // wbc_msgs::msg::RigidBodyState status_cart;
-   // sensor_msgs::msg::JointState status_jnt;
+   CommandMsg solver_output_msg;
+   CommandPublisher::SharedPtr solver_output_publisher;
+   std::unique_ptr<RTCommandPublisher> rt_solver_output_publisher;
+
+   RbsMsg task_status_cart;
+   std::vector<RbsPublisher::SharedPtr> task_status_publishers_cart;
+   std::vector<std::unique_ptr<RTRbsPublisher>> rt_task_status_publishers_cart;
+
+   JointsMsg task_status_jnt;
+   std::vector<JointsPublisher::SharedPtr> task_status_publishers_jnt;
+   std::vector<std::unique_ptr<RTJointsPublisher>> rt_task_status_publishers_jnt;
+
    wbc_msgs::msg::WbcTimingStats timing_stats;
    rclcpp::Time stamp;
-   // std_msgs::msg::Float64MultiArray solver_output_raw;
-   //
-   // void jointStateCallback(const sensor_msgs::msg::JointState& msg);
-   // void cartReferenceCallback(const wbc_msgs::msg::RigidBodyState& msg, const std::string& constraint_name);
-   // void jntReferenceCallback(const trajectory_msgs::msg::JointTrajectory& msg, const std::string& constraint_name);
-   // void taskActivationCallback(const std_msgs::msg::Float64& msg, const std::string& constraint_name);
-   // void taskWeightsCallback(const std_msgs::msg::Float64MultiArray& msg, const std::string& constraint_name);
-   // void jointWeightsCallback(const std_msgs::msg::Float64MultiArray& msg);
-   // void floatingBaseStateCallback(const wbc_msgs::msg::RigidBodyState& msg);
 
    void read_state_from_hardware();
+   void write_command_to_hardware();
+   void update_tasks_from_reference_interfaces();
+   void publish_task_status();
+
    bool has_state_interface(const std::string & interface_name){
        return !state_indices[interface_name].empty();
    }
@@ -158,7 +164,7 @@ protected:
 
 public:
    WholeBodyController();
-   ~WholeBodyController();
+   ~WholeBodyController(){}
 
    virtual controller_interface::InterfaceConfiguration command_interface_configuration() const override;
    virtual controller_interface::InterfaceConfiguration state_interface_configuration() const override;
@@ -170,13 +176,10 @@ public:
    virtual controller_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
    virtual controller_interface::CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
    virtual controller_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
-   virtual std::vector<hardware_interface::CommandInterface> on_export_reference_interfaces() override;
-   virtual controller_interface::return_type update_reference_from_subscribers();
 
-   // virtual void updateController();
-   void write_command_to_hardware();
-   // void publishTaskStatus();
-   // void publishTaskInfo();
+protected:
+    virtual std::vector<hardware_interface::CommandInterface> on_export_reference_interfaces();
+    virtual controller_interface::return_type update_reference_from_subscribers();
 };
 
 }
