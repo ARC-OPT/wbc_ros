@@ -44,12 +44,10 @@ controller_interface::InterfaceConfiguration CartesianPositionController::state_
     return conf;
 }
 
-std::vector<hardware_interface::CommandInterface> CartesianPositionController::on_export_reference_interfaces(){
+vector<hardware_interface::CommandInterface> CartesianPositionController::on_export_reference_interfaces(){
     /*
     Order of reference interfaces:
-    position(x,y,z), orientation(qx,qy,qz,qw)
-    twist(vx,vy.vz,wx,wy,wz)
-    spatial acc.(vx_dot,vy_dot,vz_dot,wx_dot,wy_dot,wz_dot)
+    position(x,y,z), orientation(qx,qy,qz,qw), twist(vx,vy.vz,wx,wy,wz), spatial acc.(vx_dot,vy_dot,vz_dot,wx_dot,wy_dot,wz_dot)
     */
     reference_interfaces_.resize(reference_interface_names.size());
     vector<hardware_interface::CommandInterface> interfaces;
@@ -65,17 +63,17 @@ controller_interface::return_type CartesianPositionController::update_reference_
     setpoint_msg = *rt_setpoint_buffer.readFromRT();
     if(!setpoint_msg.get())
         return controller_interface::return_type::OK;
-    to_raw(setpoint_msg, reference_interfaces_);
+    toRaw(*setpoint_msg, reference_interfaces_);
     return controller_interface::return_type::OK;
 }
 
 controller_interface::CallbackReturn CartesianPositionController::on_init(){
     try{
         // Create the parameter listener and read all ROS parameters
-        param_listener = std::make_shared<cartesian_position_controller::ParamListener>(get_node());
+        param_listener = make_shared<cartesian_position_controller::ParamListener>(get_node());
         params = param_listener->get_params();
     }
-    catch (const std::exception & e){
+    catch (const exception & e){
         RCLCPP_ERROR(get_node()->get_logger(), "Exception thrown during init: %s \n", e.what());
         return CallbackReturn::ERROR;
     }
@@ -117,7 +115,7 @@ controller_interface::return_type CartesianPositionController::update_and_write_
     if (feedback_msg.get())
         fromROS(*feedback_msg, feedback);
 
-    from_raw(reference_interfaces_, setpoint);
+    fromRaw(reference_interfaces_, setpoint);
     control_output = controller->update(setpoint, feedback);
     write_control_output_to_hardware();
 
@@ -145,6 +143,18 @@ controller_interface::CallbackReturn CartesianPositionController::on_shutdown(co
     return CallbackReturn::SUCCESS;
 }
 
+void CartesianPositionController::write_control_output_to_hardware(){
+    for(int i = 0; i < 3; i++){
+        if(params.control_mode == "velocity"){
+            command_interfaces_[i].set_value(control_output.twist.linear[i]);
+            command_interfaces_[i+3].set_value(control_output.twist.angular[i]);
+        }
+        else{
+            command_interfaces_[i].set_value(control_output.acceleration.linear[i]);
+            command_interfaces_[i+3].set_value(control_output.acceleration.angular[i]);
+        }
+    }
+}
 
 }
 

@@ -40,5 +40,9 @@ void toROS(const base::samples::Joints& in, sensor_msgs::msg::JointState& out);
 void toROS(const wbc::TaskConfig& in, wbc_msgs::msg::TaskConfig& out);
 void toROS(const wbc::TaskStatus& in, wbc_msgs::msg::TaskStatus& out);
 void toROS(const base::Time& in, builtin_interfaces::msg::Time& out);
+void toRaw(const wbc_msgs::msg::RigidBodyState& in, std::vector<double> &out);
+void toRaw(const trajectory_msgs::msg::JointTrajectory& in, std::vector<double> &out);
+void fromRaw(const std::vector<double>& in, base::samples::RigidBodyStateSE3& out);
+void fromRaw(const std::vector<double>& in, base::samples::Joints& out);
 
 #endif

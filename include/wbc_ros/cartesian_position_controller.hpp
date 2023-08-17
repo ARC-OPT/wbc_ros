@@ -36,39 +36,8 @@ class CartesianPositionController : public controller_interface::ChainableContro
     const std::vector<std::string> command_interfaces_acc = {"acc/linear/x","acc/linear/y","acc/linear/z",
                                                              "acc/angular/x","acc/angular/y","acc/angular/z"};
 
-    void to_raw(const RbsMsgPtr& in, std::vector<double> &out){
-        out = {in->pose.position.x,in->pose.position.y,in->pose.position.z,
-               in->pose.orientation.x,in->pose.orientation.y,in->pose.orientation.z,in->pose.orientation.w,
-               in->twist.linear.x,in->twist.linear.y,in->twist.linear.z,
-               in->twist.angular.x,in->twist.angular.y,in->twist.angular.z,
-               in->acceleration.linear.x,in->acceleration.linear.y,in->acceleration.linear.z,
-               in->acceleration.angular.x,in->acceleration.angular.y,in->acceleration.angular.z};
-    }
-    void from_raw(const std::vector<double>& in, base::samples::RigidBodyStateSE3& out){
-        out.pose.orientation = base::Orientation(in[6],in[3],in[4],in[5]);
-        for(int i = 0; i < 3; i++){
-            out.pose.position[i] = in[i];
-            out.twist.linear[i] = in[i+7];
-            out.twist.angular[i] = in[i+10];
-            out.acceleration.linear[i] = in[i+13];
-            out.acceleration.angular[i] = in[i+16];
-        }
-    }
-    void write_control_output_to_hardware(){
-        for(int i = 0; i < 3; i++){
-            if(params.control_mode == "velocity"){
-                command_interfaces_[i].set_value(control_output.twist.linear[i]);
-                command_interfaces_[i+3].set_value(control_output.twist.angular[i]);
-            }
-            else{
-                command_interfaces_[i].set_value(control_output.acceleration.linear[i]);
-                command_interfaces_[i+3].set_value(control_output.acceleration.angular[i]);
-            }
-        }
-    }
 
 protected:
-
     ctrl_lib::CartesianPosPDController* controller;
     base::samples::RigidBodyStateSE3 feedback;
     base::samples::RigidBodyStateSE3 setpoint;
@@ -90,6 +59,13 @@ protected:
     std::shared_ptr<cartesian_position_controller::ParamListener> param_listener;
     cartesian_position_controller::Params params;
 
+    virtual std::vector<hardware_interface::CommandInterface> on_export_reference_interfaces();
+    virtual controller_interface::return_type update_reference_from_subscribers();
+
+    void setpoint_callback(const RbsMsgPtr msg);
+    void feedback_callback(const RbsMsgPtr msg);
+    void write_control_output_to_hardware();
+
 public:
     CartesianPositionController();
     ~CartesianPositionController(){}
@@ -104,12 +80,6 @@ public:
     virtual controller_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
     virtual controller_interface::CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
     virtual controller_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
-protected:
-    virtual std::vector<hardware_interface::CommandInterface> on_export_reference_interfaces();
-    virtual controller_interface::return_type update_reference_from_subscribers();
-
-    void setpoint_callback(const RbsMsgPtr msg);
-    void feedback_callback(const RbsMsgPtr msg);
 };
 
 }

@@ -1,4 +1,4 @@
-cartesian_position_controller:
+joint_position_controller:
     control_mode: {
         type: string,
         default_value: "",
@@ -24,12 +24,21 @@ cartesian_position_controller:
             not_empty<>: null,
         }
     }
+    joint_names: {
+        type: string_array,
+        default_value: [],
+        description: "Joint names used in the controller.",
+        validation: {
+            not_empty<>: null,
+            unique<>: null,
+        }
+    }
     p_gain: {
         type: double_array,
         default_value: [],
-        description: "P-Gain of the controller, size has to be 6.",
+        description: "P-Gain of the controller, size has to be same as no joints.",
         validation: {
-            fixed_size<>: [6],
+            not_empty<>: null,
         }
     }
     d_gain: {
@@ -37,7 +46,7 @@ cartesian_position_controller:
         default_value: [],
         description: "P-Gain of the controller, size has to be 6.",
         validation: {
-            fixed_size<>: [6],
+            not_empty<>: null,
         }
     }
     ff_gain: {
@@ -45,7 +54,7 @@ cartesian_position_controller:
         default_value: [],
         description: "Feed forward gain of the controller, size has to be 6.",
         validation: {
-            fixed_size<>: [6],
+            not_empty<>: null,
         }
     }
     max_control_output: {
@@ -53,7 +62,7 @@ cartesian_position_controller:
         default_value: [],
         description: "Controller output saturation per element. Size has to be 6.",
         validation: {
-            fixed_size<>: [6],
+            not_empty<>: null,
         }
     }
     dead_zone: {
@@ -61,6 +70,6 @@ cartesian_position_controller:
         default_value: [],
         description: "Dead zone for the position error per element. Size has to be 6.",
         validation: {
-            fixed_size<>: [6],
+            not_empty<>: null,
         }
     }

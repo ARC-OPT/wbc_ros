@@ -187,3 +187,36 @@ void toROS(const TaskStatus& in, wbc_msgs::msg::TaskStatus& out){
 void toROS(const base::Time& in, builtin_interfaces::msg::Time& out){
     out = Time(in.toSeconds(), in.toMicroseconds()*1000);
 }
+
+void toRaw(const wbc_msgs::msg::RigidBodyState& in, std::vector<double> &out){
+    out = {in.pose.position.x,in.pose.position.y,in.pose.position.z,
+           in.pose.orientation.x,in.pose.orientation.y,in.pose.orientation.z,in.pose.orientation.w,
+           in.twist.linear.x,in.twist.linear.y,in.twist.linear.z,
+           in.twist.angular.x,in.twist.angular.y,in.twist.angular.z,
+           in.acceleration.linear.x,in.acceleration.linear.y,in.acceleration.linear.z,
+           in.acceleration.angular.x,in.acceleration.angular.y,in.acceleration.angular.z};
+}
+
+void toRaw(const trajectory_msgs::msg::JointTrajectory& in, std::vector<double> &out){
+    uint idx = 0;
+    for(uint i = 0; i < in.joint_names.size(); i++){
+        out[idx++] = in.points[0].positions[i];
+        out[idx++] = in.points[0].velocities[i];
+        out[idx++] = in.points[0].accelerations[i];
+    }
+}
+
+void fromRaw(const std::vector<double>& in, base::samples::RigidBodyStateSE3& out){
+    out.pose.orientation = base::Orientation(in[6],in[3],in[4],in[5]);
+    for(int i = 0; i < 3; i++){
+        out.pose.position[i] = in[i];
+        out.twist.linear[i] = in[i+7];
+        out.twist.angular[i] = in[i+10];
+        out.acceleration.linear[i] = in[i+13];
+        out.acceleration.angular[i] = in[i+16];
+    }
+}
+
+void fromRaw(const std::vector<double>& in, base::samples::Joints& out){
+    
+}
