@@ -1,0 +1,13 @@
+/joint_position_controller/trajectory:
+  ros__parameters:
+    amplitude: 0.3
+    frequency: 3.0
+    joint_names: ["joint_a1", "joint_a2", "joint_a3", "joint_a4", "joint_a5", "joint_a6", "joint_a7"]
+    initial_positions:
+      joint_a1: 0.0
+      joint_a2: 0.7854
+      joint_a3: 0.0
+      joint_a4: 1.3962
+      joint_a5: 0.0
+      joint_a6: 0.6109
+      joint_a7: 0.0

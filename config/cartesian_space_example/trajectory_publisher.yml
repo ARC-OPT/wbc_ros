@@ -1,0 +1,12 @@
+/cartesian_position_controller/trajectory:
+  ros__parameters:
+    amplitude: 0.1
+    frequency: 0.3
+    plane: "xy"
+    init_pos_x: 0.067
+    init_pos_y: 0.0
+    init_pos_z: 1.138
+    init_ori_qx: 0.0
+    init_ori_qy: 0.0
+    init_ori_qz: 0.0
+    init_ori_qw: 1.0

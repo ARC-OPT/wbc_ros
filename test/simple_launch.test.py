@@ -4,29 +4,38 @@ import launch
 import launch.actions
 import launch_ros.actions
 import launch_testing.actions
+from launch.substitutions import PathJoinSubstitution,Command,FindExecutable
+from launch_ros.substitutions import FindPackageShare
 import pytest
 import rclpy
 from rclpy.node import Node
-from ament_index_python.packages import get_package_share_directory
 
 @pytest.mark.launch_test
 def generate_test_description():
-    prefix = get_package_share_directory('wbc_ros')
-    robot_urdf    = prefix + '/models/urdf/kuka_iiwa.urdf'
-    wbc_config    = prefix + '/test/config/wbc_single_cartesian_task.yml'
+    robot_controllers = PathJoinSubstitution([FindPackageShare('wbc_ros'), 'test', 'config', 'robot_controllers_simple.yaml'])
+    robot_description = Command([
+        PathJoinSubstitution([FindExecutable(name='xacro')]),' ',
+        PathJoinSubstitution([FindPackageShare('wbc_ros'), 'models', 'urdf', 'iiwa.config.xacro']),' ',
+        'prefix:=',                          '/',                      ' ',
+        'use_sim:=',                         'false',                  ' ',
+        'use_fake_hardware:=',               'true',                   ' ',
+        'initial_positions:=',               'initial_positions.yaml', ' ',
+        'command_interface:=',               'position',               ' ',
+        'namespace:=',                       '/'])
+    robot_description = {'robot_description': robot_description}
+
     return launch.LaunchDescription([
         launch.actions.TimerAction(
             period=5.0,
             actions=[
                 launch_ros.actions.Node(
-		             package='wbc_ros', name='wbc', namespace='wbc', executable='wbc',
-		             parameters=[wbc_config, {'robot_model_config.file': robot_urdf}],
+		             package='controller_manager', namespace='/', executable='ros2_control_node',
+		             parameters=[robot_description,robot_controllers],
                      arguments=['--ros-args', '--log-level', 'fatal']
                 ),
                 launch_ros.actions.Node(
-		             package='wbc_ros', name='joints', executable='loop_back_driver', namespace='wbc',
-		             parameters=[prefix + '/test/config/joints.yml'],
-                     arguments=['--ros-args', '--log-level', 'fatal']
+		             package='controller_manager', namespace='/', executable='spawner',
+                     arguments=['whole_body_controller', '--controller-manager', ['/', 'controller_manager']],
                 )
             ]),
         launch_testing.actions.ReadyToTest()
@@ -48,7 +57,7 @@ class TestBringup(unittest.TestCase):
         rclpy.init()
         try:
             node = TestNode()
-            assert node.wait_for_node('wbc'), 'WBC Node not found !'
+            assert node.wait_for_node('whole_body_controller'), 'WBC Node not found !'
             time.sleep(1)
         finally:
             rclpy.shutdown()

@@ -1,0 +1,43 @@
+controller_manager:
+    ros__parameters:
+        update_rate: 1000 # Hz
+        joint_state_broadcaster:
+          type: joint_state_broadcaster/JointStateBroadcaster
+        whole_body_controller:
+          type: wbc_ros/WholeBodyController
+        joint_position_controller:
+          type: wbc_ros/JointPositionController
+
+whole_body_controller:
+    ros__parameters:
+        control_mode: velocity
+        command_interfaces: ["position"]
+        task_names: ["joint_position"]
+        joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+        robot_model:
+            file: install/wbc_ros/share/wbc_ros/models/urdf/iiwa.urdf
+            type: rbdl
+        tasks:
+            joint_position:
+                type: jnt
+                priority: 0
+                joint_names: ["joint_a1", "joint_a2", "joint_a3", "joint_a4", "joint_a5", "joint_a6", "joint_a7"]
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+                activation: 1.0
+        solver:
+            type: qpoases
+        scene:
+            type: velocity_qp
+        integrate: true
+
+joint_position_controller:
+    ros__parameters:
+        control_mode: velocity
+        task_name: joint_position
+        wbc_name: whole_body_controller
+        joint_names: ["joint_a1", "joint_a2", "joint_a3", "joint_a4", "joint_a5", "joint_a6", "joint_a7"]
+        p_gain: [5.0,5.0,5.0,5.0,5.0,5.0,5.0]
+        d_gain: [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+        ff_gain: [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+        max_control_output: [10.0,10.0,10.0,10.0,10.0,10.0,10.0]
+        dead_zone: [0.0,0.0,0.0,0.0,0.0,0.0,0.0]

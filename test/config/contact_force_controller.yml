@@ -1,9 +1,0 @@
-/wbc/contact_force/controller:
-  ros__parameters:
-    control_rate: 250.0
-    p_gain: [1.0,1.0,1.0,1.0,1.0,1.0]
-    i_gain: [1.0,1.0,1.0,1.0,1.0,1.0]
-    d_gain: [1.0,1.0,1.0,1.0,1.0,1.0]
-    max_control_output: [1.0,1.0,1.0,1.0,1.0,1.0]
-    dead_zone: [0.0,0.0,0.0,0.0,0.0,0.0]
-    windup: [0.0,0.0,0.0,0.0,0.0,0.0]

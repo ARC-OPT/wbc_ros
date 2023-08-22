@@ -1,0 +1,31 @@
+controller_manager:
+    ros__parameters:
+        update_rate: 1000 # Hz
+        joint_state_broadcaster:
+          type: joint_state_broadcaster/JointStateBroadcaster
+        whole_body_controller:
+          type: wbc_ros/WholeBodyController
+
+whole_body_controller:
+    ros__parameters:
+        control_mode: velocity
+        command_interfaces: ["position"]
+        task_names: ["ee_pose"]
+        joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+        robot_model:
+            file: install/wbc_ros/share/wbc_ros/models/urdf/iiwa.urdf
+            type: rbdl
+        tasks:
+            ee_pose:
+                type: cart
+                priority: 0
+                root: world
+                tip: tool0
+                ref_frame: world
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+                activation: 1.0
+        solver:
+            type: qpoases
+        scene:
+            type: velocity_qp
+        integrate: true

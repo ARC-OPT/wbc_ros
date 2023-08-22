@@ -1,0 +1,66 @@
+cartesian_position_controller:
+    control_mode: {
+        type: string,
+        default_value: "",
+        description: "Control mode of the wbc. Can be one of [velocity,acceleration].",
+        validation: {
+            not_empty<>: null,
+            one_of<>: [["velocity", "acceleration"]]
+        }
+    }
+    wbc_name: {
+        type: string,
+        default_value: "",
+        description: "Name of the WBC controller.",
+        validation: {
+            not_empty<>: null,
+        }
+    }
+    task_name: {
+        type: string,
+        default_value: "",
+        description: "Name of the WBC task this controller is assigned to.",
+        validation: {
+            not_empty<>: null,
+        }
+    }
+    p_gain: {
+        type: double_array,
+        default_value: [],
+        description: "P-Gain of the controller, size has to be 6.",
+        validation: {
+            fixed_size<>: [6],
+        }
+    }
+    d_gain: {
+        type: double_array,
+        default_value: [],
+        description: "P-Gain of the controller, size has to be 6.",
+        validation: {
+            fixed_size<>: [6],
+        }
+    }
+    ff_gain: {
+        type: double_array,
+        default_value: [],
+        description: "Feed forward gain of the controller, size has to be 6.",
+        validation: {
+            fixed_size<>: [6],
+        }
+    }
+    max_control_output: {
+        type: double_array,
+        default_value: [],
+        description: "Controller output saturation per element. Size has to be 6.",
+        validation: {
+            fixed_size<>: [6],
+        }
+    }
+    dead_zone: {
+        type: double_array,
+        default_value: [],
+        description: "Dead zone for the position error per element. Size has to be 6.",
+        validation: {
+            fixed_size<>: [6],
+        }
+    }
