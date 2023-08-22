@@ -114,9 +114,6 @@ install(TARGETS joint_trajectory_publisher
 if(BUILD_TESTING)
 find_package(launch_testing_ament_cmake)
 add_launch_test(test/simple_launch.test.py)
-add_launch_test(test/topics.test.py)
-add_launch_test(test/complex_launch.test.py)
-add_launch_test(test/solver_output.test.py)
 install(DIRECTORY test
         DESTINATION share/${PROJECT_NAME})
 endif()

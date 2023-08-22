@@ -1,8 +1,0 @@
-/wbc/ee_pose/controller:
-  ros__parameters:
-    control_rate: 250.0
-    p_gain: [5.0,5.0,5.0,5.0,5.0,5.0]
-    d_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
-    ff_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
-    max_control_output: [0.3,0.3,0.3,0.3,0.3,0.3]
-    dead_zone: [0.0,0.0,0.0,0.0,0.0,0.0]
