@@ -1,0 +1,9 @@
+/ee_pose_controller/pose:
+  ros__parameters:
+    pos_x: 0.0
+    pos_y: 0.0
+    pos_z: 1.0
+    ori_qx: 0.0
+    ori_qy: 0.0
+    ori_qz: 0.0
+    ori_qw: 1.0

@@ -1,0 +1,12 @@
+/elbow_pose_controller/trajectory:
+  ros__parameters:
+    amplitude: 0.2
+    frequency: 0.3
+    plane: "xy"
+    init_pos_x: 0.3
+    init_pos_y: 0.0
+    init_pos_z: 0.7
+    init_ori_qx: 0.0
+    init_ori_qy: 0.0
+    init_ori_qz: 0.0
+    init_ori_qw: 1.0

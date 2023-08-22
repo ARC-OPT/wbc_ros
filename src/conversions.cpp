@@ -218,5 +218,10 @@ void fromRaw(const std::vector<double>& in, base::samples::RigidBodyStateSE3& ou
 }
 
 void fromRaw(const std::vector<double>& in, base::samples::Joints& out){
-    
+    uint idx = 0;
+    for(uint i = 0; i < out.size(); i++){
+        out[i].position = in[idx++];
+        out[i].speed = in[idx++];
+        out[i].acceleration = in[idx++];
+    }
 }

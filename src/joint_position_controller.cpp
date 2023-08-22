@@ -27,7 +27,6 @@ std::vector<hardware_interface::CommandInterface> JointPositionController::on_ex
     Order of reference interfaces:
     position,velocity,acceleration for each joint
     */
-    reference_interfaces_.resize(params.joint_names.size()*3);
     vector<hardware_interface::CommandInterface> interfaces;
     string prefix = "setpoint/";
     uint idx = 0;
@@ -104,11 +103,23 @@ controller_interface::CallbackReturn JointPositionController::on_configure(const
 
     setpoint_subscriber = get_node()->create_subscription<JointCommandMsg>("~/setpoint",
         rclcpp::SystemDefaultsQoS(), bind(&JointPositionController::setpoint_callback, this, placeholders::_1));
-    /*control_output_publisher = get_node()->create_publisher<JointCommandMsg>("~/control_output", rclcpp::SystemDefaultsQoS());
-    rt_control_output_publisher = make_unique<RTJointCommandPublisher>(control_output_publisher);*/
+    control_output_publisher = get_node()->create_publisher<JointCommandMsg>("~/control_output", rclcpp::SystemDefaultsQoS());
+    rt_control_output_publisher = make_unique<RTJointCommandPublisher>(control_output_publisher);
 
-    feedback.resize(params.joint_names.size());
+    uint n = params.joint_names.size();
+    feedback.resize(n);
     feedback.names = params.joint_names;
+
+    setpoint.resize(n);
+    setpoint.names = params.joint_names;
+
+    rt_control_output_publisher->msg_.points.resize(1);
+    rt_control_output_publisher->msg_.points[0].positions.resize(n);
+    rt_control_output_publisher->msg_.points[0].velocities.resize(n);
+    rt_control_output_publisher->msg_.points[0].accelerations.resize(n);
+    rt_control_output_publisher->msg_.joint_names = params.joint_names;
+
+    reference_interfaces_.resize(n*3);
 
     return CallbackReturn::SUCCESS;
 }
@@ -123,6 +134,7 @@ controller_interface::return_type JointPositionController::update_and_write_comm
 
     fromRaw(reference_interfaces_, setpoint);
     control_output = controller->update(setpoint, feedback);
+
     write_control_output_to_hardware();
 
     rt_control_output_publisher->lock();

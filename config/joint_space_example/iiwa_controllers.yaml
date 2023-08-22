@@ -5,26 +5,24 @@ controller_manager:
           type: joint_state_broadcaster/JointStateBroadcaster
         whole_body_controller:
           type: wbc_ros/WholeBodyController
-        cartesian_position_controller:
-          type: wbc_ros/CartesianPositionController
+        joint_position_controller:
+          type: wbc_ros/JointPositionController
 
 whole_body_controller:
     ros__parameters:
         control_mode: velocity
         command_interfaces: ["position"]
-        task_names: ["ee_pose"]
+        task_names: ["joint_position"]
         joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
         robot_model:
             file: install/wbc_ros/share/wbc_ros/models/urdf/iiwa.urdf
             type: rbdl
         tasks:
-            ee_pose:
-                type: cart
+            joint_position:
+                type: jnt
                 priority: 0
-                root: world
-                tip: tool0
-                ref_frame: world
-                weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+                joint_names: ["joint_a1", "joint_a2", "joint_a3", "joint_a4", "joint_a5", "joint_a6", "joint_a7"]
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
                 activation: 1.0
         solver:
             type: qpoases
@@ -32,13 +30,14 @@ whole_body_controller:
             type: velocity_qp
         integrate: true
 
-cartesian_position_controller:
+joint_position_controller:
     ros__parameters:
         control_mode: velocity
-        task_name: ee_pose
+        task_name: joint_position
         wbc_name: whole_body_controller
-        p_gain: [5.0,5.0,5.0,5.0,5.0,5.0]
-        d_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
-        ff_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
-        max_control_output: [10.0,10.0,10.0,10.0,10.0,10.0]
-        dead_zone: [0.0,0.0,0.0,0.0,0.0,0.0]
+        joint_names: ["joint_a1", "joint_a2", "joint_a3", "joint_a4", "joint_a5", "joint_a6", "joint_a7"]
+        p_gain: [5.0,5.0,5.0,5.0,5.0,5.0,5.0]
+        d_gain: [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+        ff_gain: [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+        max_control_output: [10.0,10.0,10.0,10.0,10.0,10.0,10.0]
+        dead_zone: [0.0,0.0,0.0,0.0,0.0,0.0,0.0]

@@ -7,22 +7,27 @@
 
 using namespace std::chrono_literals;
 
-const std::string joint_names[7] = {
-  "joint_0",
-  "joint_1",
-  "joint_2",
-  "joint_3",
-  "joint_4",
-  "joint_5",
-  "joint_6",
-};
-
 class JointTrajectoryPublisher : public rclcpp::Node
 {
   public:
     JointTrajectoryPublisher() : Node("joint_trajectory_publisher"){
-        publisher_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>("setpoint", 10);
-        timer_ = this->create_wall_timer(10ms, std::bind(&JointTrajectoryPublisher::timer_callback, this));
+        publisher = this->create_publisher<trajectory_msgs::msg::JointTrajectory>("setpoint", 10);
+
+        declare_parameter("amplitude", 0.1);
+        declare_parameter("frequency", 1.0);
+        declare_parameter("joint_names", std::vector<std::string>());
+
+        amplitude       = get_parameter("amplitude").as_double();
+        frequency       = get_parameter("frequency").as_double();
+        joint_names     = get_parameter("joint_names").as_string_array();
+
+        initial_positions.resize(joint_names.size());
+        for(uint i = 0; i < joint_names.size(); i++){
+            declare_parameter("initial_positions." + joint_names[i], 0.0);
+            initial_positions[i] = get_parameter("initial_positions." + joint_names[i]).as_double();
+        }
+
+        timer = this->create_wall_timer(10ms, std::bind(&JointTrajectoryPublisher::timer_callback, this));
         dt = 0;
     }
 
@@ -31,19 +36,24 @@ class JointTrajectoryPublisher : public rclcpp::Node
     {
         auto msg = trajectory_msgs::msg::JointTrajectory();
         msg.points.resize(1);
-        for(uint i = 0; i < 7; i++){
-            msg.joint_names.push_back(joint_names[i]);
-            msg.points[0].positions.push_back(0);
-            msg.points[0].velocities.push_back(0);
-            msg.points[0].accelerations.push_back(0);
+        msg.joint_names = joint_names;
+        msg.points[0].positions.resize(joint_names.size());
+        msg.points[0].velocities.resize(joint_names.size());
+        msg.points[0].accelerations.resize(joint_names.size());
+        for(uint i = 0; i < joint_names.size(); i++){
+            msg.points[0].positions[i] = initial_positions[i] + amplitude*sin(frequency*dt);
+            msg.points[0].velocities[i] = amplitude*cos(frequency*dt);
+            msg.points[0].accelerations[i] = 0;
         }
-        msg.points[0].positions[3] = sin(dt);
-        msg.points[0].velocities[3] = cos(dt);
-        publisher_->publish(msg);
+        publisher->publish(msg);
         dt += 0.01;
     }
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer;
+    rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr publisher;
+    double amplitude;
+    double frequency;
+    std::vector<std::string> joint_names;
+    std::vector<double> initial_positions;
     double dt;
 };
 

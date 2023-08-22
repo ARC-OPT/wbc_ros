@@ -5,39 +5,60 @@ controller_manager:
           type: joint_state_broadcaster/JointStateBroadcaster
         whole_body_controller:
           type: wbc_ros/WholeBodyController
-        cartesian_position_controller:
+        ee_pose_controller:
+          type: wbc_ros/CartesianPositionController
+        elbow_pose_controller:
           type: wbc_ros/CartesianPositionController
 
 whole_body_controller:
     ros__parameters:
         control_mode: velocity
         command_interfaces: ["position"]
-        task_names: ["ee_pose"]
+        task_names: ["ee_pose", "elbow_pose"]
         joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
         robot_model:
-            file: /home/dennis/ros2_ws/src/wbc_ros/models/urdf/iiwa.urdf
+            file: install/wbc_ros/share/wbc_ros/models/urdf/iiwa.urdf
             type: rbdl
         tasks:
             ee_pose:
                 type: cart
-                priority: 0
+                priority: 1
                 root: world
                 tip: tool0
                 ref_frame: world
                 weights: [1.0,1.0,1.0,1.0,1.0,1.0]
                 activation: 1.0
+            elbow_pose:
+                type: cart
+                priority: 0
+                root: world
+                tip: link_4
+                ref_frame: world
+                weights: [0.0,1.0,0.0,0.0,0.0,0.0]
+                activation: 1.0
         solver:
-            type: qpoases
+            type: hls
         scene:
-            type: velocity_qp
+            type: velocity
         integrate: true
 
-cartesian_position_controller:
+ee_pose_controller:
     ros__parameters:
         control_mode: velocity
         task_name: ee_pose
         wbc_name: whole_body_controller
-        p_gain: [1.0,1.0,1.0,1.0,1.0,1.0]
+        p_gain: [5.0,5.0,5.0,0.0,0.0,0.0]
+        d_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
+        ff_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
+        max_control_output: [10.0,10.0,10.0,0.0,0.0,0.0]
+        dead_zone: [0.0,0.0,0.0,0.0,0.0,0.0]
+
+elbow_pose_controller:
+    ros__parameters:
+        control_mode: velocity
+        task_name: elbow_pose
+        wbc_name: whole_body_controller
+        p_gain: [5.0,5.0,5.0,5.0,5.0,5.0]
         d_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
         ff_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
         max_control_output: [10.0,10.0,10.0,10.0,10.0,10.0]
