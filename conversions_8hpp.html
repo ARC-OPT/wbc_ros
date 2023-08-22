@@ -92,7 +92,7 @@ Functions</h2></td></tr>
 <tr class="separator:a2f7a393896aa4d44a9be3c03a2b6e179"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a850a1c11076e0a1bae1eff74cdf75b8a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conversions_8hpp.html#a850a1c11076e0a1bae1eff74cdf75b8a">fromROS</a> (const std_msgs::msg::Float64MultiArray &amp;in, base::VectorXd &amp;out)</td></tr>
 <tr class="separator:a850a1c11076e0a1bae1eff74cdf75b8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adaa04d78ab2b2eea665d5233dddaba4e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conversions_8hpp.html#adaa04d78ab2b2eea665d5233dddaba4e">fromROS</a> (const std_msgs::msg::Float64MultiArray &amp;in, const std::vector&lt; std::string &gt; &amp;<a class="el" href="joint__trajectory__publisher_8cpp.html#ab1a054072c398f21ad38855398e91ac7">joint_names</a>, wbc::JointWeights &amp;out)</td></tr>
+<tr class="memitem:adaa04d78ab2b2eea665d5233dddaba4e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conversions_8hpp.html#adaa04d78ab2b2eea665d5233dddaba4e">fromROS</a> (const std_msgs::msg::Float64MultiArray &amp;in, const std::vector&lt; std::string &gt; &amp;joint_names, wbc::JointWeights &amp;out)</td></tr>
 <tr class="separator:adaa04d78ab2b2eea665d5233dddaba4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba2ffc1c1d4075beaeb445a1f028c4ba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conversions_8hpp.html#aba2ffc1c1d4075beaeb445a1f028c4ba">fromROS</a> (const geometry_msgs::msg::WrenchStamped &amp;in, base::samples::Wrench &amp;out)</td></tr>
 <tr class="separator:aba2ffc1c1d4075beaeb445a1f028c4ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -116,8 +116,72 @@ Functions</h2></td></tr>
 <tr class="separator:a719d055573188d05d8f95e266eb66059"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1dc41ef04cc4ba5d16b12062a38ef978"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conversions_8hpp.html#a1dc41ef04cc4ba5d16b12062a38ef978">toROS</a> (const base::Time &amp;in, builtin_interfaces::msg::Time &amp;out)</td></tr>
 <tr class="separator:a1dc41ef04cc4ba5d16b12062a38ef978"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a049be81ec3328b2618cede48bcbc11cf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conversions_8hpp.html#a049be81ec3328b2618cede48bcbc11cf">toRaw</a> (const wbc_msgs::msg::RigidBodyState &amp;in, std::vector&lt; double &gt; &amp;out)</td></tr>
+<tr class="separator:a049be81ec3328b2618cede48bcbc11cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5d166b1b352b79386390971e7a247c8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conversions_8hpp.html#ab5d166b1b352b79386390971e7a247c8">toRaw</a> (const trajectory_msgs::msg::JointTrajectory &amp;in, std::vector&lt; double &gt; &amp;out)</td></tr>
+<tr class="separator:ab5d166b1b352b79386390971e7a247c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f8e430b151f06a5e716e839131272ee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conversions_8hpp.html#a6f8e430b151f06a5e716e839131272ee">fromRaw</a> (const std::vector&lt; double &gt; &amp;in, base::samples::RigidBodyStateSE3 &amp;out)</td></tr>
+<tr class="separator:a6f8e430b151f06a5e716e839131272ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95b1f98df0c00b0462f6f8957eaab5d5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conversions_8hpp.html#a95b1f98df0c00b0462f6f8957eaab5d5">fromRaw</a> (const std::vector&lt; double &gt; &amp;in, base::samples::Joints &amp;out)</td></tr>
+<tr class="separator:a95b1f98df0c00b0462f6f8957eaab5d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a95b1f98df0c00b0462f6f8957eaab5d5" name="a95b1f98df0c00b0462f6f8957eaab5d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95b1f98df0c00b0462f6f8957eaab5d5">&#9670;&#160;</a></span>fromRaw() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromRaw </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">base::samples::Joints &amp;&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6f8e430b151f06a5e716e839131272ee" name="a6f8e430b151f06a5e716e839131272ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f8e430b151f06a5e716e839131272ee">&#9670;&#160;</a></span>fromRaw() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromRaw </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">base::samples::RigidBodyStateSE3 &amp;&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a605230a4c42690d6b33c000e2e44e006" name="a605230a4c42690d6b33c000e2e44e006"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a605230a4c42690d6b33c000e2e44e006">&#9670;&#160;</a></span>fromROS() <span class="overload">[1/9]</span></h2>
 
@@ -364,6 +428,62 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">base::samples::RigidBodyStateSE3 &amp;&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab5d166b1b352b79386390971e7a247c8" name="ab5d166b1b352b79386390971e7a247c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5d166b1b352b79386390971e7a247c8">&#9670;&#160;</a></span>toRaw() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void toRaw </td>
+          <td>(</td>
+          <td class="paramtype">const trajectory_msgs::msg::JointTrajectory &amp;&#160;</td>
+          <td class="paramname"><em>in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a049be81ec3328b2618cede48bcbc11cf" name="a049be81ec3328b2618cede48bcbc11cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a049be81ec3328b2618cede48bcbc11cf">&#9670;&#160;</a></span>toRaw() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void toRaw </td>
+          <td>(</td>
+          <td class="paramtype">const wbc_msgs::msg::RigidBodyState &amp;&#160;</td>
+          <td class="paramname"><em>in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; double &gt; &amp;&#160;</td>
           <td class="paramname"><em>out</em>&#160;</td>
         </tr>
         <tr>
