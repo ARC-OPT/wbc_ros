@@ -56,6 +56,7 @@ whole_body_controller:
         scene:
             # Scene type. Must be the exact name of one of the registered scene plugins. See src/scenes for all available plugins.
             type: velocity_qp
+        # Do numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and position
         integrate: true
 
 cartesian_position_controller:
