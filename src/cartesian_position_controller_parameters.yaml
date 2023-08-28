@@ -35,7 +35,7 @@ cartesian_position_controller:
     d_gain: {
         type: double_array,
         default_value: [],
-        description: "P-Gain of the controller, size has to be 6.",
+        description: "D-Gain of the controller, size has to be 6.",
         validation: {
             fixed_size<>: [6],
         }
