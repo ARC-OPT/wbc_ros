@@ -9,9 +9,13 @@ from launch.actions import RegisterEventHandler
 import os
 
 def generate_launch_description():
+    # Load the controller confguration file for the Cartesian space example. This contains the parameters for all ros2 controllers. 
     iiwa_controllers = PathJoinSubstitution([FindPackageShare('wbc_ros'), 'config', 'cartesian_space_example', 'iiwa_controllers.yaml'])
+    # Load the trajectory configuration file
     trajectory_publisher_config = os.path.join(get_package_share_directory('wbc_ros'),'config','cartesian_space_example','trajectory_publisher.yml')
 
+    # Create the robot description parameter (URDF) from the iiwa.config.xacro file. Use the "fake" flag, which means that the input command is mirrored to the
+    # robot state, producing a simple mini simulation
     robot_description = Command([
         PathJoinSubstitution([FindExecutable(name='xacro')]),' ',
         PathJoinSubstitution([FindPackageShare('wbc_ros'), 'models', 'urdf', 'iiwa.config.xacro']),' ',
@@ -23,6 +27,7 @@ def generate_launch_description():
         'namespace:=',                       '/'])
     robot_description = {'robot_description': robot_description}
 
+    # Load the controller manager (ros2_control_node). This is resposible for loading, configuring, activating and deactivating the controllers
     controller_manager = Node(
         package='controller_manager',
         executable='ros2_control_node',
@@ -30,12 +35,16 @@ def generate_launch_description():
         output='both',
         namespace='/'
     )
+
+    # Spawn the whole-body controller (WBC). The WBC receive the control output from all controllers in task space (in this case only the Cartesian position controller)
+    # and integrates into a coherent control signal in joint space (in this case joint position commands), which are written to hardware interface directly
     whole_body_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
         arguments=['whole_body_controller', '--controller-manager', ['/', 'controller_manager']],
         namespace='/')
 
+    # Spawn the Cartesian position controller. This controller stabilizes the desired end effector trajectory in cartesian space
     cartesian_position_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -49,11 +58,13 @@ def generate_launch_description():
                 target_action=whole_body_controller_spawner,
                 on_exit=[cartesian_position_controller_spawner])))
 
+    # The joint state broadcaster is actually not really a controller, it simply collects the joint states and publishes them
     joint_state_broadcaster = Node(
         package='controller_manager',
         executable='spawner',
         arguments=['joint_state_broadcaster', '--controller-manager', ['/', 'controller_manager']])
 
+    # This node publishes a circular trajectory and sends it to the Cartesian position controller
     cartesian_trajectory_publisher = Node(
         package='wbc_ros',
         executable='cartesian_trajectory_publisher',
@@ -61,6 +72,7 @@ def generate_launch_description():
         namespace='/cartesian_position_controller',
         parameters=[trajectory_publisher_config])
 
+    # The robot state publisher computes the transform between all robot links given the joint_status topic to visualize the robot in rviz
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
