@@ -10,13 +10,6 @@ WBC was initiated and is currently developed at the [Robotics Innovation Center]
 
 <img src="doc/images/DFKI_Logo_e_schrift.jpg" alt="drawing" width="300"/>
 
-## Subscribed Topics
-## Published Topics
-## Parameters
-* [Whole Body Controller](https://github.com/ARC-OPT/wbc_ros/blob/main/doc/parameters/whole_body_controller_parameters.md)
-* [Cartesian Position Controller](https://github.com/ARC-OPT/wbc_ros/blob/main/doc/parameters/cartesian_position_controller_parameters.md)
-* [Joint Position Controller](https://github.com/ARC-OPT/wbc_ros/blob/main/doc/parameters/joint_position_controller_parameters.md)
-
 ## Requirements / Dependencies
 
 Currently supported OS: Ubuntu20.04, Ubuntu22.04
