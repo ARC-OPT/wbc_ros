@@ -4,11 +4,16 @@
 
 [Code API](https://arc-opt.github.io/wbc_ros/)  | [Full Documentation](https://arc-opt.github.io/Documentation/)
 
-This task library provides a ROS/ROS2 interface for the [Whole-Body Control library](https://github.com/ARC-OPT/wbc).
+This package provides a ros2 control interface for the [Whole-Body Control library](https://github.com/ARC-OPT/wbc).
 
 WBC was initiated and is currently developed at the [Robotics Innovation Center](http://robotik.dfki-bremen.de/en/startpage.html) of the [German Research Center for Artificial Intelligence (DFKI)](http://www.dfki.de) in Bremen.
 
 <img src="doc/images/DFKI_Logo_e_schrift.jpg" alt="drawing" width="300"/>
+
+## Subscribed Topics
+## Published Topics
+## Parameters
+* [Whole Body Controller](https://github.com/ARC-OPT/wbc_ros/blob/main/doc/parameters/whole_body_controller_parameters.md)
 
 ## Requirements / Dependencies
 
