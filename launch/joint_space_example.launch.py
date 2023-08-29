@@ -9,9 +9,9 @@ from launch.actions import RegisterEventHandler
 import os
 
 def generate_launch_description():
-    # Load the controller confguration file for the joint space example. This contains the parameters for all ros2 controllers. 
+    # Load the controller confguration file for the joint space example. This contains the parameters for all ros2 controllers.
     iiwa_controllers = PathJoinSubstitution([FindPackageShare('wbc_ros'), 'config', 'joint_space_example', 'iiwa_controllers.yaml'])
-    # Load the controller confguration file for the Cartesian space example. This contains the parameters for all ros2 controllers. 
+    # Load the trajectory configuration file
     trajectory_publisher_config = os.path.join(get_package_share_directory('wbc_ros'),'config','joint_space_example','trajectory_publisher.yml')
 
     # Create the robot description parameter (URDF) from the iiwa.config.xacro file. Use the "fake" flag, which means that the input command is mirrored to the

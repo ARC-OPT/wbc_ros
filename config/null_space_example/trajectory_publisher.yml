@@ -1,13 +1,24 @@
 /elbow_pose_controller/trajectory:
   ros__parameters:
+    # Amplitude of the circular trajectory in x-direction
     amplitude_x: 0.2
+    # Amplitude of the circular trajectory in y-direction
     amplitude_y: 0.1
+    # Frequency of the circular trajectory
     frequency: 0.3
+    # Plane in which the trajectory should be executed, cyn be one of [xy,yz,xz]
     plane: "xy"
+    # Initial position x of the robot
     init_pos_x: 0.3
+    # Initial position y of the robot
     init_pos_y: 0.0
+    # Initial position z of the robot
     init_pos_z: 0.7
+    # Initial orientation qx of the robot
     init_ori_qx: 0.0
+    # Initial orientation qy of the robot
     init_ori_qy: 0.0
+    # Initial orientation qz of the robot
     init_ori_qz: 0.0
+    # Initial orientation qw of the robot
     init_ori_qw: 1.0

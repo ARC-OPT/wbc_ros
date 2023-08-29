@@ -18,7 +18,7 @@ controller_interface::InterfaceConfiguration WholeBodyController::command_interf
     vector<string> iface_names;
     for(const string &joint_name : robot_model->jointNames()){
         for(const string &iface_name : params.command_interfaces)
-            iface_names.push_back(joint_name + "/" + iface_name);
+            iface_names.push_back("/" + joint_name + "/" + iface_name);
     }
     return { controller_interface::interface_configuration_type::INDIVIDUAL, iface_names};
 }

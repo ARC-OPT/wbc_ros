@@ -1,9 +1,16 @@
 /ee_pose_controller/pose:
   ros__parameters:
+    # Init position in x
     pos_x: 0.0
+    # Init position in y
     pos_y: 0.0
+    # Init position in z
     pos_z: 1.0
+    # Init orientation in qx
     ori_qx: 0.0
+    # Init orientation in qy
     ori_qy: 0.0
+    # Init orientation in qz
     ori_qz: 0.0
+    # Init orientation in qw
     ori_qw: 1.0
