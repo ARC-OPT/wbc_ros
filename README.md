@@ -10,10 +10,6 @@ WBC was initiated and is currently developed at the [Robotics Innovation Center]
 
 <img src="doc/images/DFKI_Logo_e_schrift.jpg" alt="drawing" width="300"/>
 
-## Getting Started
-
-Please check out the tutorials section in the [documentation](https://arc-opt.github.io/Documentation/) for examples of usage.
-
 ## Requirements / Dependencies
 
 Currently supported OS: Ubuntu20.04, Ubuntu22.04
