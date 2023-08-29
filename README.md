@@ -14,8 +14,8 @@ WBC was initiated and is currently developed at the [Robotics Innovation Center]
 ## Published Topics
 ## Parameters
 * [Whole Body Controller](https://github.com/ARC-OPT/wbc_ros/blob/main/doc/parameters/whole_body_controller_parameters.md)
-* [Whole Body Controller](https://github.com/ARC-OPT/wbc_ros/blob/main/doc/parameters/cartesian_position_controller_parameters.md)
-* [Whole Body Controller](https://github.com/ARC-OPT/wbc_ros/blob/main/doc/parameters/joint_position_controller_parameters.md)
+* [Cartesian Position Controller](https://github.com/ARC-OPT/wbc_ros/blob/main/doc/parameters/cartesian_position_controller_parameters.md)
+* [Joint Position Controller](https://github.com/ARC-OPT/wbc_ros/blob/main/doc/parameters/joint_position_controller_parameters.md)
 
 ## Requirements / Dependencies
 
