@@ -16,6 +16,11 @@ whole_body_controller:
             not_empty<>: null,
         }
     }
+    prefix: {
+        type: string,
+        default_value: "",
+        description: "Prefix used in the robot description parameter to claim the correct state and command interface names."
+    }
     integrate: {
         type: bool,
         default_value: false,

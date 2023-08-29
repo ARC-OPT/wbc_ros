@@ -145,7 +145,7 @@ protected:
    int get_state_idx(const std::string &joint_name, const std::string & interface_name){
        for(uint i = 0; i < state_interfaces_.size(); i++){
            const hardware_interface::LoanedStateInterface &s = state_interfaces_[i];
-           if(s.get_interface_name() == interface_name && s.get_name().find(joint_name) != std::string::npos)
+           if(s.get_interface_name() == interface_name && s.get_name().find(params.prefix + joint_name) != std::string::npos)
                return i;
        }
        return -1;
@@ -153,7 +153,7 @@ protected:
    int get_command_idx(const std::string &joint_name, const std::string & interface_name){
        for(uint i = 0; i < command_interfaces_.size(); i++){
            const hardware_interface::LoanedCommandInterface &s = command_interfaces_[i];
-           if(s.get_interface_name() == interface_name && s.get_name().find(joint_name) != std::string::npos)
+           if(s.get_interface_name() == interface_name && s.get_name().find(params.prefix + joint_name) != std::string::npos)
                return i;
        }
        return -1;

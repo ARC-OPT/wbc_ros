@@ -19,7 +19,7 @@ def generate_launch_description():
     robot_description = Command([
         PathJoinSubstitution([FindExecutable(name='xacro')]),' ',
         PathJoinSubstitution([FindPackageShare('wbc_ros'), 'models', 'urdf', 'iiwa.config.xacro']),' ',
-        'prefix:=',                          '/',                      ' ',
+        'prefix:=',                          '',                       ' ',
         'use_sim:=',                         'false',                  ' ',
         'use_fake_hardware:=',               'true',                   ' ',
         'initial_positions:=',               'initial_positions.yaml', ' ',

@@ -5,7 +5,7 @@ controller_manager:
         update_rate: 1000 # Hz
         # Type configuration for the joint state broadcaster
         joint_state_broadcaster:
-          type: joint_state_broadcaster/JointStateBroadcaste
+          type: joint_state_broadcaster/JointStateBroadcaster
         # Type configuration for the whole body controllerr
         whole_body_controller:
           type: wbc_ros/WholeBodyController
@@ -24,6 +24,8 @@ whole_body_controller:
         command_interfaces: ["position"]
         # Names of the tasks to be configured in task configuration. Each task will be a summand in the QP solver's cost function.
         task_names: ["ee_pose", "elbow_pose"]
+        # Prefix used in the robot description parameter to claim the correct state and command interface names.
+        prefix: ""
         # The joint weights control the contribution of each individual joint to the solution. Values have to be within [0,1].
         # A zero means here that the joint is not used at all. Size has to be same as number of robot joints.
         joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
