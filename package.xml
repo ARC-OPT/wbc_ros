@@ -15,8 +15,7 @@
   <build_depend>realtime_tools</build_depend>
 
   <exec_depend>pluginlib</exec_depend>
-  <exec_depend>realtime_tools</exec_depend>
-
+  
   <depend>wbc_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>controller_interface</depend>
