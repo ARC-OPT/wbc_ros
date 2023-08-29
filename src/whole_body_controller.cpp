@@ -14,6 +14,14 @@ namespace wbc_ros{
 WholeBodyController::WholeBodyController() : ChainableControllerInterface(), has_floating_base_state(false){
 }
 
+void WholeBodyController::task_weight_callback(const TaskWeightMsgPtr msg){
+    rt_task_weight_buffer.writeFromNonRT(msg);
+}
+
+void WholeBodyController::task_activation_callback(const TaskActivationMsgPtr msg){
+    rt_task_activation_buffer.writeFromNonRT(msg);
+}
+
 controller_interface::InterfaceConfiguration WholeBodyController::command_interface_configuration() const{
     vector<string> iface_names;
     for(const string &joint_name : robot_model->jointNames()){
@@ -181,6 +189,12 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
         }
     }
 
+    task_weight_subscriber = get_node()->create_subscription<TaskWeightMsg>("~/task_weights",
+        rclcpp::SystemDefaultsQoS(), bind(&WholeBodyController::task_weight_callback, this, placeholders::_1));
+
+    task_activation_subscriber = get_node()->create_subscription<TaskActivationMsg>("~/task_activation",
+        rclcpp::SystemDefaultsQoS(), bind(&WholeBodyController::task_activation_callback, this, placeholders::_1));
+
     return CallbackReturn::SUCCESS;
 }
 
@@ -198,7 +212,7 @@ controller_interface::return_type WholeBodyController::update_and_write_commands
 
     start = get_node()->get_clock()->now();
 
-    update_tasks_from_reference_interfaces();
+    update_tasks();
 
     qp = scene->update();
     timing_stats.time_scene_update = (get_node()->get_clock()->now() - start).seconds();
@@ -247,7 +261,7 @@ void WholeBodyController::publish_task_status(){
     }
 }
 
-void WholeBodyController::update_tasks_from_reference_interfaces(){
+void WholeBodyController::update_tasks(){
     uint idx = 0;
     for(const TaskConfig& w : task_config){
         if(w.type == cart || w.type == com){
@@ -276,6 +290,16 @@ void WholeBodyController::update_tasks_from_reference_interfaces(){
             scene->setReference(w.name, reference_jnt);
         }
     }
+
+    // Update task weights
+    task_weight_msg = *rt_task_weight_buffer.readFromRT();
+    if (task_weight_msg.get())
+        scene->setTaskWeights(task_weight_msg->task_name, Eigen::Map<Eigen::VectorXd>(task_weight_msg->weights.data(), task_weight_msg->weights.size()));
+
+    // Update task activations
+    task_activation_msg = *rt_task_activation_buffer.readFromRT();
+    if (task_activation_msg.get())
+        scene->setTaskActivation(task_activation_msg->task_name, task_activation_msg->activation);
 }
 
 void WholeBodyController::write_command_to_hardware(){

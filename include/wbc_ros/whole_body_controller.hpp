@@ -15,6 +15,8 @@
 #include <std_msgs/msg/float64_multi_array.hpp>
 #include <wbc_msgs/msg/task_status.hpp>
 #include <wbc_msgs/msg/wbc_timing_stats.hpp>
+#include <wbc_msgs/msg/task_weights.hpp>
+#include <wbc_msgs/msg/task_activation.hpp>
 
 //#include "controllers/controller_node.hpp"
 #include <wbc/core/RobotModel.hpp>
@@ -87,6 +89,17 @@ class WholeBodyController : public controller_interface::ChainableControllerInte
     using JointsPublisher = rclcpp::Publisher<JointsMsg>;
     using RTJointsPublisher = realtime_tools::RealtimePublisher<JointsMsg>;
 
+    using TaskWeightMsg = wbc_msgs::msg::TaskWeights;
+    using TaskWeightMsgPtr = std::shared_ptr<TaskWeightMsg>;
+    using TaskWeightSubscription = rclcpp::Subscription<TaskWeightMsg>::SharedPtr;
+    using RTTaskWeightBuffer = realtime_tools::RealtimeBuffer<TaskWeightMsgPtr>;
+
+    using TaskActivationMsg = wbc_msgs::msg::TaskActivation;
+    using TaskActivationMsgPtr = std::shared_ptr<TaskActivationMsg>;
+    using TaskActivationSubscription = rclcpp::Subscription<TaskActivationMsg>::SharedPtr;
+    using RTTaskActivationBuffer = realtime_tools::RealtimeBuffer<TaskActivationMsgPtr>;
+
+
     const std::vector<std::string> allowed_interface_types = {
         hardware_interface::HW_IF_POSITION,
         hardware_interface::HW_IF_VELOCITY,
@@ -128,12 +141,20 @@ protected:
    std::vector<JointsPublisher::SharedPtr> task_status_publishers_jnt;
    std::vector<std::unique_ptr<RTJointsPublisher>> rt_task_status_publishers_jnt;
 
+   TaskWeightSubscription task_weight_subscriber;
+   RTTaskWeightBuffer rt_task_weight_buffer;
+   TaskWeightMsgPtr task_weight_msg;
+
+   TaskActivationSubscription task_activation_subscriber;
+   RTTaskActivationBuffer rt_task_activation_buffer;
+   TaskActivationMsgPtr task_activation_msg;
+
    wbc_msgs::msg::WbcTimingStats timing_stats;
    rclcpp::Time stamp;
 
    void read_state_from_hardware();
    void write_command_to_hardware();
-   void update_tasks_from_reference_interfaces();
+   void update_tasks();
    void publish_task_status();
 
    bool has_state_interface(const std::string & interface_name){
@@ -161,6 +182,9 @@ protected:
    // Parameters from ROS
    std::shared_ptr<whole_body_controller::ParamListener> param_listener;
    whole_body_controller::Params params;
+
+   void task_weight_callback(const TaskWeightMsgPtr msg);
+   void task_activation_callback(const TaskActivationMsgPtr msg);
 
 public:
    WholeBodyController();
