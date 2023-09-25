@@ -18,7 +18,7 @@ wbc_ros requires a ROS2 installation (humble is the only tested distribution) as
 
 ## Installation
 
-See [here](https://arc-opt.github.io/Documentation/installation/installation_ros.html) for installation instructions.
+See [here](https://arc-opt.github.io/Documentation/installation/installation_ros2.html) for installation instructions.
 
 ## Testing
 
