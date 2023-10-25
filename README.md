@@ -12,13 +12,13 @@ WBC was initiated and is currently developed at the [Robotics Innovation Center]
 
 ## Requirements / Dependencies
 
-Currently supported OS: Ubuntu20.04, Ubuntu22.04
+Currently supported OS: Ubuntu22.04
 
 wbc_ros requires a ROS2 installation (humble is the only tested distribution) as well as the [WBC library](https://github.com/ARC-OPT/wbc). See package.xml for further dependencies.
 
 ## Installation
 
-See [here](https://arc-opt.github.io/Documentation/installation/installation_ros.html) for installation instructions.
+See [here](https://arc-opt.github.io/Documentation/installation/installation_ros2.html) for installation instructions.
 
 ## Testing
 
