@@ -189,6 +189,9 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
         }
     }
 
+    timing_stats_publisher = get_node()->create_publisher<TimingStatsMsg>("~/timing_stats", rclcpp::SystemDefaultsQoS());
+    rt_timing_stats_publisher = make_unique<RTTimingStatsPublisher>(timing_stats_publisher);
+
     task_weight_subscriber = get_node()->create_subscription<TaskWeightMsg>("~/task_weights",
         rclcpp::SystemDefaultsQoS(), bind(&WholeBodyController::task_weight_callback, this, placeholders::_1));
 
@@ -232,7 +235,9 @@ controller_interface::return_type WholeBodyController::update_and_write_commands
 
     timing_stats.time_per_cycle = (get_node()->get_clock()->now() - stamp).seconds();
     timing_stats.header.stamp = get_node()->get_clock()->now();
-    //pub_timing_stats->publish(timing_stats);
+    rt_timing_stats_publisher->lock();
+    rt_timing_stats_publisher->msg_ = timing_stats;
+    rt_timing_stats_publisher->unlockAndPublish();
     return controller_interface::return_type::OK;
 }
 

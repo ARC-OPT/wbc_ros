@@ -99,6 +99,9 @@ class WholeBodyController : public controller_interface::ChainableControllerInte
     using TaskActivationSubscription = rclcpp::Subscription<TaskActivationMsg>::SharedPtr;
     using RTTaskActivationBuffer = realtime_tools::RealtimeBuffer<TaskActivationMsgPtr>;
 
+    using TimingStatsMsg = wbc_msgs::msg::WbcTimingStats;
+    using TimingStatsPublisher = rclcpp::Publisher<TimingStatsMsg>;
+    using RTTimingStatsPublisher = realtime_tools::RealtimePublisher<TimingStatsMsg>;
 
     const std::vector<std::string> allowed_interface_types = {
         hardware_interface::HW_IF_POSITION,
@@ -133,6 +136,10 @@ protected:
    CommandPublisher::SharedPtr solver_output_publisher;
    std::unique_ptr<RTCommandPublisher> rt_solver_output_publisher;
 
+   TimingStatsMsg timing_stats;
+   TimingStatsPublisher::SharedPtr timing_stats_publisher;
+   std::unique_ptr<RTTimingStatsPublisher> rt_timing_stats_publisher;
+
    RbsMsg task_status_cart;
    std::vector<RbsPublisher::SharedPtr> task_status_publishers_cart;
    std::vector<std::unique_ptr<RTRbsPublisher>> rt_task_status_publishers_cart;
@@ -149,7 +156,6 @@ protected:
    RTTaskActivationBuffer rt_task_activation_buffer;
    TaskActivationMsgPtr task_activation_msg;
 
-   wbc_msgs::msg::WbcTimingStats timing_stats;
    rclcpp::Time stamp;
 
    void read_state_from_hardware();
