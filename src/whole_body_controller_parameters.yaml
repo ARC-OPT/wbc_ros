@@ -21,11 +21,6 @@ whole_body_controller:
         default_value: "",
         description: "Prefix used in the robot description parameter to claim the correct state and command interface names."
     }
-    integrate: {
-        type: bool,
-        default_value: false,
-        description: "Do numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and position",
-    }
     task_names: {
         type: string_array,
         default_value: [],
@@ -54,14 +49,6 @@ whole_body_controller:
         }
     }
     robot_model:
-        file: {
-            type: string,
-            default_value: "",
-            description: "Absolute path to plain URDF file of the robot",
-            validation: {
-                not_empty<>: [],
-            }
-        }
         type: {
             type: string,
             default_value: "rbdl",

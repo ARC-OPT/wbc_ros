@@ -4,6 +4,7 @@
 #include <wbc/core/QPSolver.hpp>
 #include "conversions.hpp"
 #include "pluginlib/class_list_macros.hpp"
+#include <fstream>
 
 using namespace std;
 using namespace wbc;
@@ -99,10 +100,14 @@ controller_interface::CallbackReturn WholeBodyController::on_init(){
 
 controller_interface::CallbackReturn WholeBodyController::on_configure(const rclcpp_lifecycle::State & /*previous_state*/){
 
-    integrate = params.integrate;
+    std::string urdf_string;
+    while (!get_node()->get_parameter("robot_description", urdf_string)){
+        RCLCPP_INFO_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 5000, "Waiting for robot description in parameter %s on the ROS param server.", "/robot_description");
+        usleep(100000);
+    }
 
     RobotModelConfig robot_model_cfg;
-    robot_model_cfg.file                 = params.robot_model.file;
+    robot_model_cfg.file_or_string       = urdf_string;
     robot_model_cfg.type                 = params.robot_model.type;
     robot_model_cfg.submechanism_file    = params.robot_model.submechanism_file;
     robot_model_cfg.floating_base        = params.robot_model.floating_base;
@@ -226,8 +231,7 @@ controller_interface::return_type WholeBodyController::update_and_write_commands
 
     //tasks_status = scene->updateTasksStatus();
 
-    if(integrate)
-        joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 0.001);
+    joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 0.001);
 
     write_command_to_hardware();
     publish_task_status();

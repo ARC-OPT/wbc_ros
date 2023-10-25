@@ -121,7 +121,6 @@ protected:
    base::samples::RigidBodyStateSE3 floating_base_state;
    base::commands::Joints reference_jnt;
    wbc::JointWeights joint_weights;
-   bool integrate;
    uint no_of_joints;
    wbc::HierarchicalQP qp;
    base::commands::Joints solver_output;
