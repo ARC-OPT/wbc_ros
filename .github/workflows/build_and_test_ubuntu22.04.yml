@@ -38,7 +38,6 @@ jobs:
        git clone https://github.com/ARC-OPT/wbc_ros.git
        cd ..
        rosdep install --from-paths src/wbc_msgs
-       rosdep install --from-paths src/wbc_ros
        colcon build
     # Run all tests
     - name: test
