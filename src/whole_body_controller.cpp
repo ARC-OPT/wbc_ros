@@ -102,7 +102,11 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
 
     std::string urdf_string;
     while (!get_node()->get_parameter("robot_description", urdf_string)){
-        RCLCPP_INFO_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 5000, "Waiting for robot description in parameter %s on the ROS param server.", "/robot_description");
+        RCLCPP_INFO_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 5000, "Waiting for parameter %s.", "/robot_description");
+        usleep(100000);
+    }
+    while (!get_node()->get_parameter("update_rate", update_rate)){
+        RCLCPP_INFO_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 5000, "Waiting for parameter %s.", "/update_rate");
         usleep(100000);
     }
 
@@ -207,7 +211,7 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
 }
 
 controller_interface::return_type WholeBodyController::update_and_write_commands(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
-    timing_stats.desired_period = 0;
+    timing_stats.desired_period = 1.0/update_rate;
     if(stamp.nanoseconds() != 0)
         timing_stats.actual_period = (get_node()->get_clock()->now() - stamp).seconds();
     stamp = get_node()->get_clock()->now();
@@ -231,7 +235,7 @@ controller_interface::return_type WholeBodyController::update_and_write_commands
 
     //tasks_status = scene->updateTasksStatus();
 
-    joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 0.001);
+    joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/update_rate);
 
     write_command_to_hardware();
     publish_task_status();

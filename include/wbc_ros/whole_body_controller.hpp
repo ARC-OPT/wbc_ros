@@ -127,6 +127,7 @@ protected:
    wbc::JointIntegrator joint_integrator;
    std::vector<wbc::TaskConfig> task_config;
    bool has_floating_base_state;
+   int update_rate;
 
    std::map<std::string, std::vector<int>> command_indices;
    std::map<std::string, std::vector<int>> state_indices;
