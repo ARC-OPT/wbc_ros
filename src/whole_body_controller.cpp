@@ -119,6 +119,10 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
         RCLCPP_INFO_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 5000, "Waiting for parameter %s.", "/update_rate");
         usleep(100000);
     }
+    if(update_rate <= 0){
+        RCLCPP_FATAL(get_node()->get_logger(), "Update Rate parameter is %i. Did you forget to set it?", update_rate);
+        throw std::runtime_error("Invalid update_rate parameter");
+    }
 
     RobotModelConfig robot_model_cfg;
     robot_model_cfg.file_or_string       = urdf_string;
