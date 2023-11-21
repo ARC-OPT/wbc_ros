@@ -34,7 +34,17 @@ controller_interface::InterfaceConfiguration WholeBodyController::command_interf
 
 controller_interface::InterfaceConfiguration WholeBodyController::state_interface_configuration() const{
     controller_interface::InterfaceConfiguration conf;
-    conf.type = controller_interface::interface_configuration_type::ALL;
+    if(params.state_interfaces.empty())
+        conf.type = controller_interface::interface_configuration_type::ALL;
+    else{
+        conf.type = controller_interface::interface_configuration_type::INDIVIDUAL;
+        vector<string> iface_names;
+        for(const string &joint_name : robot_model->jointNames()){
+            for(const string &iface_name : params.state_interfaces)
+                iface_names.push_back(params.prefix + joint_name + "/" + iface_name);
+        }
+        conf.names = iface_names;
+    }
     return conf;
 }
 
