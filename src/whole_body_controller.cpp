@@ -122,6 +122,7 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
 
     RobotModelConfig robot_model_cfg;
     robot_model_cfg.file_or_string       = urdf_string;
+    robot_model_cfg.joint_blacklist      = params.robot_model.joint_blacklist;
     robot_model_cfg.type                 = params.robot_model.type;
     robot_model_cfg.submechanism_file    = params.robot_model.submechanism_file;
     robot_model_cfg.floating_base        = params.robot_model.floating_base;

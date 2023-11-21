@@ -72,6 +72,14 @@ whole_body_controller:
             default_value: "",
             description: "Only if type:=hyrodyn. Absolute path to submechanism file, which the robot's parallel submechanisms. See Hyrodyn docs for more info.",
         }
+        joint_blacklist: {
+            type: string_array,
+            default_value: [],
+            description: "Blacklisted joints will be set to fixed joints in URDF.",
+            validation: {
+                unique<>: null,
+            }
+        }
         floating_base: {
             type: bool,
             default_value: false,
