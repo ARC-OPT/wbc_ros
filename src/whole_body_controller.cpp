@@ -356,6 +356,14 @@ controller_interface::CallbackReturn WholeBodyController::on_activate(const rclc
                 command_indices[iface_name].push_back(get_command_idx(joint_name, iface_name));
         }
     }
+
+    //Clear all task references, weights etc. to have to secure initial state
+    for(const auto &cfg : task_config)
+       scene->getTask(cfg.name)->reset();
+
+    // Also reinit the integrate as it will store the last joint position as a starting point
+    joint_integrator.reinit();
+
     return CallbackReturn::SUCCESS;
 }
 
