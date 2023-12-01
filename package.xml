@@ -15,7 +15,6 @@
 
   <exec_depend>pluginlib</exec_depend>
   
-  <depend>wbc_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>controller_interface</depend>
   <depend>rclcpp_lifecycle</depend>
