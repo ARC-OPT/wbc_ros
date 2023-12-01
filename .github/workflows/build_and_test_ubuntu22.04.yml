@@ -35,9 +35,13 @@ jobs:
        mkdir -p ros_ws/src
        cd ros_ws/src
        git clone https://github.com/ARC-OPT/wbc_msgs.git
-       git clone https://github.com/ARC-OPT/wbc_ros.git
        cd ..
        rosdep install --from-paths src/wbc_msgs
+       colcon build
+       cd src
+       git clone https://github.com/ARC-OPT/wbc_ros.git
+       cd ..
+       rosdep install --from-paths src/wbc_ros
        colcon build
     # Run all tests
     - name: test
