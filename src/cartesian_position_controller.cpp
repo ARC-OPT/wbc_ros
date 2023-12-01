@@ -98,6 +98,7 @@ controller_interface::CallbackReturn CartesianPositionController::on_configure(c
 }
 
 controller_interface::CallbackReturn CartesianPositionController::on_activate(const rclcpp_lifecycle::State & /*previous_state*/){
+    has_feedback = has_setpoint = false;
     return CallbackReturn::SUCCESS;
 }
 
