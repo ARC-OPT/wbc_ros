@@ -38,6 +38,7 @@ jobs:
        cd ..
        rosdep install --from-paths src/wbc_msgs
        colcon build
+       source install/setup.bash
        cd src
        git clone https://github.com/ARC-OPT/wbc_ros.git
        cd ..
