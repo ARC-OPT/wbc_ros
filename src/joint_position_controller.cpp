@@ -153,7 +153,7 @@ controller_interface::CallbackReturn JointPositionController::on_activate(const 
                 state_indices[iface_name].push_back(get_state_idx(joint_name, iface_name));
         }
     }
-    has_feedback = has_setpoint = false;
+    has_setpoint = false;
     return CallbackReturn::SUCCESS;
 }
 
