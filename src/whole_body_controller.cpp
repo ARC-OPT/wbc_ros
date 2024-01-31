@@ -367,7 +367,11 @@ controller_interface::CallbackReturn WholeBodyController::on_activate(const rclc
 
     // Also reinit the integrate as it will store the last joint position as a starting point
     joint_integrator.reinit();
-
+    
+    // Reset the reference interfaces (outputs from controllers) to not store old data
+    for(uint i = 0; i < reference_interfaces_.size(); i++)
+        reference_interfaces_[i] = 0.0;
+    
     return CallbackReturn::SUCCESS;
 }
 
