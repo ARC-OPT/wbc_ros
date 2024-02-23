@@ -45,7 +45,7 @@ protected:
     std::unique_ptr<RTJointCommandPublisher> rt_control_output_publisher;
 
     std::vector<std::string> joint_names;
-    ctrl_lib::JointPosPDController* controller;
+    wbc::JointPosPDController* controller;
     base::commands::Joints setpoint;
     base::samples::Joints feedback;
     base::commands::Joints control_output;

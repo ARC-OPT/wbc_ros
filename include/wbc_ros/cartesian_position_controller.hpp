@@ -38,7 +38,7 @@ class CartesianPositionController : public controller_interface::ChainableContro
 
 
 protected:
-    ctrl_lib::CartesianPosPDController* controller;
+    wbc::CartesianPosPDController* controller;
     base::samples::RigidBodyStateSE3 feedback;
     base::samples::RigidBodyStateSE3 setpoint;
     base::samples::RigidBodyStateSE3 control_output;

@@ -2,7 +2,7 @@
 #include "conversions.hpp"
 #include "pluginlib/class_list_macros.hpp"
 
-using namespace ctrl_lib;
+using namespace wbc;
 using namespace std;
 using namespace hardware_interface;
 
