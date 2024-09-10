@@ -24,7 +24,7 @@ See [here](https://arc-opt.github.io/Documentation/installation/installation_ros
 
 ### Unit tests
 
-The unit tests for the wbc library can be found [here](https://github.com/ARC-OPT/wbc/tree/master/test).
+Unit tests can be found in the [wbc library](https://github.com/ARC-OPT/wbc).
 
 ### Launch Tests
 
