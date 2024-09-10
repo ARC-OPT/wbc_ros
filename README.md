@@ -39,26 +39,7 @@ launch_test install/wbc_ros/share/wbc_ros/test/<test_name>.test.py
 
 ### Examples
 
-Ensure that robot state publisher and joint state publisher are installed:
-```
-sudo apt-get install ros-humble-robot-state-publisher ros-humble-joint-state-publisher -y
-```
-For visualizing the resulting robot motion install rviz:
-```
-sudo apt-get install ros-humble-rviz2
-source install/setup.bash
-```
-For the Cartesian space example run 
-```
-ros2 launch wbc_ros cartesian_space_example.launch.py
-rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz
-``` 
-You should see the kuka iiwa robot executing a circular end effector motion in the xy-plane. For the joint space example run
-```
-ros2 launch wbc_ros joint_space_example.launch.py
-rviz2 -d install/wbc_ros/share/wbc_ros/config/default.rviz
-```
-You can see the kuka iiwa robot executing a sinusoidal movement with the elbow joint. 
+Check out the tutorials in the [documentation(https://arc-opt.github.io/Documentation/).
 
 ## Contributing
 
