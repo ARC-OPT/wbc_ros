@@ -42,6 +42,6 @@ jobs:
     # Run all tests
     - name: test
       run: |
-        cd ros_ws
+        cd ros2_ws
         source install/setup.bash        
         colcon test --packages-select wbc_ros
