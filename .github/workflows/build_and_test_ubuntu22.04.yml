@@ -32,18 +32,13 @@ jobs:
        git clone https://github.com/ARC-OPT/wbc.git
        sh wbc/scripts/install.sh
        
-       mkdir -p ros_ws/src
-       cd ros_ws/src
-       git clone https://github.com/ARC-OPT/wbc_msgs.git
-       cd ..
-       rosdep install --from-paths src/wbc_msgs
-       colcon build
+       mkdir -p ros2_ws/src
+       cd ros2_ws
+       vcs import src --input https://raw.githubusercontent.com/ARC-OPT/wbc_ros/main/repos.yaml
+       rosdep install --from-paths src -i -r -y
+       colcon build --symlink-install
        source install/setup.bash
-       cd src
-       git clone https://github.com/ARC-OPT/wbc_ros.git
-       cd ..
-       rosdep install --from-paths src/wbc_ros
-       colcon build
+       
     # Run all tests
     - name: test
       run: |
