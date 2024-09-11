@@ -12,7 +12,7 @@ from rclpy.node import Node
 
 @pytest.mark.launch_test
 def generate_test_description():
-    robot_controllers = PathJoinSubstitution([FindPackageShare('wbc_ros'), 'test', 'config', 'robot_controllers_simple.yaml'])
+    robot_controllers = PathJoinSubstitution([FindPackageShare('wbc_ros'), 'test', 'config', 'robot_controllers.yaml'])
     robot_description = Command([
         PathJoinSubstitution([FindExecutable(name='xacro')]),' ',
         PathJoinSubstitution([FindPackageShare('wbc_ros'), 'models', 'urdf', 'iiwa.config.xacro']),' ',
