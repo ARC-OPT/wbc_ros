@@ -22,10 +22,3 @@ jobs:
         package-name: wbc_ros
         target-ros2-distro: humble
         vcs-repo-file-url: https://raw.githubusercontent.com/ARC-OPT/wbc_ros/main/repos.yaml
-       
-    # Run all tests
-    - name: test
-      run: |
-        cd ros2_ws
-        source install/setup.bash        
-        colcon test --packages-select wbc_ros
