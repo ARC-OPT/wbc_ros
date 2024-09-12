@@ -23,6 +23,7 @@
   <depend>controller_interface</depend>
   <depend>hardware_interface</depend>
   <depend>generate_parameter_library</depend>
+  <depend>launch_testing_ament_cmake</depend>
   
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>xacro</exec_depend>
