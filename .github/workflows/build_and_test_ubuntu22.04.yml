@@ -11,33 +11,17 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    # Check out repository under $GITHUB_WORKSPACE
-    - uses: actions/checkout@v2
     # Build and install
-    - name: install
+    - name: install_wbc_lib
       run: |
-       sudo apt install software-properties-common
-       sudo add-apt-repository universe
-       sudo apt update && sudo apt install curl -y
-       sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
-       echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-       sudo apt update
-       sudo apt install ros-humble-ros-base
-       sudo apt install ros-dev-tools       
-       source /opt/ros/humble/setup.bash  
-         
-       sudo rosdep init
-       rosdep update   
-     
        git clone https://github.com/ARC-OPT/wbc.git
        sh wbc/scripts/install.sh
-       
-       mkdir -p ros2_ws/src
-       cd ros2_ws
-       vcs import src --input https://raw.githubusercontent.com/ARC-OPT/wbc_ros/main/repos.yaml
-       rosdep install --from-paths src -i -r -y
-       colcon build --symlink-install
-       source install/setup.bash
+    - uses: ros-tooling/setup-ros@v0.7
+    - uses: ros-tooling/action-ros-ci@v0.3
+      with:
+        package-name: wbc_ros
+        target-ros2-distro: humble
+        vcs-repo-file-url: https://raw.githubusercontent.com/ARC-OPT/wbc_ros/main/repos.yaml
        
     # Run all tests
     - name: test
