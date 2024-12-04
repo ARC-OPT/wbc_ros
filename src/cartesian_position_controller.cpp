@@ -87,13 +87,13 @@ controller_interface::CallbackReturn CartesianPositionController::on_configure(c
     controller->setFFGain(Eigen::Map<Eigen::VectorXd>(params.ff_gain.data(),params.ff_gain.size()));
     controller->setMaxCtrlOutput(Eigen::Map<Eigen::VectorXd>(params.max_control_output.data(),params.max_control_output.size()));
     controller->setDeadZone(Eigen::Map<Eigen::VectorXd>(params.dead_zone.data(),params.dead_zone.size()));
-
+    
     setpoint_subscriber = get_node()->create_subscription<RbsMsg>("~/setpoint",
         rclcpp::SystemDefaultsQoS(), bind(&CartesianPositionController::setpoint_callback, this, placeholders::_1));
     feedback_subscriber = get_node()->create_subscription<RbsMsg>(params.wbc_name + "/status_" + params.task_name,
         rclcpp::SystemDefaultsQoS(), bind(&CartesianPositionController::feedback_callback, this, placeholders::_1));
     control_output_publisher = get_node()->create_publisher<RbsMsg>("~/control_output", rclcpp::SystemDefaultsQoS());
-    rt_control_output_publisher = make_unique<RTRbsPublisher>(control_output_publisher);
+    //rt_control_output_publisher = make_unique<RTRbsPublisher>(control_output_publisher);
     return CallbackReturn::SUCCESS;
 }
 
@@ -120,9 +120,9 @@ controller_interface::return_type CartesianPositionController::update_and_write_
     control_output = controller->update(setpoint, feedback);
     write_control_output_to_hardware();
 
-    rt_control_output_publisher->lock();
+    /*rt_control_output_publisher->lock();
     toROS(control_output, rt_control_output_publisher->msg_);
-    rt_control_output_publisher->unlockAndPublish();
+    rt_control_output_publisher->unlockAndPublish();*/
 
     return controller_interface::return_type::OK;
 }
