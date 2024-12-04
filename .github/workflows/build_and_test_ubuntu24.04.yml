@@ -2,9 +2,9 @@ name: Ubuntu 24.04
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main,jazzy ]
   pull_request:
-    branches: [ main ]
+    branches: [ main,jazzy ]
 
 jobs:
   build_and_test_24_04:
@@ -20,5 +20,6 @@ jobs:
     - uses: ros-tooling/action-ros-ci@v0.3
       with:
         package-name: wbc_ros
+        ref: jazzy
         target-ros2-distro: jazzy
         vcs-repo-file-url: https://raw.githubusercontent.com/ARC-OPT/wbc_ros/main/repos.yaml
