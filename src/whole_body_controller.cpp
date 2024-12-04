@@ -77,7 +77,7 @@ std::vector<CommandInterface> WholeBodyController::on_export_reference_interface
     return interfaces;
 }
 
-controller_interface::return_type WholeBodyController::update_reference_from_subscribers(){
+controller_interface::return_type WholeBodyController::update_reference_from_subscribers(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
     return controller_interface::return_type::OK;
 }
 

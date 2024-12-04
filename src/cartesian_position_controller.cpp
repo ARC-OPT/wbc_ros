@@ -59,7 +59,7 @@ vector<hardware_interface::CommandInterface> CartesianPositionController::on_exp
     return interfaces;
 }
 
-controller_interface::return_type CartesianPositionController::update_reference_from_subscribers(){
+controller_interface::return_type CartesianPositionController::update_reference_from_subscribers(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
     setpoint_msg = *rt_setpoint_buffer.readFromRT();
     if(!setpoint_msg.get())
         return controller_interface::return_type::OK;

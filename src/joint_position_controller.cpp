@@ -37,7 +37,7 @@ std::vector<hardware_interface::CommandInterface> JointPositionController::on_ex
     return interfaces;
 }
 
-controller_interface::return_type JointPositionController::update_reference_from_subscribers(){
+controller_interface::return_type JointPositionController::update_reference_from_subscribers(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
     setpoint_msg = *rt_setpoint_buffer.readFromRT();
     if(!setpoint_msg.get())
         return controller_interface::return_type::OK;

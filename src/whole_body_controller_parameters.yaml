@@ -8,6 +8,14 @@ whole_body_controller:
             one_of<>: [["velocity", "acceleration"]]
         }
     }
+    robot_description: {
+        type: string,
+        default_value: "",
+        description: "Robot URDF.",
+        validation: {
+            not_empty<>: null
+        }
+    }
     command_interfaces: {
         type: string_array,
         default_value: [],
@@ -53,9 +61,7 @@ whole_body_controller:
         description: "The joint weights control the contribution of each individual joint to the solution. Values have to be within [0,1].
                       A zero means here that the joint is not used at all. Size has to be same as number of robot joints.",
         validation: {
-            not_empty<>: null,
-            lower_element_bounds: [0.0],
-            upper_element_bounds: [1.0],
+            not_empty<>: null,        
         }
     }
     robot_model:
