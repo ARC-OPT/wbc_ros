@@ -1,0 +1,24 @@
+name: Ubuntu 24.04
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_test_24_04:
+    runs-on: ubuntu-24.04
+
+    steps:
+    # Build and install
+    - name: install_wbc_lib
+      run: |
+       git clone https://github.com/ARC-OPT/wbc.git
+       sh wbc/scripts/install.sh
+    - uses: ros-tooling/setup-ros@v0.7
+    - uses: ros-tooling/action-ros-ci@v0.3
+      with:
+        package-name: wbc_ros
+        target-ros2-distro: jazzy
+        vcs-repo-file-url: https://raw.githubusercontent.com/ARC-OPT/wbc_ros/main/repos.yaml
