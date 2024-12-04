@@ -34,6 +34,11 @@ def generate_test_description():
                      arguments=['--ros-args', '--log-level', 'fatal']
                 ),
                 launch_ros.actions.Node(
+		             package='robot_state_publisher', namespace='/', executable='robot_state_publisher',
+		             parameters=[robot_description],
+                     arguments=['--ros-args', '--log-level', 'fatal']
+                ),                
+                launch_ros.actions.Node(
 		             package='controller_manager', namespace='/', executable='spawner',
                      arguments=['whole_body_controller', '--controller-manager', ['/', 'controller_manager']],
                 )
