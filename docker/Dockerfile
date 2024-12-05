@@ -14,7 +14,7 @@ RUN sudo apt-get install wget && \
 # Set up colcon workspace and install wbc_ros
 RUN mkdir -p /ros2_ws/src
 WORKDIR /ros2_ws
-RUN vcs import src --input https://raw.githubusercontent.com/ARC-OPT/wbc_ros/jazzy/repos.yaml && \
+RUN vcs import src --input https://raw.githubusercontent.com/ARC-OPT/wbc_ros/${ROS_DISTRO}/repos.yaml && \
     rosdep install --from-paths src -i -r -y  && \
     source /opt/ros/${ROS_DISTRO}/setup.bash  && \
     colcon build --symlink-install  && \
