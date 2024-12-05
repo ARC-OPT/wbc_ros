@@ -2,7 +2,7 @@ repositories:
   wbc_msgs:
     type: git
     url: https://github.com/arc-opt/wbc_msgs.git
-    version: jazzy
+    version: main
   wbc_ros:
     type: git
     url: https://github.com/arc-opt/wbc_ros.git
