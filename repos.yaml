@@ -6,4 +6,4 @@ repositories:
   wbc_ros:
     type: git
     url: https://github.com/arc-opt/wbc_ros.git
-    version: main    
+    version: humble    
