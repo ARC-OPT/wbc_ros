@@ -6,7 +6,8 @@
 
 #include <controller_interface/chainable_controller_interface.hpp>
 #include <wbc/controllers/JointPosPDController.hpp>
-#include <base/commands/Joints.hpp>
+#include <wbc/types/JointCommand.hpp>
+#include <wbc/types/JointState.hpp>
 
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
@@ -44,11 +45,10 @@ protected:
     JointCommandPublisher::SharedPtr control_output_publisher;
     std::unique_ptr<RTJointCommandPublisher> rt_control_output_publisher;
 
-    std::vector<std::string> joint_names;
     wbc::JointPosPDController* controller;
-    base::commands::Joints setpoint;
-    base::samples::Joints feedback;
-    base::commands::Joints control_output;
+    wbc::types::JointCommand setpoint;
+    wbc::types::JointState feedback;
+    wbc::types::JointCommand control_output;
 
     std::map<std::string, std::vector<int>> state_indices;
     bool has_setpoint;

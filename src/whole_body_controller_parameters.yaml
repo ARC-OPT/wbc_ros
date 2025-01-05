@@ -162,7 +162,7 @@ whole_body_controller:
                 default_value: "",
                 description: "Task type, can be one of 'jnt' (joint space task), 'cart' (Cartesian task) or 'com' (Center of Mass task).",
                 validation: {
-                    one_of<>: [["jnt", "cart", "com"]],
+                    one_of<>: [["spatial_velocity", "spatial_acceleration", "com_velocity", "com_acceleration", "joint_velocity", "joint_acceleration", "wrench_forward"]],
                 }
             }
             weights: {
@@ -193,13 +193,7 @@ whole_body_controller:
                     gt_eq<>: [0]
                 }
             }
-            root: {
-                type: string,
-                default_value: "",
-                description: "Only Cartesian tasks:  Root frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.\
-                              Only robot_model.type!=kdl supports root frames, which are not equal to the root of the URDF tree.",
-            }
-            tip: {
+            tip_frame: {
                 type: string,
                 default_value: "",
                 description: "Only Cartesian tasks:  Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.",

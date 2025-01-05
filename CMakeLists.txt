@@ -27,15 +27,21 @@ endforeach()
 include(FindPkgConfig)
 pkg_check_modules(wbc-core REQUIRED wbc-core)
 pkg_check_modules(wbc-controllers REQUIRED wbc-controllers)
+pkg_check_modules(wbc-types REQUIRED wbc-types)
+pkg_check_modules(wbc-tasks REQUIRED wbc-tasks)
 
 include_directories(
   ${wbc-core_INCLUDE_DIRS}
   ${wbc-controllers_INCLUDE_DIRS}
+  ${wbc-types_INCLUDE_DIRS}
+  ${wbc-tasks_INCLUDE_DIRS}
 )
 
 link_directories(
   ${wbc-core_LIBRARIES}
   ${wbc-controllers_LIBRARIES}
+  ${wbc-types_LIBRARIES}
+  ${wbc-tasks_LIBRARIES}
 )
 
 generate_parameter_library(whole_body_controller_parameters
@@ -54,7 +60,7 @@ add_library(wbc_ros SHARED src/whole_body_controller.cpp src/conversions.cpp
 
 ament_target_dependencies(wbc_ros PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-target_link_libraries(wbc_ros PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-controllers_LIBRARIES})
+target_link_libraries(wbc_ros PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-tasks_LIBRARIES})
 target_compile_features(wbc_ros PUBLIC cxx_std_17)
 target_include_directories(wbc_ros PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

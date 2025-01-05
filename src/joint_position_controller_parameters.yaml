@@ -49,26 +49,10 @@ joint_position_controller:
             not_empty<>: null,
         }
     }
-    ff_gain: {
-        type: double_array,
-        default_value: [],
-        description: "Feed forward gain of the controller, size has to be 6.",
-        validation: {
-            not_empty<>: null,
-        }
-    }
     max_control_output: {
         type: double_array,
         default_value: [],
         description: "Controller output saturation per element. Size has to be 6.",
-        validation: {
-            not_empty<>: null,
-        }
-    }
-    dead_zone: {
-        type: double_array,
-        default_value: [],
-        description: "Dead zone for the position error per element. Size has to be 6.",
         validation: {
             not_empty<>: null,
         }

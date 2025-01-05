@@ -41,14 +41,11 @@ whole_body_controller:
         tasks:
             ee_pose:
                 # Task type, can be one of 'jnt' (joint space task), 'cart' (Cartesian task) or 'com' (Center of Mass task).
-                type: cart
+                type: spatial_velocity
                 # Priority of this task. 0 corresponds to the highest priority. Prioritization is only supported by the hls solver.
                 priority: 0
-                # Only Cartesian tasks:  Root frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
-                # Only robot_model.type=kdl supports root frames, which are not equal to the root of the URDF tree.
-                root: world
                 # Only Cartesian tasks: Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
-                tip: tool0
+                tip_frame: tool0
                 # Only Cartesian tasks: Reference frame of the task input (frame wrt which the input is expressed).
                 # This has to be the name of a valid link in robot model. If ref_frame != root the input will be transformed to the root frame.
                 ref_frame: world
@@ -61,14 +58,11 @@ whole_body_controller:
                 activation: 1.0
             elbow_pose:
                 # Task type, can be one of 'jnt' (joint space task), 'cart' (Cartesian task) or 'com' (Center of Mass task).
-                type: cart
+                type: spatial_velocity
                 # Priority of this task. 0 corresponds to the highest priority. Prioritization is only supported by the hls solver.
                 priority: 0
-                # Only Cartesian tasks:  Root frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
-                # Only robot_model.type=kdl supports root frames, which are not equal to the root of the URDF tree.
-                root: world
                 # Only Cartesian tasks: Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
-                tip: link_4
+                tip_frame: link_4
                 # Only Cartesian tasks: Reference frame of the task input (frame wrt which the input is expressed).
                 # This has to be the name of a valid link in robot model. If ref_frame != root the input will be transformed to the root frame.
                 ref_frame: world

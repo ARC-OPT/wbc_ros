@@ -84,9 +84,7 @@ controller_interface::CallbackReturn CartesianPositionController::on_configure(c
     controller = new CartesianPosPDController();
     controller->setPGain(Eigen::Map<Eigen::VectorXd>(params.p_gain.data(),params.p_gain.size()));
     controller->setDGain(Eigen::Map<Eigen::VectorXd>(params.d_gain.data(),params.d_gain.size()));
-    controller->setFFGain(Eigen::Map<Eigen::VectorXd>(params.ff_gain.data(),params.ff_gain.size()));
     controller->setMaxCtrlOutput(Eigen::Map<Eigen::VectorXd>(params.max_control_output.data(),params.max_control_output.size()));
-    controller->setDeadZone(Eigen::Map<Eigen::VectorXd>(params.dead_zone.data(),params.dead_zone.size()));
     
     setpoint_subscriber = get_node()->create_subscription<RbsMsg>("~/setpoint",
         rclcpp::SystemDefaultsQoS(), bind(&CartesianPositionController::setpoint_callback, this, placeholders::_1));
@@ -117,7 +115,19 @@ controller_interface::return_type CartesianPositionController::update_and_write_
         fromROS(*feedback_msg, feedback);
 
     fromRaw(reference_interfaces_, setpoint);
-    control_output = controller->update(setpoint, feedback);
+    if(params.control_mode == "velocity"){
+    	control_output.twist = controller->update(setpoint.pose, 
+    	                                          setpoint.twist, 
+    	                                          feedback.pose);
+    }    	                                          
+    else if(params.control_mode == "acceleration")
+    	control_output.acceleration = controller->update(setpoint.pose, 
+    	                                                 setpoint.twist,
+                                                         setpoint.acceleration,
+          	                                         feedback.pose,
+    	                                                 feedback.twist);
+    else
+        assert("Invalid control mode");
     write_control_output_to_hardware();
 
     /*rt_control_output_publisher->lock();
@@ -150,10 +160,12 @@ void CartesianPositionController::write_control_output_to_hardware(){
             command_interfaces_[i].set_value(control_output.twist.linear[i]);
             command_interfaces_[i+3].set_value(control_output.twist.angular[i]);
         }
-        else{
+        else if(params.control_mode == "acceleration"){
             command_interfaces_[i].set_value(control_output.acceleration.linear[i]);
             command_interfaces_[i+3].set_value(control_output.acceleration.angular[i]);
         }
+        else
+            assert("Invalid control mode");
     }
 }
 

@@ -40,26 +40,10 @@ cartesian_position_controller:
             fixed_size<>: [6],
         }
     }
-    ff_gain: {
-        type: double_array,
-        default_value: [],
-        description: "Feed forward gain of the controller, size has to be 6.",
-        validation: {
-            fixed_size<>: [6],
-        }
-    }
     max_control_output: {
         type: double_array,
         default_value: [],
         description: "Controller output saturation per element. Size has to be 6.",
-        validation: {
-            fixed_size<>: [6],
-        }
-    }
-    dead_zone: {
-        type: double_array,
-        default_value: [],
-        description: "Dead zone for the position error per element. Size has to be 6.",
         validation: {
             fixed_size<>: [6],
         }

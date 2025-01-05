@@ -5,7 +5,7 @@
 
 #include <controller_interface/chainable_controller_interface.hpp>
 #include <wbc/controllers/CartesianPosPDController.hpp>
-#include <base/samples/RigidBodyStateSE3.hpp>
+#include <wbc/types/RigidBodyState.hpp>
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
@@ -39,9 +39,9 @@ class CartesianPositionController : public controller_interface::ChainableContro
 
 protected:
     wbc::CartesianPosPDController* controller;
-    base::samples::RigidBodyStateSE3 feedback;
-    base::samples::RigidBodyStateSE3 setpoint;
-    base::samples::RigidBodyStateSE3 control_output;
+    wbc::types::RigidBodyState feedback;
+    wbc::types::RigidBodyState setpoint;
+    wbc::types::RigidBodyState control_output;
     bool has_setpoint, has_feedback;
 
     std::shared_ptr<RbsMsg> setpoint_msg;

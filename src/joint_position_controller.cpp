@@ -66,18 +66,14 @@ controller_interface::InterfaceConfiguration JointPositionController::state_inte
 }
 
 void JointPositionController::read_state_from_hardware_interfaces(){
-    for(uint i = 0; i < feedback.size(); i++){
+    for(uint i = 0; i < params.joint_names.size(); i++){
         if(has_state_interface(HW_IF_POSITION))
-            feedback[i].position = state_interfaces_[state_indices[HW_IF_POSITION][i]].get_value();
+            feedback.position[i] = state_interfaces_[state_indices[HW_IF_POSITION][i]].get_value();
         if(has_state_interface(HW_IF_VELOCITY))
-            feedback[i].speed = state_interfaces_[state_indices[HW_IF_VELOCITY][i]].get_value();
+            feedback.velocity[i] = state_interfaces_[state_indices[HW_IF_VELOCITY][i]].get_value();
         if(has_state_interface(HW_IF_ACCELERATION))
-            feedback[i].acceleration = state_interfaces_[state_indices[HW_IF_ACCELERATION][i]].get_value();
-        if(has_state_interface(HW_IF_EFFORT))
-            feedback[i].effort = state_interfaces_[state_indices[HW_IF_EFFORT][i]].get_value();
+            feedback.acceleration[i] = state_interfaces_[state_indices[HW_IF_ACCELERATION][i]].get_value();
     }
-    feedback.time = base::Time::now();
-
 }
 
 controller_interface::CallbackReturn JointPositionController::on_init(){
@@ -94,24 +90,20 @@ controller_interface::CallbackReturn JointPositionController::on_init(){
 }
 
 controller_interface::CallbackReturn JointPositionController::on_configure(const rclcpp_lifecycle::State & /*previous_state*/){
-    controller = new JointPosPDController(params.joint_names);
+    controller = new JointPosPDController(params.joint_names.size());
     controller->setPGain(Eigen::Map<Eigen::VectorXd>(params.p_gain.data(),params.p_gain.size()));
     controller->setDGain(Eigen::Map<Eigen::VectorXd>(params.d_gain.data(),params.d_gain.size()));
-    controller->setFFGain(Eigen::Map<Eigen::VectorXd>(params.ff_gain.data(),params.ff_gain.size()));
     controller->setMaxCtrlOutput(Eigen::Map<Eigen::VectorXd>(params.max_control_output.data(),params.max_control_output.size()));
-    controller->setDeadZone(Eigen::Map<Eigen::VectorXd>(params.dead_zone.data(),params.dead_zone.size()));
 
     setpoint_subscriber = get_node()->create_subscription<JointCommandMsg>("~/setpoint",
         rclcpp::SystemDefaultsQoS(), bind(&JointPositionController::setpoint_callback, this, placeholders::_1));
     control_output_publisher = get_node()->create_publisher<JointCommandMsg>("~/control_output", rclcpp::SystemDefaultsQoS());
     rt_control_output_publisher = make_unique<RTJointCommandPublisher>(control_output_publisher);
 
+
     uint n = params.joint_names.size();
     feedback.resize(n);
-    feedback.names = params.joint_names;
-
     setpoint.resize(n);
-    setpoint.names = params.joint_names;
 
     rt_control_output_publisher->msg_.points.resize(1);
     rt_control_output_publisher->msg_.points[0].positions.resize(n);
@@ -133,13 +125,24 @@ controller_interface::return_type JointPositionController::update_and_write_comm
     read_state_from_hardware_interfaces();
 
     fromRaw(reference_interfaces_, setpoint);
-    control_output = controller->update(setpoint, feedback);
+    if(params.control_mode == "velocity")
+    	control_output.velocity = controller->update(setpoint.position, 
+		                                     setpoint.velocity, 
+		                                     feedback.position);
+    else if(params.control_mode == "acceleration")
+    	control_output.acceleration = controller->update(setpoint.position, 
+		                                         setpoint.velocity, 
+		                                         setpoint.acceleration,
+		                                         feedback.position,
+		                                         feedback.velocity);
+    else
+        assert("Invalid control mode");
 
     write_control_output_to_hardware();
 
-    rt_control_output_publisher->lock();
-    toROS(control_output, rt_control_output_publisher->msg_);
-    rt_control_output_publisher->unlockAndPublish();
+    //rt_control_output_publisher->lock();
+    //toROS(control_output, params.joint_names, rt_control_output_publisher->msg_);
+    //rt_control_output_publisher->unlockAndPublish();
 
     return controller_interface::return_type::OK;
 }
@@ -176,11 +179,13 @@ controller_interface::CallbackReturn JointPositionController::on_shutdown(const 
 
 void JointPositionController::write_control_output_to_hardware(){
     uint idx = 0;
-    for(const string &s : params.joint_names){
+    for(uint i = 0; i < params.joint_names.size(); i++){
         if(params.control_mode == "velocity")
-            command_interfaces_[idx++].set_value(control_output[s].speed);
+            command_interfaces_[idx++].set_value(control_output.velocity[i]);
+        else if(params.control_mode == "acceleration")
+            command_interfaces_[idx++].set_value(control_output.acceleration[i]);
         else
-            command_interfaces_[idx++].set_value(control_output[s].acceleration);
+            assert("Invalid Control mode");
     }
 }
 }

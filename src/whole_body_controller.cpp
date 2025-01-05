@@ -5,6 +5,13 @@
 #include "conversions.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include <fstream>
+#include <wbc/tasks/JointVelocityTask.hpp>
+#include <wbc/tasks/JointAccelerationTask.hpp>
+#include <wbc/tasks/CartesianVelocityTask.hpp>
+#include <wbc/tasks/CartesianAccelerationTask.hpp>
+#include <wbc/tasks/CoMVelocityTask.hpp>
+#include <wbc/tasks/CoMAccelerationTask.hpp>
+#include <wbc/tasks/WrenchForwardTask.hpp>
 
 using namespace std;
 using namespace wbc;
@@ -52,27 +59,49 @@ std::vector<CommandInterface> WholeBodyController::on_export_reference_interface
     reference_interfaces_.resize(Scene::getNTaskVariables(task_config));
     vector<CommandInterface> interfaces;
     uint idx = 0;
-    for(const TaskConfig& w : task_config){
-        if(w.type == cart || w.type == com){
-            if(params.control_mode == "velocity"){
-                for(const string& s : cart_vel_interfaces)
-                    interfaces.push_back(CommandInterface(string(get_node()->get_name()), w.name + "/reference/" + s, reference_interfaces_.data() + idx++));
-            }
-            else if(params.control_mode == "acceleration"){
-                for(const string& s : cart_acc_interfaces)
-                    interfaces.push_back(CommandInterface(string(get_node()->get_name()), w.name + "/reference/" + s, reference_interfaces_.data() + idx++));
-            }
-        }
-        else{ // w.type == jnt
-            if(params.control_mode == "velocity"){
-                for(const string& name : w.joint_names)
-                    interfaces.push_back(CommandInterface(string(get_node()->get_name()), w.name + "/reference/" + name + "/velocity", reference_interfaces_.data() + idx++));
-            }
-            if(params.control_mode == "acceleration"){
-                for(const string& name : w.joint_names)
-                    interfaces.push_back(CommandInterface(string(get_node()->get_name()), w.name + "/reference/" + name + "/acceleration", reference_interfaces_.data() + idx++));
-            }
-        }
+    for(const TaskPtr& task : task_config){
+       const string node_name = get_node()->get_name();
+       const string task_name = task->config.name;
+       switch(task->type){
+          case TaskType::spatial_velocity:{
+              for(const string& s : cart_vel_interfaces)
+                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + s, reference_interfaces_.data() + idx++));
+              break;
+          }
+          case TaskType::spatial_acceleration:{
+              for(const string& s : cart_acc_interfaces)
+                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + s, reference_interfaces_.data() + idx++));          
+              break;
+          }
+          case TaskType::com_velocity:{
+              for(uint i = 0; i < 3; i++)
+                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + cart_vel_interfaces[i], reference_interfaces_.data() + idx++));
+              break;
+          }
+          case TaskType::com_acceleration:{
+              for(uint i = 0; i < 3; i++)
+                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + cart_acc_interfaces[i], reference_interfaces_.data() + idx++));          
+              break;
+          }
+          case TaskType::joint_velocity:{
+              for(const string& name : dynamic_pointer_cast<JointVelocityTask>(task)->jointNames())
+                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + name + "/velocity", reference_interfaces_.data() + idx++));          
+              break;
+          }
+          case TaskType::joint_acceleration:{
+              for(const string& name : dynamic_pointer_cast<JointAccelerationTask>(task)->jointNames())
+                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + name + "/acceleration", reference_interfaces_.data() + idx++));          
+              break;
+          }
+          case TaskType::wrench_forward:{
+              for(const string& s : wrench_interfaces)
+                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + s, reference_interfaces_.data() + idx++));          
+              break;
+          }
+          default:{
+              assert("Invalid task type");
+          }                                                                      
+       }
     }
     return interfaces;
 }
@@ -82,17 +111,14 @@ controller_interface::return_type WholeBodyController::update_reference_from_sub
 }
 
 void WholeBodyController::read_state_from_hardware(){
-    for(uint i = 0; i < joint_state.size(); i++){
+    for(uint i = 0; i < robot_model->nj(); i++){
         if(has_state_interface(HW_IF_POSITION))
-            joint_state[i].position = state_interfaces_[state_indices[HW_IF_POSITION][i]].get_value();
+            joint_state.position[i] = state_interfaces_[state_indices[HW_IF_POSITION][i]].get_value();
         if(has_state_interface(HW_IF_VELOCITY))
-            joint_state[i].speed = state_interfaces_[state_indices[HW_IF_VELOCITY][i]].get_value();
+            joint_state.velocity[i] = state_interfaces_[state_indices[HW_IF_VELOCITY][i]].get_value();
         if(has_state_interface(HW_IF_ACCELERATION))
-            joint_state[i].acceleration = state_interfaces_[state_indices[HW_IF_ACCELERATION][i]].get_value();
-        if(has_state_interface(HW_IF_EFFORT))
-            joint_state[i].effort = state_interfaces_[state_indices[HW_IF_EFFORT][i]].get_value();
+            joint_state.acceleration[i] = state_interfaces_[state_indices[HW_IF_ACCELERATION][i]].get_value();
     }
-    joint_state.time = base::Time::now();
 }
 
 controller_interface::CallbackReturn WholeBodyController::on_init(){
@@ -109,7 +135,6 @@ controller_interface::CallbackReturn WholeBodyController::on_init(){
 }
 
 controller_interface::CallbackReturn WholeBodyController::on_configure(const rclcpp_lifecycle::State & /*previous_state*/){
-
     std::string urdf_string;
     while (!get_node()->get_parameter("robot_description", urdf_string)){
         RCLCPP_INFO_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 5000, "Waiting for parameter %s.", "/robot_description");
@@ -127,71 +152,92 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
     RobotModelConfig robot_model_cfg;
     robot_model_cfg.file_or_string       = urdf_string;
     robot_model_cfg.joint_blacklist      = params.robot_model.joint_blacklist;
-    robot_model_cfg.type                 = params.robot_model.type;
     robot_model_cfg.submechanism_file    = params.robot_model.submechanism_file;
-    robot_model_cfg.floating_base        = params.robot_model.floating_base;
-    robot_model_cfg.contact_points.names = params.contact_names;
     robot_model_cfg.floating_base        = params.robot_model.floating_base;
     for(auto name : params.contact_names){
         const auto &c = params.robot_model.contact_points.contact_names_map.at(name);
-        robot_model_cfg.contact_points.elements.push_back(ActiveContact(c.active, c.mu, c.wx, c.wy));
+        robot_model_cfg.contact_points.push_back(Contact(name, c.active, c.mu, c.wx, c.wy));
     }
-    robot_model_cfg.validate();
 
-    RCLCPP_INFO(get_node()->get_logger(), "Configuring robot model: %s", robot_model_cfg.type.c_str());
-    PluginLoader::loadPlugin("libwbc-robot_models-" + robot_model_cfg.type + ".so");
-    robot_model = shared_ptr<RobotModel>(RobotModelFactory::createInstance(robot_model_cfg.type));
+    RCLCPP_INFO(get_node()->get_logger(), "Configuring robot model: %s", params.robot_model.type.c_str());
+    PluginLoader::loadPlugin("libwbc-robot_models-" + params.robot_model.type + ".so");
+    robot_model = shared_ptr<RobotModel>(RobotModelFactory::createInstance(params.robot_model.type));
     if(!robot_model->configure(robot_model_cfg)){
         RCLCPP_ERROR(get_node()->get_logger(), "Failed to configure robot model");
         return CallbackReturn::ERROR;
     }
 
-    QPSolverConfig solver_cfg(params.solver.type, params.solver.file);
-    solver_cfg.validate();
-
-    RCLCPP_INFO(get_node()->get_logger(), "Configuring solver: %s", solver_cfg.type.c_str());
-    PluginLoader::loadPlugin("libwbc-solvers-" + solver_cfg.type + ".so");
-    solver = shared_ptr<QPSolver>(QPSolverFactory::createInstance(solver_cfg.type));
+    RCLCPP_INFO(get_node()->get_logger(), "Configuring solver: %s", params.solver.type.c_str());
+    PluginLoader::loadPlugin("libwbc-solvers-" + params.solver.type + ".so");
+    solver = shared_ptr<QPSolver>(QPSolverFactory::createInstance(params.solver.type));
 
     task_config.clear();
-    for(auto name : params.task_names){
-        TaskConfig cfg;
-        const auto& task_param = params.tasks.task_names_map.at(name);
-        cfg.name        = name;
-        cfg.priority    = task_param.priority;
-        if(task_param.type == "cart")
-            cfg.type = TaskType::cart;
-        else if(task_param.type == "jnt")
-            cfg.type = TaskType::jnt;
-        else
-            cfg.type = TaskType::com;
-        cfg.weights     = task_param.weights;
-        cfg.root        = task_param.root;
-        cfg.tip         = task_param.tip;
-        cfg.ref_frame   = task_param.ref_frame;
-        cfg.joint_names = task_param.joint_names;
-        cfg.timeout     = task_param.timeout;
-        cfg.activation  = task_param.activation;
-        task_config.push_back(cfg);
+    for(auto task_name : params.task_names){
+        TaskPtr task;
+        const auto& task_param = params.tasks.task_names_map.at(task_name);
+        switch(fromString(task_param.type)){
+            case TaskType::spatial_velocity:{
+                task = make_shared<CartesianVelocityTask>(TaskConfig(task_name, task_param.priority, task_param.weights, task_param.activation),
+                                                          robot_model,
+                                                          task_param.tip_frame,
+                                                          task_param.ref_frame);
+                break;
+            }
+            case TaskType::spatial_acceleration:{
+                task = make_shared<CartesianAccelerationTask>(TaskConfig(task_name, task_param.priority, task_param.weights, task_param.activation),
+                                                              robot_model,
+                                                              task_param.tip_frame,
+                                                              task_param.ref_frame);
+                break;
+            }
+            case TaskType::com_velocity:{
+                task = make_shared<CoMVelocityTask>(TaskConfig(task_name, task_param.priority, task_param.weights, task_param.activation),
+                                                    robot_model);
+                break;
+            }
+            case TaskType::com_acceleration:{
+                task = make_shared<CoMAccelerationTask>(TaskConfig(task_name, task_param.priority, task_param.weights, task_param.activation),
+                                                        robot_model);
+                break;
+            }
+            case TaskType::joint_velocity:{
+                task = make_shared<JointVelocityTask>(TaskConfig(task_name, task_param.priority, task_param.weights, task_param.activation),
+                                                      robot_model,
+                                                      task_param.joint_names);
+                break;
+            }
+            case TaskType::joint_acceleration:{
+                task = make_shared<JointAccelerationTask>(TaskConfig(task_name, task_param.priority, task_param.weights, task_param.activation),
+                                                          robot_model,
+                                                          task_param.joint_names);
+                break;
+            }
+            case TaskType::wrench_forward:{
+                task = make_shared<WrenchForwardTask>(TaskConfig(task_name, task_param.priority, task_param.weights, task_param.activation),
+                                                      robot_model,
+                                                      task_param.ref_frame);
+                break;
+            }
+            default:{
+                RCLCPP_ERROR(get_node()->get_logger(), string("Invalid task type: " + task_param.type).c_str());
+                return CallbackReturn::ERROR;
+            }
+        }
+        task_config.push_back(task);
     }
-    SceneConfig scene_cfg(params.scene.type, params.scene.file);
-    scene_cfg.validate();
 
-    RCLCPP_INFO(get_node()->get_logger(), "Configuring scene: %s", scene_cfg.type.c_str());
+    RCLCPP_INFO(get_node()->get_logger(), "Configuring scene: %s", params.scene.type.c_str());
 
-    PluginLoader::loadPlugin("libwbc-scenes-" + scene_cfg.type + ".so");
-    scene = std::shared_ptr<Scene>(SceneFactory::createInstance(scene_cfg.type, robot_model, solver, 0.001));
+    PluginLoader::loadPlugin("libwbc-scenes-" + params.scene.type + ".so");
+    scene = std::shared_ptr<Scene>(SceneFactory::createInstance(params.scene.type, robot_model, solver, 0.001));
     if(!scene->configure(task_config)){
         RCLCPP_ERROR(get_node()->get_logger(), "Failed to configure scene");
         return CallbackReturn::ERROR;
     }
 
     // Allocate memory
-    joint_state.resize(robot_model->noOfJoints());
-    joint_state.names = robot_model->jointNames();
-
-    solver_output.resize(robot_model->noOfActuatedJoints());
-    solver_output.names = robot_model->actuatedJointNames();
+    joint_state.resize(robot_model->nj());
+    solver_output.resize(robot_model->na());
 
     // Subscribers/Publishers
 
@@ -200,16 +246,32 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
     rt_solver_output_publisher = make_unique<RTCommandPublisher>(solver_output_publisher);
 
     // Task status as feedback for controllers
-    for(auto w : task_config){
-        if(w.type == cart || w.type == com){
-            RbsPublisher::SharedPtr pub = get_node()->create_publisher<RbsMsg>("~/status_" + w.name, rclcpp::SystemDefaultsQoS());
-            task_status_publishers_cart.push_back(pub);
-            rt_task_status_publishers_cart.push_back(make_unique<RTRbsPublisher>(pub));
-        }
-        else{
-            JointsPublisher::SharedPtr pub = get_node()->create_publisher<JointsMsg>("~/status_" + w.name, rclcpp::SystemDefaultsQoS());
-            task_status_publishers_jnt.push_back(pub);
-            rt_task_status_publishers_jnt.push_back(make_unique<RTJointsPublisher>(pub));
+    for(auto task : task_config){
+        switch(task->type){
+            case TaskType::spatial_velocity:
+            case TaskType::spatial_acceleration:
+            case TaskType::com_velocity:
+            case TaskType::com_acceleration:{
+                RbsPublisher::SharedPtr pub = get_node()->create_publisher<RbsMsg>("~/status_" + task->config.name, rclcpp::SystemDefaultsQoS());
+                task_status_publishers_cart.push_back(pub);
+                rt_task_status_publishers_cart.push_back(make_unique<RTRbsPublisher>(pub));
+                break;
+            }
+            case TaskType::joint_velocity:
+            case TaskType::joint_acceleration:{
+                JointsPublisher::SharedPtr pub = get_node()->create_publisher<JointsMsg>("~/status_" + task->config.name, rclcpp::SystemDefaultsQoS());
+                task_status_publishers_jnt.push_back(pub);
+                rt_task_status_publishers_jnt.push_back(make_unique<RTJointsPublisher>(pub));
+                break;
+            }
+            case TaskType::wrench_forward:{
+                // Skip: No feedback required here
+                break;
+            }    
+            default:{
+                RCLCPP_ERROR(get_node()->get_logger(), string("Invalid task type " + to_string(task->type)).c_str());
+                return CallbackReturn::ERROR;
+            }        
         }
     }
 
@@ -234,7 +296,12 @@ controller_interface::return_type WholeBodyController::update_and_write_commands
     read_state_from_hardware();
 
     rclcpp::Time start = get_node()->get_clock()->now();
-    robot_model->update(joint_state, floating_base_state);
+    robot_model->update(joint_state.position,
+                        joint_state.velocity,
+                        joint_state.acceleration,
+                        floating_base_state.pose,
+                        floating_base_state.twist,
+                        floating_base_state.acceleration);
     timing_stats.time_robot_model_update = (get_node()->get_clock()->now() - start).seconds();
 
     start = get_node()->get_clock()->now();
@@ -250,8 +317,11 @@ controller_interface::return_type WholeBodyController::update_and_write_commands
 
     //tasks_status = scene->updateTasksStatus();
 
-    joint_integrator.integrate(robot_model->jointState(robot_model->actuatedJointNames()), solver_output, 1.0/update_rate);
-
+    if(params.control_mode == "velocity")
+        joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::VELOCITY);
+    else
+        joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::ACCELERATION);
+    
     write_command_to_hardware();
     publish_task_status();
     // publishTaskInfo();
@@ -267,22 +337,23 @@ controller_interface::return_type WholeBodyController::update_and_write_commands
 void WholeBodyController::publish_task_status(){
     int idx_cart = 0, idx_jnt = 0;
     for(uint i = 0; i < task_config.size(); i++){
-        const TaskConfig& w = task_config[i];
-        if(w.type == cart){
+        TaskPtr task = task_config[i];
+        if(task->type == spatial_velocity || task->type == spatial_acceleration){
+            const string& tip = dynamic_pointer_cast<CartesianVelocityTask>(task)->tipFrame();
             rt_task_status_publishers_cart[idx_cart]->lock();
-            toROS(robot_model->rigidBodyState(w.ref_frame, w.tip), rt_task_status_publishers_cart[idx_cart]->msg_);
+            toROS(robot_model->pose(tip), robot_model->twist(tip), robot_model->acceleration(tip), rt_task_status_publishers_cart[idx_cart]->msg_);
             rt_task_status_publishers_cart[idx_cart]->unlockAndPublish();
             idx_cart++;
         }
-        else if(w.type == com){
+        else if(task->type == com_velocity || task->type == com_acceleration){
             rt_task_status_publishers_cart[idx_cart]->lock();
-            toROS(robot_model->centerOfMass(), rt_task_status_publishers_cart[idx_cart]->msg_);
+            toROS(robot_model->centerOfMass().pose, robot_model->centerOfMass().twist, robot_model->centerOfMass().acceleration, rt_task_status_publishers_cart[idx_cart]->msg_);
             rt_task_status_publishers_cart[idx_cart]->unlockAndPublish();
             idx_cart++;
         }
         else{
             rt_task_status_publishers_jnt[idx_jnt]->lock();
-            toROS(robot_model->jointState(w.joint_names), rt_task_status_publishers_jnt[idx_jnt]->msg_);
+            toROS(robot_model->jointState(), robot_model->jointNames(), rt_task_status_publishers_jnt[idx_jnt]->msg_);
             rt_task_status_publishers_jnt[idx_jnt]->unlockAndPublish();
             idx_jnt++;
         }
@@ -291,60 +362,93 @@ void WholeBodyController::publish_task_status(){
 
 void WholeBodyController::update_tasks(){
     uint idx = 0;
-    for(const TaskConfig& w : task_config){
-        if(w.type == cart || w.type == com){
-            if(params.control_mode == "velocity"){
-                reference_cart.twist.linear  = base::Vector3d(reference_interfaces_[idx],  reference_interfaces_[idx+1],reference_interfaces_[idx+2]);
-                reference_cart.twist.angular = base::Vector3d(reference_interfaces_[idx+3],reference_interfaces_[idx+4],reference_interfaces_[idx+5]);
+    for(TaskPtr& task : task_config){
+        switch(task->type){
+            case TaskType::spatial_velocity:{
+                reference_cart.twist.linear  = Eigen::Vector3d(reference_interfaces_[idx],  reference_interfaces_[idx+1],reference_interfaces_[idx+2]);
+                reference_cart.twist.angular = Eigen::Vector3d(reference_interfaces_[idx+3],reference_interfaces_[idx+4],reference_interfaces_[idx+5]);
+                idx+=6;
+                dynamic_pointer_cast<CartesianVelocityTask>(task)->setReference(reference_cart.twist);
+                break;
             }
-            else{
-                reference_cart.acceleration.linear  = base::Vector3d(reference_interfaces_[idx],  reference_interfaces_[idx+1],reference_interfaces_[idx+2]);
-                reference_cart.acceleration.angular = base::Vector3d(reference_interfaces_[idx+3],reference_interfaces_[idx+4],reference_interfaces_[idx+5]);
+            case TaskType::spatial_acceleration:{
+                reference_cart.acceleration.linear  = Eigen::Vector3d(reference_interfaces_[idx],  reference_interfaces_[idx+1],reference_interfaces_[idx+2]);
+                reference_cart.acceleration.angular = Eigen::Vector3d(reference_interfaces_[idx+3],reference_interfaces_[idx+4],reference_interfaces_[idx+5]);
+                idx+=6;
+                dynamic_pointer_cast<CartesianAccelerationTask>(task)->setReference(reference_cart.acceleration);
+                break;
             }
-            idx+=6;
-            scene->setReference(w.name, reference_cart);
-        }
-        else{
-            reference_jnt.resize(w.joint_names.size());
-            reference_jnt.names = w.joint_names;
-            if(params.control_mode == "velocity"){
-                for(const string& name : w.joint_names)
-                    reference_jnt[name].speed = reference_interfaces_[idx++];
+            case TaskType::com_velocity:{
+                reference_cart.twist.linear  = Eigen::Vector3d(reference_interfaces_[idx],  reference_interfaces_[idx+1],reference_interfaces_[idx+2]);
+                reference_cart.twist.angular = Eigen::Vector3d(reference_interfaces_[idx+3],reference_interfaces_[idx+4],reference_interfaces_[idx+5]);
+                idx+=6;
+                dynamic_pointer_cast<CoMVelocityTask>(task)->setReference(reference_cart.twist.linear);
+                break;
             }
-            else{
-                for(const string& name : w.joint_names)
-                    reference_jnt[name].acceleration = reference_interfaces_[idx++];
+            case TaskType::com_acceleration:{
+                reference_cart.acceleration.linear  = Eigen::Vector3d(reference_interfaces_[idx],  reference_interfaces_[idx+1],reference_interfaces_[idx+2]);
+                reference_cart.acceleration.angular = Eigen::Vector3d(reference_interfaces_[idx+3],reference_interfaces_[idx+4],reference_interfaces_[idx+5]);
+                idx+=6;
+                dynamic_pointer_cast<CoMAccelerationTask>(task)->setReference(reference_cart.acceleration.linear);            
+                break;
             }
-            scene->setReference(w.name, reference_jnt);
+            case TaskType::joint_velocity:{
+                reference_jnt.resize(task->nv);
+                for(uint i = 0; i < task->nv; i++)
+                    reference_jnt.velocity[i] = reference_interfaces_[idx++];
+                dynamic_pointer_cast<JointVelocityTask>(task)->setReference(reference_jnt.velocity);            
+                break;
+            }
+            case TaskType::joint_acceleration:{
+                reference_jnt.resize(task->nv);
+                for(uint i = 0; i < task->nv; i++)
+                    reference_jnt.acceleration[i] = reference_interfaces_[idx++];
+                dynamic_pointer_cast<JointAccelerationTask>(task)->setReference(reference_jnt.acceleration);              
+                break;
+            }
+            case TaskType::wrench_forward:{
+                reference_wrench.force  = Eigen::Vector3d(reference_interfaces_[idx],  reference_interfaces_[idx+1],reference_interfaces_[idx+2]);
+                reference_wrench.torque = Eigen::Vector3d(reference_interfaces_[idx+3],reference_interfaces_[idx+4],reference_interfaces_[idx+5]);
+                idx+=6;
+                dynamic_pointer_cast<WrenchForwardTask>(task)->setReference(reference_wrench);            
+                break;
+            }
+            default:{
+                assert("Invalid task type");
+            }
         }
     }
 
     // Update task weights
     task_weight_msg = *rt_task_weight_buffer.readFromRT();
-    if (task_weight_msg.get())
-        scene->setTaskWeights(task_weight_msg->task_name, Eigen::Map<Eigen::VectorXd>(task_weight_msg->weights.data(), task_weight_msg->weights.size()));
+    if(task_weight_msg.get()){
+        TaskPtr task = scene->getTask(task_weight_msg->task_name);
+        task->setWeights(Eigen::Map<Eigen::VectorXd>(task_weight_msg->weights.data(), task_weight_msg->weights.size()));
+    }
 
     // Update task activations
     task_activation_msg = *rt_task_activation_buffer.readFromRT();
-    if (task_activation_msg.get())
-        scene->setTaskActivation(task_activation_msg->task_name, task_activation_msg->activation);
+    if (task_activation_msg.get()){
+        TaskPtr task = scene->getTask(task_activation_msg->task_name);
+        task->setActivation(task_activation_msg->activation);
+    }
 }
 
 void WholeBodyController::write_command_to_hardware(){
-    rt_solver_output_publisher->lock();
-    toROS(solver_output, rt_solver_output_publisher->msg_);
-    rt_solver_output_publisher->unlockAndPublish();
+    //rt_solver_output_publisher->lock();    
+    //toROS(solver_output, robot_model->jointNames(), rt_solver_output_publisher->msg_);
+    //rt_solver_output_publisher->unlockAndPublish();
 
     // Write to hardware interfaces
-    for(uint i = 0; i < solver_output.size(); i++){
+    for(uint i = 0; i < robot_model->na(); i++){
         if(has_command_interface(HW_IF_POSITION))
-            command_interfaces_[command_indices[HW_IF_POSITION][i]].set_value(solver_output[i].position);
+            command_interfaces_[command_indices[HW_IF_POSITION][i]].set_value(solver_output.position[i]);
         if(has_command_interface(HW_IF_VELOCITY))
-            command_interfaces_[command_indices[HW_IF_VELOCITY][i]].set_value(solver_output[i].speed);
+            command_interfaces_[command_indices[HW_IF_VELOCITY][i]].set_value(solver_output.velocity[i]);
         if(has_command_interface(HW_IF_ACCELERATION))
-            command_interfaces_[command_indices[HW_IF_ACCELERATION][i]].set_value(solver_output[i].acceleration);
+            command_interfaces_[command_indices[HW_IF_ACCELERATION][i]].set_value(solver_output.acceleration[i]);
         if(has_command_interface(HW_IF_EFFORT))
-            command_interfaces_[command_indices[HW_IF_EFFORT][i]].set_value(solver_output[i].effort);
+            command_interfaces_[command_indices[HW_IF_EFFORT][i]].set_value(solver_output.effort[i]);
     }
 }
 
@@ -352,7 +456,7 @@ controller_interface::CallbackReturn WholeBodyController::on_activate(const rclc
     // Create state and command index maps here, since we need the interfaces to be configured first
     state_indices.clear();
     command_indices.clear();
-    for(const std::string &joint_name : joint_state.names){
+    for(const std::string &joint_name : robot_model->jointNames()){
         for(const std::string &iface_name : allowed_interface_types){
             if(get_state_idx(joint_name, iface_name) != -1)
                 state_indices[iface_name].push_back(get_state_idx(joint_name, iface_name));
@@ -362,8 +466,8 @@ controller_interface::CallbackReturn WholeBodyController::on_activate(const rclc
     }
 
     //Clear all task references, weights etc. to have to secure initial state
-    for(const auto &cfg : task_config)
-       scene->getTask(cfg.name)->reset();
+    for(const auto &task : task_config)
+       scene->getTask(task->config.name)->reset();
 
     // Also reinit the integrate as it will store the last joint position as a starting point
     joint_integrator.reinit();

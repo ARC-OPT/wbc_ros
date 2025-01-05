@@ -38,7 +38,7 @@ whole_body_controller:
         tasks:
             joint_position:
                 # Task type, can be one of 'jnt' (joint space task), 'cart' (Cartesian task) or 'com' (Center of Mass task).
-                type: jnt
+                type: joint_velocity
                 # Priority of this task. 0 corresponds to the highest priority. Prioritization is only supported by the hls solver.
                 priority: 0
                 # Only joint space tasks: Names of the joints involved in this task.
@@ -73,9 +73,5 @@ joint_position_controller:
         p_gain: [5.0,5.0,5.0,5.0,5.0,5.0,5.0]
         # D-Gain of the controller, size has to be same as number of joints.
         d_gain: [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
-        # Feed froward Gain of the controller, size has to be same as number of joints.
-        ff_gain: [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
         # Controller output saturation per element. Size has to be same as number of joints.
         max_control_output: [10.0,10.0,10.0,10.0,10.0,10.0,10.0]
-        # Dead zone for the position error per element. Size has to be 6.
-        dead_zone: [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
