@@ -55,32 +55,52 @@ controller_interface::InterfaceConfiguration WholeBodyController::state_interfac
     return conf;
 }
 
+std::vector<hardware_interface::StateInterface> WholeBodyController::on_export_state_interfaces(){
+    std::vector<StateInterface> interfaces;
+    const string& node_name = get_node()->get_name();
+    exported_state_interfaces_data.resize(14);
+    uint idx = 0;
+    for(const TaskPtr& task : task_config){
+        switch(task->type){
+            case TaskType::spatial_velocity:{
+                for(auto s : pose_interfaces)
+                    interfaces.push_back(StateInterface(node_name, task->config.name + "/status/" + s, exported_state_interfaces_data.data()+idx++));
+                break;
+            }
+            default:{
+                throw runtime_error("Invalid task type");
+            }
+        }
+    }
+    return interfaces;
+}
+
 std::vector<CommandInterface> WholeBodyController::on_export_reference_interfaces(){
     reference_interfaces_.resize(Scene::getNTaskVariables(task_config));
     vector<CommandInterface> interfaces;
     uint idx = 0;
+    const string &node_name = get_node()->get_name();
     for(const TaskPtr& task : task_config){
-       const string node_name = get_node()->get_name();
        const string task_name = task->config.name;
        switch(task->type){
           case TaskType::spatial_velocity:{
-              for(const string& s : cart_vel_interfaces)
+              for(const string& s : twist_interfaces)
                   interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + s, reference_interfaces_.data() + idx++));
               break;
           }
           case TaskType::spatial_acceleration:{
-              for(const string& s : cart_acc_interfaces)
+              for(const string& s : acc_interfaces)
                   interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + s, reference_interfaces_.data() + idx++));          
               break;
           }
           case TaskType::com_velocity:{
               for(uint i = 0; i < 3; i++)
-                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + cart_vel_interfaces[i], reference_interfaces_.data() + idx++));
+                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + twist_interfaces[i], reference_interfaces_.data() + idx++));
               break;
           }
           case TaskType::com_acceleration:{
               for(uint i = 0; i < 3; i++)
-                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + cart_acc_interfaces[i], reference_interfaces_.data() + idx++));          
+                  interfaces.push_back(CommandInterface(node_name, task_name + "/reference/" + acc_interfaces[i], reference_interfaces_.data() + idx++));
               break;
           }
           case TaskType::joint_velocity:{
@@ -99,7 +119,7 @@ std::vector<CommandInterface> WholeBodyController::on_export_reference_interface
               break;
           }
           default:{
-              assert("Invalid task type");
+              throw runtime_error("Invalid task type");
           }                                                                      
        }
     }
@@ -245,36 +265,6 @@ controller_interface::CallbackReturn WholeBodyController::on_configure(const rcl
     solver_output_publisher = get_node()->create_publisher<CommandMsg>("~/solver_output", rclcpp::SystemDefaultsQoS());
     rt_solver_output_publisher = make_unique<RTCommandPublisher>(solver_output_publisher);
 
-    // Task status as feedback for controllers
-    for(auto task : task_config){
-        switch(task->type){
-            case TaskType::spatial_velocity:
-            case TaskType::spatial_acceleration:
-            case TaskType::com_velocity:
-            case TaskType::com_acceleration:{
-                RbsPublisher::SharedPtr pub = get_node()->create_publisher<RbsMsg>("~/status_" + task->config.name, rclcpp::SystemDefaultsQoS());
-                task_status_publishers_cart.push_back(pub);
-                rt_task_status_publishers_cart.push_back(make_unique<RTRbsPublisher>(pub));
-                break;
-            }
-            case TaskType::joint_velocity:
-            case TaskType::joint_acceleration:{
-                JointsPublisher::SharedPtr pub = get_node()->create_publisher<JointsMsg>("~/status_" + task->config.name, rclcpp::SystemDefaultsQoS());
-                task_status_publishers_jnt.push_back(pub);
-                rt_task_status_publishers_jnt.push_back(make_unique<RTJointsPublisher>(pub));
-                break;
-            }
-            case TaskType::wrench_forward:{
-                // Skip: No feedback required here
-                break;
-            }    
-            default:{
-                RCLCPP_ERROR(get_node()->get_logger(), string("Invalid task type " + to_string(task->type)).c_str());
-                return CallbackReturn::ERROR;
-            }        
-        }
-    }
-
     timing_stats_publisher = get_node()->create_publisher<TimingStatsMsg>("~/timing_stats", rclcpp::SystemDefaultsQoS());
     rt_timing_stats_publisher = make_unique<RTTimingStatsPublisher>(timing_stats_publisher);
 
@@ -315,16 +305,13 @@ controller_interface::return_type WholeBodyController::update_and_write_commands
     solver_output = scene->solve(qp);
     timing_stats.time_solve = (get_node()->get_clock()->now() - start).seconds();
 
-    //tasks_status = scene->updateTasksStatus();
-
     if(params.control_mode == "velocity")
         joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::VELOCITY);
     else
         joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::ACCELERATION);
     
     write_command_to_hardware();
-    publish_task_status();
-    // publishTaskInfo();
+    write_to_state_interfaces();
 
     timing_stats.time_per_cycle = (get_node()->get_clock()->now() - stamp).seconds();
     timing_stats.header.stamp = get_node()->get_clock()->now();
@@ -334,28 +321,33 @@ controller_interface::return_type WholeBodyController::update_and_write_commands
     return controller_interface::return_type::OK;
 }
 
-void WholeBodyController::publish_task_status(){
-    int idx_cart = 0, idx_jnt = 0;
+void WholeBodyController::write_to_state_interfaces(){
+    uint idx = 0;
     for(uint i = 0; i < task_config.size(); i++){
         TaskPtr task = task_config[i];
-        if(task->type == spatial_velocity || task->type == spatial_acceleration){
-            const string& tip = dynamic_pointer_cast<CartesianVelocityTask>(task)->tipFrame();
-            rt_task_status_publishers_cart[idx_cart]->lock();
-            toROS(robot_model->pose(tip), robot_model->twist(tip), robot_model->acceleration(tip), rt_task_status_publishers_cart[idx_cart]->msg_);
-            rt_task_status_publishers_cart[idx_cart]->unlockAndPublish();
-            idx_cart++;
-        }
-        else if(task->type == com_velocity || task->type == com_acceleration){
-            rt_task_status_publishers_cart[idx_cart]->lock();
-            toROS(robot_model->centerOfMass().pose, robot_model->centerOfMass().twist, robot_model->centerOfMass().acceleration, rt_task_status_publishers_cart[idx_cart]->msg_);
-            rt_task_status_publishers_cart[idx_cart]->unlockAndPublish();
-            idx_cart++;
-        }
-        else{
-            rt_task_status_publishers_jnt[idx_jnt]->lock();
-            toROS(robot_model->jointState(), robot_model->jointNames(), rt_task_status_publishers_jnt[idx_jnt]->msg_);
-            rt_task_status_publishers_jnt[idx_jnt]->unlockAndPublish();
-            idx_jnt++;
+        switch(task->type){
+            case spatial_velocity:{
+                const string& tip = dynamic_pointer_cast<CartesianVelocityTask>(task)->tipFrame();
+                types::Pose pose = robot_model->pose(tip);
+                for(uint i = 0; i < 3; i++)
+                    ordered_exported_state_interfaces_[idx++]->set_value(pose.position[i]);
+                for(uint i = 0; i < 4; i++)
+                    ordered_exported_state_interfaces_[idx++]->set_value(pose.orientation.coeffs()[i]);
+                break;
+            }
+            case com_velocity:
+            case com_acceleration:{
+                // TODO: to state interfaces
+                break;
+            }
+            case joint_velocity:
+            case joint_acceleration:{
+                // No extra state interfacesneeded for joint space tasks
+                break;
+            }
+            default:{
+                throw std::runtime_error("Invalid task type");
+            }
         }
     }
 }

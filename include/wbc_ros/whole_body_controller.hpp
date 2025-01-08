@@ -69,10 +69,12 @@ Subscribed Topics:
    (see <a href="https://github.com/ARC-OPT/wbc/blob/master/src/core/TaskConfig.hpp">here</a>) for more information.
 */
 class WholeBodyController : public controller_interface::ChainableControllerInterface{
-    const std::vector<std::string> cart_vel_interfaces = {"twist/linear/x","twist/linear/y","twist/linear/z",
-                                                          "twist/angular/x","twist/angular/y","twist/angular/z"};
-    const std::vector<std::string> cart_acc_interfaces = {"acc/linear/x","acc/linear/y","acc/linear/z",
-                                                          "acc/angular/x","acc/angular/y","acc/angular/z"};
+    const std::vector<std::string> pose_interfaces = {"pose/position/x","pose/position/y","pose/position/z",
+                                                      "pose/orientation/w","pose/orientation/x","pose/orientation/y", "pose/orientation/z"};
+    const std::vector<std::string> twist_interfaces = {"twist/linear/x","twist/linear/y","twist/linear/z",
+                                                       "twist/angular/x","twist/angular/y","twist/angular/z"};
+    const std::vector<std::string> acc_interfaces = {"acc/linear/x","acc/linear/y","acc/linear/z",
+                                                     "acc/angular/x","acc/angular/y","acc/angular/z"};
     const std::vector<std::string> wrench_interfaces = {"wrench/force/x","wrench/force/y","wrench/force/z",
                                                         "wrench/torque/x","wrench/torque/y","wrench/torque/z"};
     // Some shortcuts
@@ -139,14 +141,6 @@ protected:
    TimingStatsPublisher::SharedPtr timing_stats_publisher;
    std::unique_ptr<RTTimingStatsPublisher> rt_timing_stats_publisher;
 
-   RbsMsg task_status_cart;
-   std::vector<RbsPublisher::SharedPtr> task_status_publishers_cart;
-   std::vector<std::unique_ptr<RTRbsPublisher>> rt_task_status_publishers_cart;
-
-   JointsMsg task_status_jnt;
-   std::vector<JointsPublisher::SharedPtr> task_status_publishers_jnt;
-   std::vector<std::unique_ptr<RTJointsPublisher>> rt_task_status_publishers_jnt;
-
    TaskWeightSubscription task_weight_subscriber;
    RTTaskWeightBuffer rt_task_weight_buffer;
    TaskWeightMsgPtr task_weight_msg;
@@ -160,7 +154,7 @@ protected:
    void read_state_from_hardware();
    void write_command_to_hardware();
    void update_tasks();
-   void publish_task_status();
+   void write_to_state_interfaces();
 
    bool has_state_interface(const std::string & interface_name){
        return !state_indices[interface_name].empty();
@@ -187,6 +181,7 @@ protected:
    // Parameters from ROS
    std::shared_ptr<whole_body_controller::ParamListener> param_listener;
    whole_body_controller::Params params;
+   std::vector<double> exported_state_interfaces_data;
 
    void task_weight_callback(const TaskWeightMsgPtr msg);
    void task_activation_callback(const TaskActivationMsgPtr msg);
@@ -205,6 +200,7 @@ public:
    virtual controller_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
    virtual controller_interface::CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
    virtual controller_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
+   virtual std::vector<hardware_interface::StateInterface> on_export_state_interfaces();
 
 protected:
     virtual std::vector<hardware_interface::CommandInterface> on_export_reference_interfaces();

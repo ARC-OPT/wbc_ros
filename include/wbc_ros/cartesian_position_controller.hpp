@@ -25,17 +25,12 @@ class CartesianPositionController : public controller_interface::ChainableContro
     using RbsPublisher = rclcpp::Publisher<RbsMsg>;
     using RTRbsPublisher = realtime_tools::RealtimePublisher<RbsMsg>;
 
-    const std::vector<std::string> reference_interface_names = {"pose/position/x","pose/position/y","pose/position/z",
-                                                                "pose/orientation/x","pose/orientation/y","pose/orientation/z","pose/orientation/w",
-                                                                "twist/linear/x","twist/linear/y","twist/linear/z",
-                                                                "twist/angular/x","twist/angular/y","twist/angular/z",
-                                                                "acc/linear/x","acc/linear/y","acc/linear/z",
-                                                                "acc/angular/x","acc/angular/y","acc/angular/z"};
-    const std::vector<std::string> command_interfaces_vel = {"twist/linear/x","twist/linear/y","twist/linear/z",
-                                                             "twist/angular/x","twist/angular/y","twist/angular/z"};
-    const std::vector<std::string> command_interfaces_acc = {"acc/linear/x","acc/linear/y","acc/linear/z",
-                                                             "acc/angular/x","acc/angular/y","acc/angular/z"};
-
+    const std::vector<std::string> pose_interfaces = {"pose/position/x","pose/position/y","pose/position/z",
+                                                      "pose/orientation/w","pose/orientation/x","pose/orientation/y","pose/orientation/z"};
+    const std::vector<std::string> twist_interfaces = {"twist/linear/x","twist/linear/y","twist/linear/z",
+                                                       "twist/angular/x","twist/angular/y","twist/angular/z"};
+    const std::vector<std::string> acc_interfaces = {"acc/linear/x","acc/linear/y","acc/linear/z",
+                                                     "acc/angular/x","acc/angular/y","acc/angular/z"};
 
 protected:
     wbc::CartesianPosPDController* controller;
@@ -48,10 +43,6 @@ protected:
     RTRbsBuffer rt_setpoint_buffer;
     RbsSubscription setpoint_subscriber;
 
-    std::shared_ptr<RbsMsg> feedback_msg;
-    RTRbsBuffer rt_feedback_buffer;
-    RbsSubscription feedback_subscriber;
-
     RbsMsg control_output_msg;
     RbsPublisher::SharedPtr control_output_publisher;
     std::unique_ptr<RTRbsPublisher> rt_control_output_publisher;
@@ -59,12 +50,12 @@ protected:
     std::shared_ptr<cartesian_position_controller::ParamListener> param_listener;
     cartesian_position_controller::Params params;
 
-    virtual std::vector<hardware_interface::CommandInterface> on_export_reference_interfaces();
-    virtual controller_interface::return_type update_reference_from_subscribers(const rclcpp::Time & time, const rclcpp::Duration & period);
+    virtual std::vector<hardware_interface::CommandInterface> on_export_reference_interfaces() override;
+    virtual controller_interface::return_type update_reference_from_subscribers(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
     void setpoint_callback(const RbsMsgPtr msg);
-    void feedback_callback(const RbsMsgPtr msg);
     void write_control_output_to_hardware();
+    void read_from_state_interfaces();
 
 public:
     CartesianPositionController();

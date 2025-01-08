@@ -150,7 +150,7 @@ void toRaw(const trajectory_msgs::msg::JointTrajectory& in, std::vector<double> 
 }
 
 void fromRaw(const std::vector<double>& in, wbc::types::RigidBodyState& out){
-    out.pose.orientation = Eigen::Quaterniond(in[6],in[3],in[4],in[5]);
+    out.pose.orientation = Eigen::Quaterniond(in[3],in[4],in[5],in[6]);
     for(int i = 0; i < 3; i++){
         out.pose.position[i] = in[i];
         out.twist.linear[i] = in[i+7];
