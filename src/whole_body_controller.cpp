@@ -58,7 +58,7 @@ controller_interface::InterfaceConfiguration WholeBodyController::state_interfac
 std::vector<hardware_interface::StateInterface> WholeBodyController::on_export_state_interfaces(){
     std::vector<StateInterface> interfaces;
     const string& node_name = get_node()->get_name();
-    exported_state_interfaces_data.resize(14);
+    exported_state_interfaces_data.resize(task_config.size()*7);
     uint idx = 0;
     for(const TaskPtr& task : task_config){
         switch(task->type){
@@ -68,7 +68,6 @@ std::vector<hardware_interface::StateInterface> WholeBodyController::on_export_s
                 break;
             }
             default:{
-                throw runtime_error("Invalid task type");
             }
         }
     }
@@ -406,7 +405,7 @@ void WholeBodyController::update_tasks(){
                 break;
             }
             default:{
-                assert("Invalid task type");
+                throw runtime_error("Invalid task type");
             }
         }
     }
