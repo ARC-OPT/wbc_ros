@@ -1,0 +1,217 @@
+controller_manager:
+    ros__parameters:
+        # Update rate in Hz. This is the update rate of the controller manager. However, if you don' t configure the update rate for any of the 
+        # controllers, every controller will run at this rate
+        update_rate: 1000 
+        # Type configuration for the joint state broadcaster
+        joint_state_broadcaster:
+          type: joint_state_broadcaster/JointStateBroadcaster
+        # Type configuration for the whole body controller
+        whole_body_controller:
+          type: wbc_ros/WholeBodyController
+        foot_fr_controller:
+          type: wbc_ros/CartesianPositionController
+        foot_fl_controller:
+          type: wbc_ros/CartesianPositionController
+        foot_br_controller:
+          type: wbc_ros/CartesianPositionController
+        foot_bl_controller:
+          type: wbc_ros/CartesianPositionController
+        joint_position_controller:
+          type: wbc_ros/JointPositionController
+
+joint_position_controller:
+    ros__parameters:
+        # Control mode of the wbc. Can be one of [velocity,acceleration].
+        control_mode: velocity
+        # Name of the WBC task this controller is assigned to.
+        task_name: joint_position
+        # name of the WBC controller.
+        wbc_name: whole_body_controller
+        # Joint names used in the controller.
+        joint_names: ["joint_a1", "joint_a2", "joint_a3", "joint_a4", "joint_a5", "joint_a6", "joint_a7"]
+        # P-Gain of the controller, size has to be same as number of joints.
+        p_gain: [5.0,5.0,5.0,5.0,5.0,5.0,5.0]
+        # D-Gain of the controller, size has to be same as number of joints.
+        d_gain: [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+        # Controller output saturation per element. Size has to be same as number of joints.
+        max_control_output: [10.0,10.0,10.0,10.0,10.0,10.0,10.0]
+                                              
+whole_body_controller:
+    ros__parameters:
+        is_async: true
+        # Update rate in Hz. 
+        update_rate: 1000
+        # Control mode of the wbc. Can be one of [velocity,acceleration].
+        control_mode: velocity
+        # Command interfaces to claim from hardware. Can be one of [position,velocity,effort]
+        command_interfaces: ["position"]
+        # State interfaces to claim from hardware. Can be one of [position,velocity,effort,acceleration]
+        state_interfaces: ["position"]
+        # Names of the tasks to be configured in task configuration. Each task will be a summand in the QP solver's cost function.
+        task_names: ["joint_position", "foot_fr", "foot_fl", "foot_br", "foot_bl"]
+        # Prefix used in the robot description parameter to claim the correct state and command interface names.
+        prefix: ""
+        # The joint weights control the contribution of each individual joint to the solution. Values have to be within [0,1].
+        # A zero means here that the joint is not used at all. Size has to be same as number of robot joints.
+        joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+        robot_model:
+            # Absolute path to plain URDF file of the robot
+            file: install/wbc_ros/share/wbc_ros/models/urdf/iiwa.urdf
+            # Robot model type. Must be the exact name of one of the registered robot model plugins. See src/robot_models for all available plugins. Default is pinocchio
+            type: pinocchio
+        tasks:
+            joint_position:
+                # Task type, can be one of 'jnt' (joint space task), 'cart' (Cartesian task) or 'com' (Center of Mass task).
+                type: joint_velocity
+                # Priority of this task. 0 corresponds to the highest priority. Prioritization is only supported by the hls solver.
+                priority: 0
+                # Only joint space tasks: Names of the joints involved in this task.
+                joint_names: ["joint_a1", "joint_a2", "joint_a3", "joint_a4", "joint_a5", "joint_a6", "joint_a7"]
+                # Initial weights for this task. Size has to be same as number of task variables, e.g. number of joint names in joint space tasks.
+                # and 6 in case of a Cartesian task. All entries have to be >= 0.  Can be used to balance contributions of the task variables.
+                # A value of 0 means that the reference of the corresponding task variable will be ignored while computing the solution.
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1. Can be used to enable(1)/disable(0) the whole task,
+                # or to apply a smooth activation function.
+                activation: 1.0
+            foot_fr:
+                # Task type, can be one of 'jnt' (joint space task), 'cart' (Cartesian task) or 'com' (Center of Mass task).
+                type: spatial_velocity
+                # Priority of this task. 0 corresponds to the highest priority. Prioritization is only supported by the hls solver.
+                priority: 0
+                # Only Cartesian tasks: Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
+                tip_frame: tool0
+                # Only Cartesian tasks: Reference frame of the task input (frame wrt which the input is expressed).
+                # This has to be the name of a valid link in robot model. If ref_frame != root the input will be transformed to the root frame.
+                ref_frame: world
+                # Initial weights for this task. Size has to be same as number of task variables, e.g. number of joint names in joint space tasks.
+                # and 6 in case of a Cartesian task. All entries have to be >= 0.  Can be used to balance contributions of the task variables.
+                # A value of 0 means that the reference of the corresponding task variable will be ignored while computing the solution.
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1. Can be used to enable(1)/disable(0) the whole task,
+                # or to apply a smooth activation function.
+                activation: 1.0
+            foot_fl:
+                # Task type, can be one of 'jnt' (joint space task), 'cart' (Cartesian task) or 'com' (Center of Mass task).
+                type: spatial_velocity
+                # Priority of this task. 0 corresponds to the highest priority. Prioritization is only supported by the hls solver.
+                priority: 0
+                # Only Cartesian tasks: Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
+                tip_frame: tool0
+                # Only Cartesian tasks: Reference frame of the task input (frame wrt which the input is expressed).
+                # This has to be the name of a valid link in robot model. If ref_frame != root the input will be transformed to the root frame.
+                ref_frame: world
+                # Initial weights for this task. Size has to be same as number of task variables, e.g. number of joint names in joint space tasks.
+                # and 6 in case of a Cartesian task. All entries have to be >= 0.  Can be used to balance contributions of the task variables.
+                # A value of 0 means that the reference of the corresponding task variable will be ignored while computing the solution.
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1. Can be used to enable(1)/disable(0) the whole task,
+                # or to apply a smooth activation function.
+                activation: 1.0        
+            foot_bl:
+                # Task type, can be one of 'jnt' (joint space task), 'cart' (Cartesian task) or 'com' (Center of Mass task).
+                type: spatial_velocity
+                # Priority of this task. 0 corresponds to the highest priority. Prioritization is only supported by the hls solver.
+                priority: 0
+                # Only Cartesian tasks: Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
+                tip_frame: tool0
+                # Only Cartesian tasks: Reference frame of the task input (frame wrt which the input is expressed).
+                # This has to be the name of a valid link in robot model. If ref_frame != root the input will be transformed to the root frame.
+                ref_frame: world
+                # Initial weights for this task. Size has to be same as number of task variables, e.g. number of joint names in joint space tasks.
+                # and 6 in case of a Cartesian task. All entries have to be >= 0.  Can be used to balance contributions of the task variables.
+                # A value of 0 means that the reference of the corresponding task variable will be ignored while computing the solution.
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1. Can be used to enable(1)/disable(0) the whole task,
+                # or to apply a smooth activation function.
+                activation: 1.0             
+            foot_br:
+                # Task type, can be one of 'jnt' (joint space task), 'cart' (Cartesian task) or 'com' (Center of Mass task).
+                type: spatial_velocity
+                # Priority of this task. 0 corresponds to the highest priority. Prioritization is only supported by the hls solver.
+                priority: 0
+                # Only Cartesian tasks: Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
+                tip_frame: tool0
+                # Only Cartesian tasks: Reference frame of the task input (frame wrt which the input is expressed).
+                # This has to be the name of a valid link in robot model. If ref_frame != root the input will be transformed to the root frame.
+                ref_frame: world
+                # Initial weights for this task. Size has to be same as number of task variables, e.g. number of joint names in joint space tasks.
+                # and 6 in case of a Cartesian task. All entries have to be >= 0.  Can be used to balance contributions of the task variables.
+                # A value of 0 means that the reference of the corresponding task variable will be ignored while computing the solution.
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1. Can be used to enable(1)/disable(0) the whole task,
+                # or to apply a smooth activation function.
+                activation: 1.0                                                                                                                       
+        solver:
+            # QP Solver type. Must be the exact name of one of the registered QP solver plugins. See src/solvers for all available plugins. Default is qpoases
+            type: qpoases
+        scene:
+            # Scene type. Must be the exact name of one of the registered scene plugins. See src/scenes for all available plugins.
+            type: velocity_qp
+        # Do numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and position
+        integrate: true
+
+foot_fr_controller:
+    ros__parameters:
+        is_async: true
+        # Control mode of the wbc. Can be one of [velocity,acceleration].
+        control_mode: velocity
+        # Name of the WBC task this controller is assigned to.
+        task_name: foot_fr
+        # Node name of the WBC controller.
+        wbc_name: whole_body_controller
+        # P-Gain of the controller, size has to be 6.
+        p_gain: [5.0,5.0,5.0,5.0,5.0,5.0]
+        # D-Gain of the controller, size has to be 6. In case of velcity control mode, this is the feed forward gain
+        d_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
+        # Controller output saturation per element. Size has to be 6.
+        max_control_output: [10.0,10.0,10.0,10.0,10.0,10.0]
+        
+foot_fl_controller:
+    ros__parameters:
+        is_async: true
+        # Control mode of the wbc. Can be one of [velocity,acceleration].
+        control_mode: velocity
+        # Name of the WBC task this controller is assigned to.
+        task_name: foot_fl
+        # Node name of the WBC controller.
+        wbc_name: whole_body_controller
+        # P-Gain of the controller, size has to be 6.
+        p_gain: [5.0,5.0,5.0,5.0,5.0,5.0]
+        # D-Gain of the controller, size has to be 6. In case of velcity control mode, this is the feed forward gain
+        d_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
+        # Controller output saturation per element. Size has to be 6.
+        max_control_output: [10.0,10.0,10.0,10.0,10.0,10.0]
+        
+foot_br_controller:
+    ros__parameters:
+        is_async: true
+        # Control mode of the wbc. Can be one of [velocity,acceleration].
+        control_mode: velocity
+        # Name of the WBC task this controller is assigned to.
+        task_name: foot_br
+        # Node name of the WBC controller.
+        wbc_name: whole_body_controller
+        # P-Gain of the controller, size has to be 6.
+        p_gain: [5.0,5.0,5.0,5.0,5.0,5.0]
+        # D-Gain of the controller, size has to be 6. In case of velcity control mode, this is the feed forward gain
+        d_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
+        # Controller output saturation per element. Size has to be 6.
+        max_control_output: [10.0,10.0,10.0,10.0,10.0,10.0]     
+        
+foot_bl_controller:
+    ros__parameters:
+        is_async: true
+        # Control mode of the wbc. Can be one of [velocity,acceleration].
+        control_mode: velocity
+        # Name of the WBC task this controller is assigned to.
+        task_name: foot_bl
+        # Node name of the WBC controller.
+        wbc_name: whole_body_controller
+        # P-Gain of the controller, size has to be 6.
+        p_gain: [5.0,5.0,5.0,5.0,5.0,5.0]
+        # D-Gain of the controller, size has to be 6. In case of velcity control mode, this is the feed forward gain
+        d_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
+        # Controller output saturation per element. Size has to be 6.
+        max_control_output: [10.0,10.0,10.0,10.0,10.0,10.0]       
