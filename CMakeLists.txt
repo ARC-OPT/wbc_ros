@@ -13,11 +13,9 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   trajectory_msgs
   wbc_msgs
   sensor_msgs
-  pluginlib
   rclcpp_lifecycle
-  controller_interface
-  hardware_interface
   generate_parameter_library
+  rclcpp_components
 )
 find_package(ament_cmake REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
@@ -53,34 +51,42 @@ generate_parameter_library(cartesian_position_controller_parameters
 generate_parameter_library(joint_position_controller_parameters
   src/joint_position_controller_parameters.yaml
 )
+generate_parameter_library(com_position_controller_parameters
+  src/com_position_controller_parameters.yaml
+)
 
-add_library(wbc_ros SHARED src/whole_body_controller.cpp src/conversions.cpp
-                           src/cartesian_position_controller.cpp src/conversions.cpp
-                           src/joint_position_controller.cpp src/conversions.cpp)
+add_library(whole_body_controller SHARED src/whole_body_controller.cpp src/conversions.cpp src/task_interface.cpp)
+add_library(cartesian_position_controller SHARED src/cartesian_position_controller.cpp src/conversions.cpp)
 
-ament_target_dependencies(wbc_ros PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(whole_body_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(cartesian_position_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-target_link_libraries(wbc_ros PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-tasks_LIBRARIES})
-target_compile_features(wbc_ros PUBLIC cxx_std_17)
-target_include_directories(wbc_ros PUBLIC
+target_link_libraries(whole_body_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-tasks_LIBRARIES} whole_body_controller_parameters)
+target_compile_features(whole_body_controller PUBLIC cxx_std_17)
+target_include_directories(whole_body_controller PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/wbc_ros>
 )
-target_link_libraries(wbc_ros PUBLIC
-  whole_body_controller_parameters
-  cartesian_position_controller_parameters
-  joint_position_controller_parameters
+target_link_libraries(cartesian_position_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} cartesian_position_controller_parameters)
+target_compile_features(cartesian_position_controller PUBLIC cxx_std_17)
+target_include_directories(cartesian_position_controller PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/wbc_ros>
 )
-pluginlib_export_plugin_description_file(controller_interface wbc_plugins.xml)
+
+rclcpp_components_register_node(whole_body_controller PLUGIN "wbc_ros::WholeBodyController" EXECUTABLE whole_body_controller_node)
+rclcpp_components_register_node(cartesian_position_controller PLUGIN "wbc_ros::CartesianPositionController" EXECUTABLE cartesian_position_controller_node)
 
 install(
   DIRECTORY include/
   DESTINATION include/wbc_ros
 )
-install(TARGETS wbc_ros
+install(TARGETS whole_body_controller
+                cartesian_position_controller
                 whole_body_controller_parameters
                 cartesian_position_controller_parameters
                 joint_position_controller_parameters
+                com_position_controller_parameters
         EXPORT export_wbc_ros
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib

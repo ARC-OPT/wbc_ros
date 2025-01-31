@@ -35,7 +35,7 @@ whole_body_controller:
         joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
         robot_model:
             # Absolute path to plain URDF file of the robot
-            file: install/wbc_ros/share/wbc_ros/models/urdf/iiwa.urdf
+            file: install/wbc_ros/share/wbc_ros/models/urdf/kuka/iiwa.urdf
             # Robot model type. Must be the exact name of one of the registered robot model plugins. See src/robot_models for all available plugins. Default is pinocchio
             type: pinocchio
         tasks:

@@ -15,7 +15,7 @@ whole_body_controller:
         task_names: ["ee_pose"]
         joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
         robot_model:
-            file: install/wbc_ros/share/wbc_ros/models/urdf/iiwa.urdf
+            file: install/wbc_ros/share/wbc_ros/models/urdf/kuka/iiwa.urdf
             type: pinocchio
         tasks:
             ee_pose:

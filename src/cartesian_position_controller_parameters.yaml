@@ -1,11 +1,18 @@
 cartesian_position_controller:
-    control_mode: {
-        type: string,
-        default_value: "",
-        description: "Control mode of the wbc. Can be one of [velocity,acceleration].",
+    update_rate: {       
+        type: int,
+        default_value: 1000,
+        description: "Control update rate in Hz",
         validation: {
-            not_empty<>: null,
-            one_of<>: [["velocity", "acceleration"]]
+            gt<>: [0.0]
+        }
+    }
+    control_mode: {
+        type: int,
+        default_value: -1,
+        description: "Output mode of the Cartesian controller. Can be one of [0 - velocity, 1- acceleration].",
+        validation: {
+            one_of<>: [[-1, 0, 1]]
         }
     }
     wbc_name: {

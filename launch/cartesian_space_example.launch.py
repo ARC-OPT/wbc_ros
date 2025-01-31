@@ -9,16 +9,18 @@ from launch.actions import RegisterEventHandler
 import os
 
 def generate_launch_description():
-    # Load the controller confguration file for the Cartesian space example. This contains the parameters for all ros2 controllers. 
-    iiwa_controllers = PathJoinSubstitution([FindPackageShare('wbc_ros'), 'config', 'cartesian_space_example', 'iiwa_controllers.yaml'])
-    # Load the trajectory configuration file
-    trajectory_publisher_config = os.path.join(get_package_share_directory('wbc_ros'),'config','cartesian_space_example','trajectory_publisher.yml')
+    # Load configuration files
+    base_path = os.path.join(get_package_share_directory('wbc_ros'),'config','cartesian_space_example')
+    wbc_config = base_path + '/whole_body_controller.yaml'
+    controller_config = base_path + '/cartesian_position_controller.yaml'
+    trajectory_publisher_config = base_path + '/trajectory_publisher.yaml'
+    ros2_controllers = base_path + '/ros2_controllers.yaml'
 
     # Create the robot description parameter (URDF) from the iiwa.config.xacro file. Use the "fake" flag, which means that the input command is mirrored to the
     # robot state, producing a simple mini simulation
     robot_description = Command([
         PathJoinSubstitution([FindExecutable(name='xacro')]),' ',
-        PathJoinSubstitution([FindPackageShare('wbc_ros'), 'models', 'urdf', 'iiwa.config.xacro']),' ',
+        PathJoinSubstitution([FindPackageShare('wbc_ros'), 'models', 'urdf', 'kuka', 'iiwa.config.xacro']),' ',
         'prefix:=',                          '',                       ' ',
         'use_sim:=',                         'false',                  ' ',
         'use_fake_hardware:=',               'true',                   ' ',
@@ -31,47 +33,24 @@ def generate_launch_description():
     controller_manager = Node(
         package='controller_manager',
         executable='ros2_control_node',
-        parameters=[robot_description, iiwa_controllers],
+        parameters=[robot_description, ros2_controllers],
         output='both',
         namespace='/'
     )
 
-    # Spawn the whole-body controller (WBC). The WBC receive the control output from all controllers in task space (in this case only the Cartesian position controller)
-    # and integrates into a coherent control signal in joint space (in this case joint position commands), which are written to hardware interface directly
-    whole_body_controller_spawner = Node(
+    # Spawn position forward controller
+    position_controller = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['whole_body_controller', '--controller-manager', ['/', 'controller_manager']],
+        arguments=['position_controller', '--controller-manager', ['/', 'controller_manager']],
         namespace='/')
-
-    # Spawn the Cartesian position controller. This controller stabilizes the desired end effector trajectory in cartesian space
-    cartesian_position_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['cartesian_position_controller', '--controller-manager', ['/', 'controller_manager']],
-        namespace='/')
-
-    # Delay start of cartesian_position_controller_spawner after `whole_body_controller_spawner` to have the reference interfaces in WBC ready
-    delayed_cartesian_position_controller_spawner = (
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=whole_body_controller_spawner,
-                on_exit=[cartesian_position_controller_spawner])))
-
+    
     # The joint state broadcaster is actually not really a controller, it simply collects the joint states and publishes them
     joint_state_broadcaster = Node(
         package='controller_manager',
         executable='spawner',
         arguments=['joint_state_broadcaster', '--controller-manager', ['/', 'controller_manager']])
-
-    # This node publishes a circular trajectory and sends it to the Cartesian position controller
-    cartesian_trajectory_publisher = Node(
-        package='wbc_ros',
-        executable='cartesian_trajectory_publisher',
-        name='trajectory',
-        namespace='/cartesian_position_controller',
-        parameters=[trajectory_publisher_config])
-
+    
     # The robot state publisher computes the transform between all robot links given the joint_status topic to visualize the robot in rviz
     robot_state_publisher = Node(
         package='robot_state_publisher',
@@ -79,12 +58,36 @@ def generate_launch_description():
         namespace='/',
         output='both',
         parameters=[robot_description])
+     
+    # This node publishes a circular trajectory and sends it to the Cartesian position controller
+    cartesian_trajectory_publisher = Node(
+        package='wbc_ros',
+        executable='cartesian_trajectory_publisher',
+        name='trajectory',
+        namespace='/cartesian_position_controller',
+        parameters=[trajectory_publisher_config])
+     
+    # Spawn the whole-body controller (WBC). The WBC receives the control output from all controllers in task space (in this case only the Cartesian position controller)
+    # and integrates into a coherent control signal in joint space (in this case joint position commands), which are written to hardware interface directly
+    whole_body_controller = Node(
+        package='wbc_ros',
+        executable='whole_body_controller_node',
+        name='whole_body_controller',
+        parameters=[robot_description, wbc_config])
 
+    # Spawn a Cartesian position controller
+    cartesian_position_controller = Node(
+        package='wbc_ros',
+        executable='cartesian_position_controller_node',
+        name='cartesian_position_controller',
+        parameters=[controller_config])
+    
     return LaunchDescription([
         controller_manager,
-        whole_body_controller_spawner,
-        delayed_cartesian_position_controller_spawner,
-        cartesian_trajectory_publisher,
+        position_controller,
         joint_state_broadcaster,
-        robot_state_publisher
+        robot_state_publisher,
+        whole_body_controller,
+        cartesian_position_controller,
+        cartesian_trajectory_publisher
     ])

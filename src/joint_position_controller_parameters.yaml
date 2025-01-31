@@ -1,11 +1,10 @@
 joint_position_controller:
     control_mode: {
-        type: string,
-        default_value: "",
-        description: "Control mode of the wbc. Can be one of [velocity,acceleration].",
+        type: int,
+        default_value: 0,
+        description: "Control mode of the wbc. Can be one of [0 - velocity, 1 - acceleration].",
         validation: {
-            not_empty<>: null,
-            one_of<>: [["velocity", "acceleration"]]
+            one_of<>: [[-1, 0, 1]]
         }
     }
     wbc_name: {

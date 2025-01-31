@@ -51,30 +51,39 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
     {
         auto msg = wbc_msgs::msg::RigidBodyState();
         if(plane == "xy"){
-	    msg.pose.position.x = init_pos_x + amplitude_x*sin(2*M_PI*frequency*dt);
+            msg.pose.position.x = init_pos_x + amplitude_x*sin(2*M_PI*frequency*dt);
             msg.pose.position.y = init_pos_y + amplitude_y*cos(2*M_PI*frequency*dt);
- 	    msg.pose.position.z = init_pos_z;
- 	    msg.twist.linear.x = amplitude_x*cos(2*M_PI*frequency*dt);
-     	    msg.twist.linear.y = -amplitude_y*sin(2*M_PI*frequency*dt);
+            msg.pose.position.z = init_pos_z;
+            msg.twist.linear.x = cos(2*M_PI*frequency*dt);
+            msg.twist.linear.y = -sin(2*M_PI*frequency*dt);
             msg.twist.linear.z = 0.0;
-	}
-	else if(plane == "xz"){
-	    msg.pose.position.x = init_pos_x + amplitude_x*sin(2*M_PI*frequency*dt);
+            msg.acceleration.linear.x = -sin(2*M_PI*frequency*dt);
+            msg.acceleration.linear.y = -cos(2*M_PI*frequency*dt);
+            msg.acceleration.linear.z = 0.0;
+        }
+        else if(plane == "xz"){
+            msg.pose.position.x = init_pos_x + amplitude_x*sin(2*M_PI*frequency*dt);
             msg.pose.position.y = init_pos_y;
- 	    msg.pose.position.z = init_pos_z + amplitude_z*cos(2*M_PI*frequency*dt);
- 	    msg.twist.linear.x = amplitude_x*cos(2*M_PI*frequency*dt);
-     	    msg.twist.linear.y = 0.0;
-            msg.twist.linear.z = -amplitude_z*sin(2*M_PI*frequency*dt);
-	}
-	else if(plane == "yz"){
-	    msg.pose.position.x = init_pos_x;
+            msg.pose.position.z = init_pos_z + amplitude_z*cos(2*M_PI*frequency*dt);
+            msg.twist.linear.x = cos(2*M_PI*frequency*dt);
+            msg.twist.linear.y = 0.0;
+            msg.twist.linear.z = -sin(2*M_PI*frequency*dt);
+            msg.acceleration.linear.x = -sin(2*M_PI*frequency*dt);
+            msg.acceleration.linear.y = 0.0;
+            msg.acceleration.linear.z = -cos(2*M_PI*frequency*dt);
+        }
+        else if(plane == "yz"){
+            msg.pose.position.x = init_pos_x;
             msg.pose.position.y = init_pos_y + amplitude_y*sin(2*M_PI*frequency*dt);
- 	    msg.pose.position.z = init_pos_z + amplitude_z*cos(2*M_PI*frequency*dt);
- 	    msg.twist.linear.x = 0.0;
-     	    msg.twist.linear.y = amplitude_y*cos(2*M_PI*frequency*dt);
-            msg.twist.linear.z = -amplitude_z*sin(2*M_PI*frequency*dt);
-	}
-	else
+            msg.pose.position.z = init_pos_z + amplitude_z*cos(2*M_PI*frequency*dt);
+            msg.twist.linear.x = 0.0;
+            msg.twist.linear.y = cos(2*M_PI*frequency*dt);
+            msg.twist.linear.z = -sin(2*M_PI*frequency*dt);
+            msg.acceleration.linear.x = 0.0;
+            msg.acceleration.linear.y = -sin(2*M_PI*frequency*dt);
+            msg.acceleration.linear.z = -cos(2*M_PI*frequency*dt);
+        }
+        else
             throw std::runtime_error("Invalid parameter: plane: " + plane);
 
         msg.pose.orientation.x = init_ori_qx;
@@ -84,6 +93,9 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
         msg.twist.angular.x = 0.0;
         msg.twist.angular.y = 0.0;
         msg.twist.angular.z = 0.0;
+        msg.acceleration.angular.x = 0.0;
+        msg.acceleration.angular.y = 0.0;
+        msg.acceleration.angular.z = 0.0;
         publisher_->publish(msg);
         dt += 0.01;
     }

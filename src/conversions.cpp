@@ -1,12 +1,12 @@
-#include "conversions.hpp"
+#include <wbc_ros/conversions.hpp>
 
 using namespace std;
 using namespace wbc;
 using namespace rclcpp;
 
 void fromROS(const sensor_msgs::msg::JointState& in, wbc::types::JointState& out){
-     out.resize(in.name.size());
-     for(uint i = 0; i < in.name.size(); i++){
+     out.resize(in.position.size());
+     for(uint i = 0; i < in.position.size(); i++){
          out.position[i] = in.position[i];
          out.velocity[i] = in.velocity[i];
      }
@@ -50,9 +50,9 @@ void fromROS(const std_msgs::msg::Float64MultiArray& in, Eigen::VectorXd& out){
         out[i] = in.data[i];
 }
 
-void fromROS(const geometry_msgs::msg::WrenchStamped& in, wbc::types::Wrench& out){
-    out.force = Eigen::Vector3d(in.wrench.force.x, in.wrench.force.y, in.wrench.force.z);
-    out.torque = Eigen::Vector3d(in.wrench.torque.x, in.wrench.torque.y, in.wrench.torque.z);
+void fromROS(const geometry_msgs::msg::Wrench& in, wbc::types::Wrench& out){
+    out.force = Eigen::Vector3d(in.force.x, in.force.y, in.force.z);
+    out.torque = Eigen::Vector3d(in.torque.x, in.torque.y, in.torque.z);
 }
 
 void fromROS(const wbc_msgs::msg::RigidBodyState& in, wbc::types::RigidBodyState& out){
@@ -76,12 +76,12 @@ void toROS(const wbc::types::JointCommand& in, const vector<string>& joint_names
     out.points[0].positions.resize(nj);
     out.points[0].velocities.resize(nj);
     out.points[0].accelerations.resize(nj);
-    out.points[0].effort.resize(nj);
+    //out.points[0].effort.resize(nj);
     for(uint i = 0; i < nj; i++){
         out.points[0].positions[i] = in.position[i];
-        out.points[0].velocities[i] = in.velocity[i];
-        out.points[0].accelerations[i] = in.acceleration[i];
-        out.points[0].effort[i] = in.effort[i];
+        out.points[0].velocities[i] = 0.0; //in.velocity[i];
+        out.points[0].accelerations[i] = 0.0; //in.acceleration[i];
+        //out.points[0].effort[i] = in.effort[i];
     }
 }
 
@@ -129,64 +129,4 @@ void toROS(const wbc::types::JointState& in, const vector<string>& joint_names, 
         out.position[i] = in.position[i];
         out.velocity[i] = in.velocity[i];
     }
-}
-
-void toRaw(const wbc_msgs::msg::RigidBodyState& in, std::vector<double> &out){
-    out = {in.pose.position.x,in.pose.position.y,in.pose.position.z,
-           in.pose.orientation.x,in.pose.orientation.y,in.pose.orientation.z,in.pose.orientation.w,
-           in.twist.linear.x,in.twist.linear.y,in.twist.linear.z,
-           in.twist.angular.x,in.twist.angular.y,in.twist.angular.z,
-           in.acceleration.linear.x,in.acceleration.linear.y,in.acceleration.linear.z,
-           in.acceleration.angular.x,in.acceleration.angular.y,in.acceleration.angular.z};
-}
-
-void toRaw(const trajectory_msgs::msg::JointTrajectory& in, std::vector<double> &out){
-    uint idx = 0;
-    for(uint i = 0; i < in.joint_names.size(); i++){
-        out[idx++] = in.points[0].positions[i];
-        out[idx++] = in.points[0].velocities[i];
-        out[idx++] = in.points[0].accelerations[i];
-    }
-}
-
-void fromRaw(const std::vector<double>& in, wbc::types::RigidBodyState& out){
-    out.pose.orientation = Eigen::Quaterniond(in[3],in[4],in[5],in[6]);
-    for(int i = 0; i < 3; i++){
-        out.pose.position[i] = in[i];
-        out.twist.linear[i] = in[i+7];
-        out.twist.angular[i] = in[i+10];
-        out.acceleration.linear[i] = in[i+13];
-        out.acceleration.angular[i] = in[i+16];
-    }
-}
-
-void fromRaw(const std::vector<double>& in, wbc::types::JointState& out){
-    uint idx = 0;
-    out.resize(in.size()/3);
-    for(uint i = 0; i < in.size()/3; i++){
-        out.position[i] = in[idx++];
-        out.velocity[i] = in[idx++];
-        out.acceleration[i] = in[idx++];
-    }
-}
-
-void fromRaw(const std::vector<double>& in, wbc::types::JointCommand& out){
-    uint idx = 0;
-    out.resize(in.size()/3);    
-    for(uint i = 0; i < in.size()/3; i++){
-        out.position[i] = in[idx++];
-        out.velocity[i] = in[idx++];
-        out.effort[i]   = in[idx++];
-    }
-}
-
-wbc::TaskType fromString(const std::string& in){
-    if(in == "spatial_velocity") return wbc::TaskType::spatial_velocity;
-    else if(in == "spatial_acceleration") return wbc::TaskType::spatial_acceleration;
-    else if(in == "com_velocity") return wbc::TaskType::com_velocity;
-    else if(in == "com_acceleration") return wbc::TaskType::com_acceleration;
-    else if(in == "joint_velocity") return wbc::TaskType::joint_velocity;
-    else if(in == "joint_acceleration") return wbc::TaskType::joint_acceleration;
-    else if(in == "wrench_forward") return wbc::TaskType::wrench_forward;
-    else return wbc::TaskType::unset;
 }

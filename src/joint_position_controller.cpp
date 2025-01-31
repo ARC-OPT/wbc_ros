@@ -1,5 +1,6 @@
 #include "wbc_ros/joint_position_controller.hpp"
-#include "conversions.hpp"
+#include <wbc_ros/conversions.hpp>
+#include <wbc_ros/defines.hpp>
 #include "pluginlib/class_list_macros.hpp"
 
 using namespace wbc;
@@ -32,7 +33,7 @@ std::vector<hardware_interface::CommandInterface> JointPositionController::on_ex
     uint idx = 0;
     for(const string &joint_name : params.joint_names){
         for(const string &iface_name : reference_interface_names)
-            interfaces.push_back(hardware_interface::CommandInterface(string(get_node()->get_name()), prefix + joint_name + "/" + iface_name, reference_interfaces_.data() + idx++));
+            interfaces.push_back(hardware_interface::CommandInterface(string(get_node()->get_name()), prefix + joint_name + "/" + iface_name, reference_interface_values.data() + idx++));
     }
     return interfaces;
 }
@@ -41,14 +42,14 @@ controller_interface::return_type JointPositionController::update_reference_from
     setpoint_msg = *rt_setpoint_buffer.readFromRT();
     if(!setpoint_msg.get())
         return controller_interface::return_type::OK;
-    toRaw(*setpoint_msg, reference_interfaces_);
+    toRaw(*setpoint_msg, reference_interface_values);
     return controller_interface::return_type::OK;
 }
 
 controller_interface::InterfaceConfiguration JointPositionController::command_interface_configuration() const{
     vector<string> iface_names;
     string prefix = params.wbc_name + "/" + params.task_name + "/reference/";
-    if(params.control_mode == "velocity"){
+    if(params.control_mode == ControlMode::velocity){
         for(const string& s : params.joint_names)
             iface_names.push_back(prefix + s + "/velocity");
     }
@@ -100,6 +101,10 @@ controller_interface::CallbackReturn JointPositionController::on_configure(const
     control_output_publisher = get_node()->create_publisher<JointCommandMsg>("~/control_output", rclcpp::SystemDefaultsQoS());
     rt_control_output_publisher = make_unique<RTJointCommandPublisher>(control_output_publisher);
 
+    if(params.control_mode != ControlMode::velocity && params.control_mode != ControlMode::acceleration){
+        RCLCPP_ERROR(get_node()->get_logger(), "Invalid Control mode: %i", (int)params.control_mode);
+        return CallbackReturn::ERROR;
+    }
 
     uint n = params.joint_names.size();
     feedback.resize(n);
@@ -112,6 +117,7 @@ controller_interface::CallbackReturn JointPositionController::on_configure(const
     rt_control_output_publisher->msg_.joint_names = params.joint_names;
 
     reference_interfaces_.resize(n*3);
+    reference_interface_values.resize(n*3);
 
     return CallbackReturn::SUCCESS;
 }
@@ -124,19 +130,17 @@ controller_interface::return_type JointPositionController::update_and_write_comm
 
     read_state_from_hardware_interfaces();
 
-    fromRaw(reference_interfaces_, setpoint);
-    if(params.control_mode == "velocity")
+    fromRaw(reference_interface_values, setpoint);
+    if(params.control_mode == ControlMode::velocity)
     	control_output.velocity = controller->update(setpoint.position, 
 		                                     setpoint.velocity, 
 		                                     feedback.position);
-    else if(params.control_mode == "acceleration")
+    else
     	control_output.acceleration = controller->update(setpoint.position, 
 		                                         setpoint.velocity, 
 		                                         setpoint.acceleration,
 		                                         feedback.position,
 		                                         feedback.velocity);
-    else
-        assert("Invalid control mode");
 
     write_control_output_to_hardware();
 
@@ -179,13 +183,16 @@ controller_interface::CallbackReturn JointPositionController::on_shutdown(const 
 
 void JointPositionController::write_control_output_to_hardware(){
     uint idx = 0;
+    bool success = true;
     for(uint i = 0; i < params.joint_names.size(); i++){
-        if(params.control_mode == "velocity")
-            command_interfaces_[idx++].set_value(control_output.velocity[i]);
-        else if(params.control_mode == "acceleration")
-            command_interfaces_[idx++].set_value(control_output.acceleration[i]);
+        if(params.control_mode == ControlMode::velocity)
+            success &= command_interfaces_[idx++].set_value(control_output.velocity[i]);
         else
-            assert("Invalid Control mode");
+            success &= command_interfaces_[idx++].set_value(control_output.acceleration[i]);
+    }
+    if(!success){
+        // TODO: What to do with the return value? 
+        RCLCPP_WARN(get_node()->get_logger(), "Failed to set value of some command interface");
     }
 }
 }

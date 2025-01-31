@@ -1,11 +1,18 @@
 whole_body_controller:
-    control_mode: {
-        type: string,
-        default_value: "",
-        description: "Control mode of the wbc. Can be one of [velocity,acceleration].",
+    update_rate: {       
+        type: int,
+        default_value: 1000,
+        description: "Control update rate in Hz",
         validation: {
-            not_empty<>: null,
-            one_of<>: [["velocity", "acceleration"]]
+            gt<>: [0.0]
+        }
+    }
+    control_mode: {
+        type: int,
+        default_value: 0,
+        description: "Control mode of the wbc. Can be one of 0 - velocity, 1 - acceleration.",
+        validation: {
+            one_of<>: [[0,1]]
         }
     }
     robot_description: {
@@ -14,24 +21,6 @@ whole_body_controller:
         description: "Robot URDF.",
         validation: {
             not_empty<>: null
-        }
-    }
-    command_interfaces: {
-        type: string_array,
-        default_value: [],
-        description: "Command interfaces to claim from hardware.",
-        validation: {
-            not_empty<>: null,
-            unique<>: null,
-        }
-    }
-    state_interfaces: {
-        type: string_array,
-        default_value: [],
-        description: "State interfaces to claim from hardware.",
-        validation: {
-            not_empty<>: null,
-            unique<>: null,
         }
     }
     prefix: {
@@ -158,11 +147,11 @@ whole_body_controller:
     tasks:
         __map_task_names:
             type: {
-                type: string,
-                default_value: "",
-                description: "Task type, can be one of 'jnt' (joint space task), 'cart' (Cartesian task) or 'com' (Center of Mass task).",
+                type: int,
+                default_value: -1,
+                description: "Task type, can be one of 0 - spatial_velocity, 1 - spatial_acceleration, 2 - com_velocity, 3 - com_acceleration, 4 - joint_velocity, 5 - joint_acceleration, 6 - contact_wrench",
                 validation: {
-                    one_of<>: [["spatial_velocity", "spatial_acceleration", "com_velocity", "com_acceleration", "joint_velocity", "joint_acceleration", "wrench_forward"]],
+                    one_of<>: [[0,1,2,3,4,5,6]],
                 }
             }
             weights: {

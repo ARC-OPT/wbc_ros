@@ -17,8 +17,8 @@ whole_body_controller:
     ros__parameters:
         # Update rate in Hz. 
         update_rate: 1000
-        # Control mode of the wbc. Can be one of [velocity,acceleration].
-        control_mode: velocity
+        # Control mode of the wbc. Can be one of [0 - velocity, 1- acceleration].
+        control_mode: 0
         # Command interfaces to claim from hardware. Can be one of [position,velocity,effort]
         command_interfaces: ["position"]
         # State interfaces to claim from hardware. Can be one of [position,velocity,effort,acceleration]
@@ -32,7 +32,7 @@ whole_body_controller:
         joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
         robot_model:
             # Absolute path to plain URDF file of the robot
-            file: install/wbc_ros/share/wbc_ros/models/urdf/iiwa.urdf
+            file: install/wbc_ros/share/wbc_ros/models/urdf/kuka/iiwa.urdf
             # Robot model type. Must be the exact name of one of the registered robot model plugins. See src/robot_models for all available plugins. Default is pinocchio
             type: pinocchio
         tasks:
@@ -61,8 +61,8 @@ whole_body_controller:
 
 joint_position_controller:
     ros__parameters:
-        # Control mode of the wbc. Can be one of [velocity,acceleration].
-        control_mode: velocity
+        # Control mode of the wbc. Can be one of [0 - velocity, 1 - acceleration].
+        control_mode: 0
         # Name of the WBC task this controller is assigned to.
         task_name: joint_position
         # name of the WBC controller.
