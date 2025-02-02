@@ -1,11 +1,11 @@
 from launch import LaunchDescription
 from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import PathJoinSubstitution,Command,FindExecutable
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
-from launch.event_handlers import OnProcessExit
-from launch.actions import RegisterEventHandler
+from launch_ros.actions import ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
+
 import os
 
 def generate_launch_description():
@@ -69,25 +69,44 @@ def generate_launch_description():
      
     # Spawn the whole-body controller (WBC). The WBC receives the control output from all controllers in task space (in this case only the Cartesian position controller)
     # and integrates into a coherent control signal in joint space (in this case joint position commands), which are written to hardware interface directly
-    whole_body_controller = Node(
-        package='wbc_ros',
-        executable='whole_body_controller_node',
-        name='whole_body_controller',
-        parameters=[robot_description, wbc_config])
+    #whole_body_controller = Node(
+    #    package='wbc_ros',
+    #    executable='whole_body_controller_node',
+    #    name='whole_body_controller',
+    #    parameters=[robot_description, wbc_config])
 
     # Spawn a Cartesian position controller
-    cartesian_position_controller = Node(
-        package='wbc_ros',
-        executable='cartesian_position_controller_node',
-        name='cartesian_position_controller',
-        parameters=[controller_config])
-    
+    #artesian_position_controller = Node(
+    #    package='wbc_ros',
+    #    executable='cartesian_position_controller_node',
+    #    name='cartesian_position_controller',
+    #    parameters=[controller_config])
+
+    container = ComposableNodeContainer(
+            name='wbc_node',
+            namespace='',
+            package='rclcpp_components',
+            executable='component_container',
+            composable_node_descriptions=[
+                ComposableNode(
+                    package='wbc_ros',
+                    plugin='wbc_ros::WholeBodyController',
+                    name='whole_body_controller',
+                    parameters=[robot_description, wbc_config]),
+                ComposableNode(
+                    package='wbc_ros',
+                    plugin='wbc_ros::CartesianPositionController',
+                    name='cartesian_position_controller',
+                    parameters=[controller_config])
+            ],
+            output='screen',
+    )
+
     return LaunchDescription([
         controller_manager,
         position_controller,
         joint_state_broadcaster,
         robot_state_publisher,
-        whole_body_controller,
-        cartesian_position_controller,
+        container,
         cartesian_trajectory_publisher
     ])
