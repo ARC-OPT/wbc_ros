@@ -84,13 +84,6 @@ void CartesianPositionController::update(){
                                                          feedback.pose, 
                                                          feedback.twist);   
 
-    std::cout<<"Setpoint"<<std::endl;
-    std::cout<<setpoint.pose.position.transpose()<<std::endl;
-    std::cout<<"Feedback"<<std::endl;
-    std::cout<<feedback.pose.position.transpose()<<std::endl;
-    std::cout<<"Control output"<<std::endl;
-    std::cout<<control_output.twist.linear.transpose()<<std::endl<<std::endl;
-
     rt_control_output_publisher->lock();
     toROS(control_output, rt_control_output_publisher->msg_);
     rt_control_output_publisher->unlockAndPublish();

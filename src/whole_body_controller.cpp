@@ -7,7 +7,6 @@
 #include <wbc/tasks/CoMVelocityTask.hpp>
 #include <wbc/tasks/CoMAccelerationTask.hpp>
 #include <wbc/tasks/ContactForceTask.hpp>
-
 #include <rclcpp_components/register_node_macro.hpp>
 
 using namespace std;
@@ -177,8 +176,6 @@ void WholeBodyController::update(){
     // 1. Update the internal robot model with the current robot state (joint state + floating base)
     rclcpp::Time start = this->get_clock()->now();
     joint_state_msg = *rt_joint_state_buffer.readFromRT();   
-    for(auto s : joint_state_msg->position)
-        cout<<s<<endl;
     if(joint_state_msg->position.size() > 0)
         fromROS(*joint_state_msg, joint_state);
     else
