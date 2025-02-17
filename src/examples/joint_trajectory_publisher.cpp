@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include "rclcpp/rclcpp.hpp"
-#include <trajectory_msgs/msg/joint_trajectory.hpp>
+#include <wbc_msgs/msg/joint_command.hpp>
 
 using namespace std::chrono_literals;
 
@@ -11,7 +11,7 @@ class JointTrajectoryPublisher : public rclcpp::Node
 {
   public:
     JointTrajectoryPublisher() : Node("joint_trajectory_publisher"){
-        publisher = this->create_publisher<trajectory_msgs::msg::JointTrajectory>("setpoint", 10);
+        publisher = this->create_publisher<wbc_msgs::msg::JointCommand>("setpoint", 10);
 
         declare_parameter("amplitude", 0.1);
         declare_parameter("frequency", 1.0);
@@ -34,22 +34,20 @@ class JointTrajectoryPublisher : public rclcpp::Node
   private:
     void timer_callback()
     {
-        auto msg = trajectory_msgs::msg::JointTrajectory();
-        msg.points.resize(1);
-        msg.joint_names = joint_names;
-        msg.points[0].positions.resize(joint_names.size());
-        msg.points[0].velocities.resize(joint_names.size());
-        msg.points[0].accelerations.resize(joint_names.size());
+        auto msg = wbc_msgs::msg::JointCommand();
+        msg.position.resize(joint_names.size());
+        msg.velocity.resize(joint_names.size());
+        msg.acceleration.resize(joint_names.size());
         for(uint i = 0; i < joint_names.size(); i++){
-            msg.points[0].positions[i] = initial_positions[i] + amplitude*sin(frequency*dt);
-            msg.points[0].velocities[i] = amplitude*cos(frequency*dt);
-            msg.points[0].accelerations[i] = 0;
+            msg.position[i] = initial_positions[i] + amplitude*sin(frequency*dt);
+            msg.velocity[i] = cos(frequency*dt);
+            msg.acceleration[i] = -sin(frequency*dt);
         }
         publisher->publish(msg);
         dt += 0.01;
     }
     rclcpp::TimerBase::SharedPtr timer;
-    rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr publisher;
+    rclcpp::Publisher<wbc_msgs::msg::JointCommand>::SharedPtr publisher;
     double amplitude;
     double frequency;
     std::vector<std::string> joint_names;

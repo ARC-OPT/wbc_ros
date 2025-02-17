@@ -10,7 +10,7 @@ import os
 
 def generate_launch_description():
     # Load configuration files
-    base_path = os.path.join(get_package_share_directory('wbc_ros'),'config','cartesian_space_dynamic_example')
+    base_path = os.path.join(get_package_share_directory('wbc_ros'),'config','joint_space_dynamic_example')
     wbc_config = base_path + '/whole_body_controller.yaml'
     mock_hardware_config = base_path + '/mock_hardware_interface.yaml'
     trajectory_publisher_config = base_path + '/trajectory_publisher.yaml'
@@ -37,12 +37,12 @@ def generate_launch_description():
         parameters=[robot_description])
      
     # This node publishes a circular trajectory and sends it to the Cartesian position controller
-    cartesian_trajectory_publisher = Node(
+    joint_trajectory_publisher = Node(
         package='wbc_ros',
-        executable='cartesian_trajectory_publisher',
-        name='cartesian_trajectory_publisher',
+        executable='joint_trajectory_publisher',
+        name='joint_trajectory_publisher',
         namespace='',
-        remappings=[('/setpoint', '/whole_body_controller/ee_pose/setpoint')],
+        remappings=[('/setpoint', '/whole_body_controller/joint_position/setpoint')],
         parameters=[trajectory_publisher_config])
 
     container = ComposableNodeContainer(
@@ -71,5 +71,5 @@ def generate_launch_description():
     return LaunchDescription([
         robot_state_publisher,
         container,
-        cartesian_trajectory_publisher
+        joint_trajectory_publisher
     ])

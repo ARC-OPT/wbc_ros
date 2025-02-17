@@ -1,4 +1,4 @@
-/joint_position_controller/trajectory:
+/joint_trajectory_publisher:
   ros__parameters:
     # Amplitude of the sine/cosine curve
     amplitude: 0.3

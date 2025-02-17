@@ -1,16 +1,8 @@
-#include <wbc_ros/conversions.hpp>
+#include "conversions.hpp"
 
 using namespace std;
 using namespace wbc;
 using namespace rclcpp;
-
-void fromROS(const sensor_msgs::msg::JointState& in, wbc::types::JointState& out){
-     out.resize(in.position.size());
-     for(uint i = 0; i < in.position.size(); i++){
-         out.position[i] = in.position[i];
-         out.velocity[i] = in.velocity[i];
-     }
-}
 
 void fromROS(const geometry_msgs::msg::Pose& in, wbc::types::Pose& out){
     out.position = Eigen::Vector3d(in.position.x,in.position.y,in.position.z);
@@ -27,32 +19,21 @@ void fromROS(const geometry_msgs::msg::Accel& in, wbc::types::SpatialAcceleratio
     out.angular = Eigen::Vector3d(in.angular.x,in.angular.y,in.angular.z);
 }
 
-void toROS(const wbc::types::Pose& pose, const wbc::types::Twist& twist, const wbc::types::SpatialAcceleration& acc, wbc_msgs::msg::RigidBodyState& out){
-    toROS(pose,out.pose);
-    toROS(twist,out.twist);
-    toROS(acc,out.acceleration);
-}
-
-void fromROS(const trajectory_msgs::msg::JointTrajectory& in, wbc::types::JointCommand& out){
-    if(in.points.size() != 1)
-        throw std::runtime_error("Reference trajectory must contain exactly one point");
-    out.resize(in.joint_names.size());
-    for(size_t i = 0; i < in.joint_names.size(); i++){
-        out.position[i] = in.points[0].positions[i];
-        out.velocity[i] = in.points[0].velocities[i];
-        out.acceleration[i] = in.points[0].accelerations[i];
-    }
-}
-
-void fromROS(const std_msgs::msg::Float64MultiArray& in, Eigen::VectorXd& out){
-    out.resize(in.data.size());
-    for(uint i = 0; i < in.data.size(); i++)
-        out[i] = in.data[i];
-}
-
 void fromROS(const geometry_msgs::msg::Wrench& in, wbc::types::Wrench& out){
     out.force = Eigen::Vector3d(in.force.x, in.force.y, in.force.z);
     out.torque = Eigen::Vector3d(in.torque.x, in.torque.y, in.torque.z);
+}
+
+void fromROS(const wbc_msgs::msg::JointState& in, wbc::types::JointState& out){
+    out.position.resize(in.position.size());
+    out.velocity.resize(in.velocity.size());
+    out.acceleration.resize(in.acceleration.size());
+    for(uint i = 0; i < in.position.size(); i++)
+        out.position[i]     = in.position[i];
+    for(uint i = 0; i < in.velocity.size(); i++)
+         out.velocity[i]     = in.velocity[i];
+    for(uint i = 0; i < in.acceleration.size(); i++)
+         out.acceleration[i] = in.acceleration[i];
 }
 
 void fromROS(const wbc_msgs::msg::RigidBodyState& in, wbc::types::RigidBodyState& out){
@@ -61,30 +42,61 @@ void fromROS(const wbc_msgs::msg::RigidBodyState& in, wbc::types::RigidBodyState
     fromROS(in.acceleration,out.acceleration);
 }
 
+void fromROS(const wbc_msgs::msg::JointCommand& in, wbc::types::JointCommand& out){
+    out.position.resize(in.position.size());
+    out.velocity.resize(in.velocity.size());
+    out.acceleration.resize(in.acceleration.size());
+    out.effort.resize(in.effort.size());
+    for(uint i = 0; i < in.position.size(); i++)
+        out.position[i] = in.position[i];
+    for(uint i = 0; i < in.velocity.size(); i++)
+        out.velocity[i] = in.velocity[i];
+    for(uint i = 0; i < in.acceleration.size(); i++)
+        out.acceleration[i] = in.acceleration[i];
+    for(uint i = 0; i < in.effort.size(); i++)
+        out.effort[i] = in.effort[i];
+}
+
+void fromROS(const wbc_msgs::msg::Contacts& in, std::vector<wbc::types::Contact>& out){
+    out.resize(in.active.size());
+    for(uint i = 0; i < in.active.size(); i++)
+        out[i].active = (int)in.active[i];
+}
+
+void fromROS(const std_msgs::msg::Float64MultiArray& in, Eigen::VectorXd& out){
+    out.resize(in.data.size());
+    for(uint i = 0; i < in.data.size(); i++)
+        out[i] = in.data[i];
+}
+
+void fromROS(const wbc_msgs::msg::RobotState& in, wbc::types::JointState &joint_state_out, wbc::types::RigidBodyState& floating_base_state_out){
+    fromROS(in.joint_state, joint_state_out);
+    fromROS(in.floating_base_state, floating_base_state_out);
+}
+
+void toROS(const wbc::types::RigidBodyState& in, wbc_msgs::msg::RigidBodyState& out){
+    toROS(in.pose, out.pose);
+    toROS(in.twist, out.twist);
+    toROS(in.acceleration, out.acceleration);
+}
+
+void toROS(const wbc::types::JointCommand& in, wbc_msgs::msg::JointCommand& out){
+    out.position.resize(in.position.size());
+    out.velocity.resize(in.velocity.size());
+    out.effort.resize(in.effort.size());
+    for(uint i = 0; i < in.position.size(); i++)
+        out.position[i] = in.position[i];
+    for(uint i = 0; i < in.position.size(); i++)
+        out.velocity[i] = in.velocity[i];        
+    for(uint i = 0; i < in.position.size(); i++)
+        out.effort[i] = in.effort[i];
+}
+
 void toROS(const Eigen::VectorXd& in, std_msgs::msg::Float64MultiArray& out){
     out.data.resize(in.size());
     for(uint i = 0; i < in.size(); i++)
         out.data[i] = in[i];
 }
-
-void toROS(const wbc::types::JointCommand& in, const vector<string>& joint_names, trajectory_msgs::msg::JointTrajectory& out){
-    //out.header.stamp.sec = in.time.toTimeval().tv_sec;
-    //out.header.stamp.nanosec = in.time.toTimeval().tv_usec*1000;
-    out.joint_names = joint_names;
-    out.points.resize(1);
-    uint nj = joint_names.size();
-    out.points[0].positions.resize(nj);
-    out.points[0].velocities.resize(nj);
-    out.points[0].accelerations.resize(nj);
-    //out.points[0].effort.resize(nj);
-    for(uint i = 0; i < nj; i++){
-        out.points[0].positions[i] = in.position[i];
-        out.points[0].velocities[i] = 0.0; //in.velocity[i];
-        out.points[0].accelerations[i] = 0.0; //in.acceleration[i];
-        //out.points[0].effort[i] = in.effort[i];
-    }
-}
-
 void toROS(const wbc::types::Pose& in, geometry_msgs::msg::Pose& out){
     out.position.x = in.position[0];
     out.position.y = in.position[1];
@@ -113,20 +125,20 @@ void toROS(const wbc::types::SpatialAcceleration& in, geometry_msgs::msg::Accel&
     out.angular.z = in.angular[2];
 }
 
-void toROS(const wbc::types::RigidBodyState& in, wbc_msgs::msg::RigidBodyState& out){
-    toROS(in.pose, out.pose);
-    toROS(in.twist, out.twist);
-    toROS(in.acceleration, out.acceleration);
+void toROS(const wbc::types::Pose& pose, const wbc::types::Twist& twist, const wbc::types::SpatialAcceleration& acc, wbc_msgs::msg::RigidBodyState& out){
+    toROS(pose,out.pose);
+    toROS(twist,out.twist);
+    toROS(acc,out.acceleration);
 }
 
-void toROS(const wbc::types::JointState& in, const vector<string>& joint_names, sensor_msgs::msg::JointState& out){
-    //toROS(in.time, out.header.stamp);
-    out.name = joint_names;
-    out.position.resize(joint_names.size());
-    out.velocity.resize(joint_names.size());
-    out.effort.resize(joint_names.size());
-    for(uint i = 0; i < joint_names.size(); i++){
+void toROS(const wbc::types::JointState& in, wbc_msgs::msg::JointState& out){
+    out.position.resize(in.position.size());
+    out.velocity.resize(in.velocity.size());
+    out.acceleration.resize(in.acceleration.size());
+    for(uint i = 0; i < in.position.size(); i++)
         out.position[i] = in.position[i];
+    for(uint i = 0; i < in.velocity.size(); i++)
         out.velocity[i] = in.velocity[i];
-    }
+    for(uint i = 0; i < in.acceleration.size(); i++)
+        out.acceleration[i] = in.acceleration[i];
 }

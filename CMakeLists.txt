@@ -10,7 +10,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   realtime_tools
   std_msgs
   geometry_msgs
-  trajectory_msgs
   wbc_msgs
   sensor_msgs
   rclcpp_lifecycle
@@ -33,6 +32,7 @@ include_directories(
   ${wbc-controllers_INCLUDE_DIRS}
   ${wbc-types_INCLUDE_DIRS}
   ${wbc-tasks_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/wbc_ros
 )
 
 link_directories(
@@ -45,48 +45,29 @@ link_directories(
 generate_parameter_library(whole_body_controller_parameters
   src/whole_body_controller_parameters.yaml
 )
-generate_parameter_library(cartesian_position_controller_parameters
-  src/cartesian_position_controller_parameters.yaml
-)
-generate_parameter_library(joint_position_controller_parameters
-  src/joint_position_controller_parameters.yaml
-)
-generate_parameter_library(com_position_controller_parameters
-  src/com_position_controller_parameters.yaml
-)
 
 add_library(whole_body_controller SHARED src/whole_body_controller.cpp src/conversions.cpp src/task_interface.cpp)
-add_library(cartesian_position_controller SHARED src/cartesian_position_controller.cpp src/conversions.cpp)
-
+add_library(mock_hardware_interface SHARED src/mock_hardware_interface.cpp)
 ament_target_dependencies(whole_body_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
-ament_target_dependencies(cartesian_position_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(mock_hardware_interface rclcpp_lifecycle wbc_msgs sensor_msgs rclcpp_components)
 
-target_link_libraries(whole_body_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-tasks_LIBRARIES} whole_body_controller_parameters)
+target_link_libraries(whole_body_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} whole_body_controller_parameters)
 target_compile_features(whole_body_controller PUBLIC cxx_std_17)
 target_include_directories(whole_body_controller PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/wbc_ros>
 )
-target_link_libraries(cartesian_position_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} cartesian_position_controller_parameters)
-target_compile_features(cartesian_position_controller PUBLIC cxx_std_17)
-target_include_directories(cartesian_position_controller PUBLIC
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/wbc_ros>
-)
 
 rclcpp_components_register_node(whole_body_controller PLUGIN "wbc_ros::WholeBodyController" EXECUTABLE whole_body_controller_node)
-rclcpp_components_register_node(cartesian_position_controller PLUGIN "wbc_ros::CartesianPositionController" EXECUTABLE cartesian_position_controller_node)
+rclcpp_components_register_node(mock_hardware_interface PLUGIN "wbc_ros::MockHardwareInterface" EXECUTABLE mock_hardware_interface_node)
 
 install(
   DIRECTORY include/
   DESTINATION include/wbc_ros
 )
 install(TARGETS whole_body_controller
-                cartesian_position_controller
+                mock_hardware_interface
                 whole_body_controller_parameters
-                cartesian_position_controller_parameters
-                joint_position_controller_parameters
-                com_position_controller_parameters
         EXPORT export_wbc_ros
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib
@@ -110,9 +91,10 @@ ament_package()
 add_executable(joint_trajectory_publisher src/examples/joint_trajectory_publisher.cpp)
 add_executable(cartesian_trajectory_publisher src/examples/cartesian_trajectory_publisher.cpp)
 add_executable(cartesian_pose_publisher src/examples/cartesian_pose_publisher.cpp)
-ament_target_dependencies(joint_trajectory_publisher rclcpp trajectory_msgs)
+ament_target_dependencies(joint_trajectory_publisher rclcpp wbc_msgs)
 ament_target_dependencies(cartesian_trajectory_publisher rclcpp wbc_msgs)
 ament_target_dependencies(cartesian_pose_publisher rclcpp wbc_msgs)
+
 install(TARGETS joint_trajectory_publisher
                 cartesian_trajectory_publisher
                 cartesian_pose_publisher

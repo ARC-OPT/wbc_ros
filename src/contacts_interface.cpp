@@ -1,1 +1,0 @@
-#include <wbc_ros/contacts_interface.hpp>

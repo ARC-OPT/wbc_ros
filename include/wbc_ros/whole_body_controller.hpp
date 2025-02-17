@@ -6,15 +6,8 @@
 #include <realtime_tools/realtime_buffer.hpp>
 #include <realtime_tools/realtime_publisher.hpp>
 
-#include <wbc_msgs/msg/rigid_body_state.hpp>
-#include <sensor_msgs/msg/joint_state.hpp>
-#include <trajectory_msgs/msg/joint_trajectory.hpp>
-#include <std_msgs/msg/float64.hpp>
-#include <std_msgs/msg/float64_multi_array.hpp>
 #include <wbc_msgs/msg/task_status.hpp>
 #include <wbc_msgs/msg/wbc_timing_stats.hpp>
-#include <wbc_msgs/msg/task_weights.hpp>
-#include <wbc_msgs/msg/task_activation.hpp>
 
 #include <wbc/core/RobotModel.hpp>
 #include <wbc/core/PluginLoader.hpp>
@@ -65,14 +58,14 @@ class WholeBodyController : public rclcpp_lifecycle::LifecycleNode{
    };   
 
    // Some shortcuts
-   using CommandMsg = trajectory_msgs::msg::JointTrajectory;
+   using CommandMsg = wbc_msgs::msg::JointCommand;
    using CommandPublisher = rclcpp::Publisher<CommandMsg>;
    using RTCommandPublisher = realtime_tools::RealtimePublisher<CommandMsg>;
 
-   using JointStateMsg = sensor_msgs::msg::JointState;
-   using JointStateMsgPtr = std::shared_ptr<JointStateMsg>;
-   using JointStateSubscription = rclcpp::Subscription<JointStateMsg>::SharedPtr;
-   using RTJointStateBuffer = realtime_tools::RealtimeBuffer<JointStateMsgPtr>;
+   using RobotStateMsg = wbc_msgs::msg::RobotState;
+   using RobotStateMsgPtr = std::shared_ptr<RobotStateMsg>;
+   using RobotStateSubscription = rclcpp::Subscription<RobotStateMsg>::SharedPtr;
+   using RTRobotStateBuffer = realtime_tools::RealtimeBuffer<RobotStateMsgPtr>;
 
    using JointWeightMsg = std_msgs::msg::Float64MultiArray;
    using JointWeightMsgPtr = std::shared_ptr<JointWeightMsg>;
@@ -83,6 +76,11 @@ class WholeBodyController : public rclcpp_lifecycle::LifecycleNode{
    using TimingStatsPublisher = rclcpp::Publisher<TimingStatsMsg>;
    using RTTimingStatsPublisher = realtime_tools::RealtimePublisher<TimingStatsMsg>;
 
+   using ContactsMsg = wbc_msgs::msg::Contacts;
+   using ContactsMsgPtr = std::shared_ptr<ContactsMsg>;
+   using ContactsSubription = rclcpp::Subscription<ContactsMsg>::SharedPtr;
+   using RTContactsBuffer = realtime_tools::RealtimeBuffer<ContactsMsgPtr>;    
+
 protected:
    wbc::ScenePtr scene;
    wbc::RobotModelPtr robot_model;
@@ -90,12 +88,12 @@ protected:
 
    wbc::types::JointState joint_state;
    wbc::types::RigidBodyState floating_base_state;
+   std::vector<wbc::types::Contact> contacts;
    wbc::HierarchicalQP qp;
    wbc::types::JointCommand solver_output;
    wbc::JointIntegrator joint_integrator;
-   bool has_floating_base_state;
    int update_rate;
-   bool has_joint_state;
+   bool has_robot_state;
 
    CommandMsg solver_output_msg;
    CommandPublisher::SharedPtr solver_output_publisher;
@@ -109,18 +107,21 @@ protected:
    RTJointWeightBuffer rt_joint_weight_buffer;
    JointWeightMsgPtr joint_weight_msg;
 
-   JointStateSubscription joint_state_subscriber;
-   RTJointStateBuffer rt_joint_state_buffer;
-   JointStateMsgPtr joint_state_msg;
+   RobotStateSubscription robot_state_subscriber;
+   RTRobotStateBuffer rt_robot_state_buffer;
+   RobotStateMsgPtr robot_state_msg;
+
+   ContactsSubription contacts_subscriber;
+   RTContactsBuffer rt_contacts_buffer;
+   ContactsMsgPtr contacts_msg;
 
    rclcpp::Time stamp;
    rclcpp::TimerBase::SharedPtr timer;
 
-   void update_tasks();
-   void update();
-   void update_contacts();
+   void updateController();
    void joint_weight_callback(const JointWeightMsgPtr msg);
-   void joint_state_callback(const JointStateMsgPtr msg);   
+   void robot_state_callback(const RobotStateMsgPtr msg);  
+   void contacts_callback(const ContactsMsgPtr msg);   
 
    // Parameters from ROS
    std::shared_ptr<whole_body_controller::ParamListener> param_listener;

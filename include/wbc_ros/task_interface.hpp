@@ -5,12 +5,12 @@
 #include <realtime_tools/realtime_buffer.hpp>
 #include <realtime_tools/realtime_publisher.hpp>
 #include <std_msgs/msg/float64.hpp>
-#include <std_msgs/msg/float64_multi_array.hpp>
-#include <geometry_msgs/msg/accel.hpp>
-#include <geometry_msgs/msg/twist.hpp>
 #include <wbc/core/Task.hpp>
 #include <wbc/core/RobotModel.hpp>
+#include <wbc/core/Controller.hpp>
 #include <wbc_ros/conversions.hpp>
+#include <wbc/controllers/CartesianPosPDController.hpp>
+#include <wbc/controllers/JointPosPDController.hpp>
 
 namespace wbc_ros{
     
@@ -36,94 +36,154 @@ class TaskInterface{
 
       public:
          wbc::TaskPtr task;
-         wbc::RobotModelPtr robot_model;
          std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node;
 
-         TaskInterface(wbc::TaskPtr task, 
-                       wbc::RobotModelPtr robot_model, 
-                       std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
-         void updateWeights();
+         TaskInterface(wbc::TaskPtr task, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
+         void updateTaskWeights();
          void task_weight_callback(const TaskWeightMsgPtr msg);
          void task_activation_callback(const TaskActivationMsgPtr msg);
-         virtual void updateReference() = 0;
-         virtual void publishStatus() = 0;
-         virtual void reset() = 0;
+         virtual void updateTask() = 0;
     };
-
     using TaskInterfacePtr = std::shared_ptr<TaskInterface>;    
 
     class SpatialVelocityTaskInterface : public TaskInterface{
       protected:
-         using ReferenceMsg = wbc_msgs::msg::RigidBodyState;
-         using ReferenceMsgPtr = std::shared_ptr<ReferenceMsg>;
-         using ReferenceSubscription = rclcpp::Subscription<ReferenceMsg>::SharedPtr;
-         using RTReferenceBuffer = realtime_tools::RealtimeBuffer<ReferenceMsgPtr>;
-
-         using StatusMsg = wbc_msgs::msg::RigidBodyState;
-         using StatusPublisher = rclcpp::Publisher<StatusMsg>;
-         using RTStatusPublisher = realtime_tools::RealtimePublisher<StatusMsg>;
-
+         using SetpointMsg = wbc_msgs::msg::RigidBodyState;
+         using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
+         using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
+         using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;
 
       public:
-         ReferenceSubscription reference_subscriber;
-         StatusPublisher::SharedPtr status_publisher;
-         std::unique_ptr<RTStatusPublisher> rt_status_publisher;
-         RTReferenceBuffer rt_reference_buffer;
-         ReferenceMsgPtr reference_msg;
+         std::shared_ptr<wbc::CartesianPosPDController> controller;
+         wbc::RobotModelPtr robot_model;
+         SetpointSubscription setpoint_subscriber;
+         RTSetpointBuffer rt_setpoint_buffer;
+         SetpointMsgPtr setpoint_msg;
 
-         wbc::types::RigidBodyState status;
-         wbc::types::RigidBodyState reference;
+         wbc::types::Pose pose;
+         wbc::types::RigidBodyState setpoint;
+         wbc::types::Twist control_output;
 
          SpatialVelocityTaskInterface(wbc::TaskPtr task, 
+                                      wbc::CartesianPosPDControllerPtr controller,
                                       wbc::RobotModelPtr robot_model, 
                                       std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
-         virtual void updateReference();
-         virtual void publishStatus();
-         virtual void reset();
-         void reference_callback(const ReferenceMsgPtr msg);
+         virtual void updateTask();
+         void setpoint_callback(const SetpointMsgPtr msg);
+    };
+    using SpatialVelocityTaskInterfacePtr = std::shared_ptr<SpatialVelocityTaskInterface>;    
+
+    class SpatialAccelerationTaskInterface : public TaskInterface{
+      protected:
+         using SetpointMsg = wbc_msgs::msg::RigidBodyState;
+         using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
+         using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
+         using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;
+
+      public:
+         wbc::CartesianPosPDControllerPtr controller;
+         wbc::RobotModelPtr robot_model;
+         SetpointSubscription setpoint_subscriber;
+         RTSetpointBuffer rt_setpoint_buffer;
+         SetpointMsgPtr setpoint_msg;
+
+         wbc::types::Pose pose;
+         wbc::types::Twist twist;
+         wbc::types::RigidBodyState setpoint;
+         wbc::types::SpatialAcceleration control_output;
+
+         SpatialAccelerationTaskInterface(wbc::TaskPtr task, 
+                                          wbc::CartesianPosPDControllerPtr controller,
+                                          wbc::RobotModelPtr robot_model, 
+                                          std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
+         virtual void updateTask();
+         void setpoint_callback(const SetpointMsgPtr msg);
     };
 
-    /*class SpatialAccelerationTaskInterface : public TaskInterface{
-      public:
-        wbc::types::Pose status_pose;
-        wbc::types::Twist status_twist;
-        wbc::types::SpatialAcceleration reference;         
+    /*class CoMVelocityTaskInterface : public TaskInterface{
+      protected:
+         using SetpointMsg = wbc_msgs::msg::RigidBodyState;
+         using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
+         using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
+         using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;
 
-        SpatialAccelerationTaskInterface(wbc::TaskPtr task, 
-                                         wbc::RobotModelPtr robot_model, 
-                                         std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
-        virtual void updateReference();
-        virtual void updateStatus();      
-    };
-
-    class CoMVelocityTaskInterface : public TaskInterface{
       public:
+         SetpointSubscription setpoint_subscriber;
+         RTSetpointBuffer rt_setpoint_buffer;
+         SetpointMsgPtr setpoint_msg;
+
+         wbc::types::Pose pose;
+         wbc::types::Twist twist;
+         wbc::types::RigidBodyState setpoint;
+         wbc::types::Twist control_output;
+               
         CoMVelocityTaskInterface(wbc::TaskPtr task, 
+                                 wbc::ControllerPtr controller,
                                  wbc::RobotModelPtr robot_model, 
                                  std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
-        virtual void updateReference();
-        virtual void updateStatus();
-    };
+        virtual void updateTask();
+        virtual void reset();
+        void setpoint_callback(const SetpointMsgPtr msg);
+    };*/
 
-    class CoMAccelerationTaskInterface : public TaskInterface{
+    /*class CoMAccelerationTaskInterface : public TaskInterface{
       public:
         CoMAccelerationTaskInterface(wbc::TaskPtr task, 
                                      wbc::RobotModelPtr robot_model, 
                                      std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
         virtual void updateReference();
         virtual void updateStatus();
-    };
+    };*/
 
     class JointVelocityTaskInterface : public TaskInterface{
+      protected:
+         using SetpointMsg = wbc_msgs::msg::JointCommand;
+         using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
+         using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
+         using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;
       public:
+         SetpointSubscription setpoint_subscriber;
+         RTSetpointBuffer rt_setpoint_buffer;
+         SetpointMsgPtr setpoint_msg;
+
+         wbc::JointPosPDControllerPtr controller;
+         wbc::RobotModelPtr robot_model;
+         wbc::types::JointCommand setpoint;
+         wbc::types::JointCommand joint_state;
+         Eigen::VectorXd control_output;
          JointVelocityTaskInterface(wbc::TaskPtr task, 
+                                    wbc::JointPosPDControllerPtr controller,
                                     wbc::RobotModelPtr robot_model, 
                                     std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
-        virtual void updateReference();
-        virtual void updateStatus();
+         virtual void updateTask();
+         void setpoint_callback(const SetpointMsgPtr msg);
     };
 
     class JointAccelerationTaskInterface : public TaskInterface{
+      protected:
+         using SetpointMsg = wbc_msgs::msg::JointCommand;
+         using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
+         using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
+         using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;
+      public:
+         SetpointSubscription setpoint_subscriber;
+         RTSetpointBuffer rt_setpoint_buffer;
+         SetpointMsgPtr setpoint_msg;
+
+         wbc::JointPosPDControllerPtr controller;
+         wbc::RobotModelPtr robot_model;
+         wbc::types::JointCommand setpoint;
+         wbc::types::JointCommand joint_state;
+         Eigen::VectorXd control_output;
+         JointAccelerationTaskInterface(wbc::TaskPtr task, 
+                                        wbc::JointPosPDControllerPtr controller,
+                                        wbc::RobotModelPtr robot_model, 
+                                        std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
+         virtual void updateTask();
+         void setpoint_callback(const SetpointMsgPtr msg);
+    };
+
+    /*class JointAccelerationTaskInterface : public TaskInterface{
       public:
          JointAccelerationTaskInterface(wbc::TaskPtr task, 
                                         wbc::RobotModelPtr robot_model, 

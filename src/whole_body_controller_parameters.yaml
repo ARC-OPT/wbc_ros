@@ -201,12 +201,29 @@ whole_body_controller:
                     unique<>: null,
                 }
             }
-            timeout: {
-                type: double,
-                default_value: 0.0,
-                description: "Timeout of this task in seconds. Output for this task will be set to zero if, for more than this amount of time, no new reference is set.\
-                              A value of 0 will be interpreted as infinite.",
+    controllers:
+        __map_task_names:
+            p_gain: {
+                type: double_array,
+                default_value: [],
+                description: "Array of proportional gain values, size has to be same as controller dimension",
                 validation: {
-                    gt_eq<>: [0.0]
+                    not_empty<>: null
                 }
             }
+            d_gain: {
+                type: double_array,
+                default_value: [],
+                description: "Array of derivative gain values, size has to be same as controller dimension. Will only apply to spatial_acceleration and joint_acceleration tasks",
+                validation: {
+                    not_empty<>: null
+                }
+            }
+            max_control_output: {
+                type: double_array,
+                default_value: [],
+                description: "Controller output saturation per element. Size has to be same as controller dimension",
+                validation: {
+                    not_empty<>: null
+                }
+            }   

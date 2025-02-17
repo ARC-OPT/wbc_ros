@@ -13,113 +13,113 @@ using namespace rclcpp;
 
 namespace wbc_ros{
     TaskInterface::TaskInterface(TaskPtr task, 
-                                 RobotModelPtr robot_model, 
                                  shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
             task(task), 
-            robot_model(robot_model), 
             node(node){  
         task_weight_subscriber = node->create_subscription<TaskWeightMsg>("~/" + task->config.name + "/task_weights", SystemDefaultsQoS(), bind(&TaskInterface::task_weight_callback, this, placeholders::_1));
         task_activation_subscriber = node->create_subscription<TaskActivationMsg>("~/" + task->config.name + "/activation", SystemDefaultsQoS(), bind(&TaskInterface::task_activation_callback, this, placeholders::_1));
     }
-
-    void TaskInterface::updateWeights(){
+    void TaskInterface::updateTaskWeights(){
         // update task weights
         task_weight_msg = *rt_task_weight_buffer.readFromRT();
         if(task_weight_msg.get())
-            task->setWeights(Eigen::Map<Eigen::VectorXd>(task_weight_msg->data.data(), task_weight_msg->data.size()));
-            
+            task->setWeights(Eigen::Map<Eigen::VectorXd>(task_weight_msg->data.data(), task_weight_msg->data.size()));            
         // Update task activations
         task_activation_msg = *rt_task_activation_buffer.readFromRT();
         if (task_activation_msg.get())
             task->setActivation(task_activation_msg->data);
     }
-
     void TaskInterface::task_weight_callback(const TaskWeightMsgPtr msg){
         rt_task_weight_buffer.writeFromNonRT(msg);
     }
-
     void TaskInterface::task_activation_callback(const TaskActivationMsgPtr msg){
         rt_task_activation_buffer.writeFromNonRT(msg);
     }
 
     SpatialVelocityTaskInterface::SpatialVelocityTaskInterface(TaskPtr task, 
+                                                               wbc::CartesianPosPDControllerPtr controller,
                                                                RobotModelPtr robot_model, 
                                                                shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-        TaskInterface(task, 
-                      robot_model, 
-                      node)
-    {
-        reference_subscriber = node->create_subscription<ReferenceMsg>("~/" + task->config.name + "/reference",  SystemDefaultsQoS(), bind(&SpatialVelocityTaskInterface::reference_callback, this, placeholders::_1));
-        status_publisher = node->create_publisher<StatusMsg>("~/" + task->config.name + "/status", SystemDefaultsQoS());
-        rt_status_publisher = std::make_unique<RTStatusPublisher>(status_publisher);
-        reference.twist.setZero();
+        TaskInterface(task, node),
+        controller(controller),
+        robot_model(robot_model){
+        setpoint_subscriber = node->create_subscription<SetpointMsg>("~/" + task->config.name + "/setpoint",  SystemDefaultsQoS(), bind(&SpatialVelocityTaskInterface::setpoint_callback, this, placeholders::_1));
+        control_output.setZero();
     }
-
-    void SpatialVelocityTaskInterface::updateReference(){
-        reference_msg = *rt_reference_buffer.readFromRT();
-        if(reference_msg.get())
-            fromROS(*reference_msg, reference);
-        dynamic_pointer_cast<SpatialVelocityTask>(task)->setReference(reference.twist);
+    void SpatialVelocityTaskInterface::updateTask(){
+        updateTaskWeights();
+        setpoint_msg = *rt_setpoint_buffer.readFromRT();
+        if(setpoint_msg.get()){
+            fromROS(*setpoint_msg, setpoint);
+            pose = robot_model->pose(dynamic_pointer_cast<SpatialVelocityTask>(task)->tipFrame());            
+            control_output = controller->update(setpoint.pose, setpoint.twist, pose);
+            dynamic_pointer_cast<SpatialVelocityTask>(task)->setReference(control_output);
+        }
     }  
-
-    void SpatialVelocityTaskInterface::publishStatus(){
-        status.pose = robot_model->pose(dynamic_pointer_cast<SpatialVelocityTask>(task)->tipFrame());
-        status.twist = robot_model->twist(dynamic_pointer_cast<SpatialVelocityTask>(task)->tipFrame());
-        rt_status_publisher->lock();    
-        toROS(status.pose, status.twist, status.acceleration, rt_status_publisher->msg_);
-        rt_status_publisher->unlockAndPublish();
+    void SpatialVelocityTaskInterface::setpoint_callback(const SetpointMsgPtr msg){
+        rt_setpoint_buffer.writeFromNonRT(msg);
     }
 
-
-    void SpatialVelocityTaskInterface::reference_callback(const ReferenceMsgPtr msg){
-        rt_reference_buffer.writeFromNonRT(msg);
-    }
-
-    void SpatialVelocityTaskInterface::reset(){
-        task->reset();
-        reference.twist.setZero();
-    }
-
-    /*SpatialAccelerationTaskInterface::SpatialAccelerationTaskInterface(TaskPtr task, 
+    SpatialAccelerationTaskInterface::SpatialAccelerationTaskInterface(TaskPtr task, 
+                                                                       wbc::CartesianPosPDControllerPtr controller,                                                                       
                                                                        RobotModelPtr robot_model, 
                                                                        shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-        TaskInterface(task, 
-                      robot_model, 
-                      node, 
-                      task->config.name + "/reference/" + spatial_acc_names,
-                      task->config.name + "/status/" + (pose_names + twist_names)){
+        TaskInterface(task,  node),
+        controller(controller),
+        robot_model(robot_model){
+        setpoint_subscriber = node->create_subscription<SetpointMsg>("~/" + task->config.name + "/setpoint",  SystemDefaultsQoS(), bind(&SpatialAccelerationTaskInterface::setpoint_callback, this, placeholders::_1));
+        control_output.setZero();
     }
-    
-    void SpatialAccelerationTaskInterface::updateReference(){
-        fromRaw(reference_data, reference);
-        dynamic_pointer_cast<SpatialAccelerationTask>(task)->setReference(reference);
+
+    void SpatialAccelerationTaskInterface::updateTask(){
+        setpoint_msg = *rt_setpoint_buffer.readFromRT();
+        if(setpoint_msg.get()){
+            fromROS(*setpoint_msg, setpoint);
+            pose = robot_model->pose(dynamic_pointer_cast<SpatialAccelerationTask>(task)->tipFrame());
+            twist = robot_model->twist(dynamic_pointer_cast<SpatialAccelerationTask>(task)->tipFrame());
+            control_output = controller->update(setpoint.pose, setpoint.twist, setpoint.acceleration, pose, twist);   
+            dynamic_pointer_cast<SpatialAccelerationTask>(task)->setReference(control_output);     
+        }
     }  
 
-    void SpatialAccelerationTaskInterface::updateStatus(){        
-        status_pose = robot_model->pose(dynamic_pointer_cast<SpatialAccelerationTask>(task)->tipFrame());
-        status_twist = robot_model->twist(dynamic_pointer_cast<SpatialAccelerationTask>(task)->tipFrame());
-        toRaw(status_pose, status_twist, status_data);
+    void SpatialAccelerationTaskInterface::setpoint_callback(const SetpointMsgPtr msg){
+        rt_setpoint_buffer.writeFromNonRT(msg);
     }
 
-    CoMVelocityTaskInterface::CoMVelocityTaskInterface(TaskPtr task, 
-                                                       RobotModelPtr robot_model, 
-                                                       shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
+    /*CoMVelocityTaskInterface::CoMVelocityTaskInterface(wbc::TaskPtr task, 
+                                                       wbc::ControllerPtr controller,
+                                                       wbc::RobotModelPtr robot_model, 
+                                                       std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
         TaskInterface(task, 
+                      controller,
                       robot_model, 
-                      node, 
-                      task->config.name + "/reference/" + linear_vel_names,
-                      task->config.name + "/status/" + position_names){
+                      node){
+        setpoint_subscriber = node->create_subscription<SetpointMsg>("~/" + task->config.name + "/setpoint",  SystemDefaultsQoS(), bind(&CoMVelocityTaskInterface::setpoint_callback, this, placeholders::_1));
+        control_output.setZero();                        
     }
     
-    void CoMVelocityTaskInterface::updateReference(){
-        dynamic_pointer_cast<CoMVelocityTask>(task)->setReference(reference_data);
+    void CoMVelocityTaskInterface::updateTask(){
+        setpoint_msg = *rt_setpoint_buffer.readFromRT();
+        if(setpoint_msg.get()){
+            fromROS(*setpoint_msg, setpoint);
+            pose = robot_model->pose(dynamic_pointer_cast<SpatialVelocityTask>(task)->tipFrame());
+            control_output = dynamic_pointer_cast<CartesianPosPDController>(controller)->update(setpoint.pose, 
+                                                                                                setpoint.twist, 
+                                                                                                pose);
+        }
+        dynamic_pointer_cast<CoMVelocityTask>(task)->setReference(control_output.linear);
     }  
 
-    void CoMVelocityTaskInterface::updateStatus(){        
-        status_data = robot_model->centerOfMass().pose.position;
-    }    
+    void CoMVelocityTaskInterface::setpoint_callback(const SetpointMsgPtr msg){
+        rt_setpoint_buffer.writeFromNonRT(msg);
+    }
 
-    CoMAccelerationTaskInterface::CoMAccelerationTaskInterface(TaskPtr task, 
+    void CoMVelocityTaskInterface::reset(){
+        task->reset();
+        control_output.setZero();
+    }*/
+
+    /*CoMAccelerationTaskInterface::CoMAccelerationTaskInterface(TaskPtr task, 
                                                                RobotModelPtr robot_model, 
                                                                shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
         TaskInterface(task, 
@@ -136,46 +136,60 @@ namespace wbc_ros{
     void CoMAccelerationTaskInterface::updateStatus(){        
         status_data.segment(0,3) = robot_model->centerOfMass().pose.position;
         status_data.segment(3,3) = robot_model->centerOfMass().twist.linear;
-    }     
+    }*/     
 
-    JointVelocityTaskInterface::JointVelocityTaskInterface(TaskPtr task, 
-                                                           RobotModelPtr robot_model, 
-                                                           shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-        TaskInterface(task, 
-                      robot_model, 
-                      node, 
-                      task->config.name + "/reference/" + std::dynamic_pointer_cast<wbc::JointVelocityTask>(task)->jointNames() + "/velocity", 
-                      vector<string>()){ 
-
+    JointVelocityTaskInterface::JointVelocityTaskInterface(wbc::TaskPtr task, 
+                                                           wbc::JointPosPDControllerPtr controller,
+                                                           wbc::RobotModelPtr robot_model, 
+                                                           std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
+        TaskInterface(task, node),
+        controller(controller),
+        robot_model(robot_model){ 
+        setpoint_subscriber = node->create_subscription<SetpointMsg>("~/" + task->config.name + "/setpoint",  SystemDefaultsQoS(), bind(&JointVelocityTaskInterface::setpoint_callback, this, placeholders::_1));
+        control_output.setZero();
     }
     
-    void JointVelocityTaskInterface::updateReference(){
-        dynamic_pointer_cast<JointVelocityTask>(task)->setReference(reference_data);
+    void JointVelocityTaskInterface::updateTask(){
+        setpoint_msg = *rt_setpoint_buffer.readFromRT();
+        if(setpoint_msg.get()){
+            fromROS(*setpoint_msg, setpoint);
+            joint_state.position = robot_model->jointState().position;
+            control_output = controller->update(setpoint.position, setpoint.velocity, joint_state.position);   
+            dynamic_pointer_cast<JointVelocityTask>(task)->setReference(control_output);     
+        }
     }  
 
-    void JointVelocityTaskInterface::updateStatus(){
-        // No status need for contact joint tasks (read status directly from hardware interfaces)
-    }               
+    void JointVelocityTaskInterface::setpoint_callback(const SetpointMsgPtr msg){
+        rt_setpoint_buffer.writeFromNonRT(msg);
+    }
 
-    JointAccelerationTaskInterface::JointAccelerationTaskInterface(TaskPtr task, 
-                                                                   RobotModelPtr robot_model, 
-                                                                   shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-        TaskInterface(task, 
-                      robot_model, 
-                      node, 
-                      task->config.name + "/reference/" + std::dynamic_pointer_cast<wbc::JointVelocityTask>(task)->jointNames() + "/acceleration",
-                      vector<string>()){ 
+    JointAccelerationTaskInterface::JointAccelerationTaskInterface(wbc::TaskPtr task, 
+                                                                   wbc::JointPosPDControllerPtr controller,
+                                                                   wbc::RobotModelPtr robot_model, 
+                                                                   std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
+        TaskInterface(task, node),
+        controller(controller),
+        robot_model(robot_model){ 
+        setpoint_subscriber = node->create_subscription<SetpointMsg>("~/" + task->config.name + "/setpoint",  SystemDefaultsQoS(), bind(&JointAccelerationTaskInterface::setpoint_callback, this, placeholders::_1));
+        control_output.setZero();
     }
     
-    void JointAccelerationTaskInterface::updateReference(){
-        dynamic_pointer_cast<JointAccelerationTask>(task)->setReference(reference_data);
+    void JointAccelerationTaskInterface::updateTask(){
+        setpoint_msg = *rt_setpoint_buffer.readFromRT();
+        if(setpoint_msg.get()){
+            fromROS(*setpoint_msg, setpoint);
+            joint_state.position = robot_model->jointState().position;
+            joint_state.velocity = robot_model->jointState().velocity;
+            control_output = controller->update(setpoint.position, setpoint.velocity, setpoint.acceleration, joint_state.position, joint_state.velocity);   
+            dynamic_pointer_cast<JointAccelerationTask>(task)->setReference(control_output);   
+        }
     }  
 
-    void JointAccelerationTaskInterface::updateStatus(){
-        // No status need for contact joint tasks (read status directly from hardware interfaces)
-    }   
+    void JointAccelerationTaskInterface::setpoint_callback(const SetpointMsgPtr msg){
+        rt_setpoint_buffer.writeFromNonRT(msg);
+    } 
 
-    ContactForceTaskInterface::ContactForceTaskInterface(TaskPtr task, 
+    /*ContactForceTaskInterface::ContactForceTaskInterface(TaskPtr task, 
                                                          RobotModelPtr robot_model, 
                                                          shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
         TaskInterface(task, 

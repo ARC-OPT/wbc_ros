@@ -1,4 +1,4 @@
-/cartesian_position_controller/trajectory:
+/cartesian_trajectory_publisher:
   ros__parameters:
     # Amplitude of the circular trajectory in x-direction
     amplitude_x: 0.1
