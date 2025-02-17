@@ -7,7 +7,6 @@
 #include <std_msgs/msg/float64.hpp>
 #include <wbc/core/Task.hpp>
 #include <wbc/core/RobotModel.hpp>
-#include <wbc/core/Controller.hpp>
 #include <wbc_ros/conversions.hpp>
 #include <wbc/controllers/CartesianPosPDController.hpp>
 #include <wbc/controllers/JointPosPDController.hpp>
