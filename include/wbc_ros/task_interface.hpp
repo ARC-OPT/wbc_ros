@@ -99,14 +99,42 @@ class TaskInterface{
          void setpoint_callback(const SetpointMsgPtr msg);
     };
 
-    /*class CoMVelocityTaskInterface : public TaskInterface{
+    class CoMVelocityTaskInterface : public TaskInterface{
       protected:
-         using SetpointMsg = wbc_msgs::msg::RigidBodyState;
+         using SetpointMsg = robot_control_msgs::msg::RigidBodyState;
          using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
          using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
          using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;
 
       public:
+         wbc::CartesianPosPDControllerPtr controller;
+         wbc::RobotModelPtr robot_model;
+         SetpointSubscription setpoint_subscriber;
+         RTSetpointBuffer rt_setpoint_buffer;
+         SetpointMsgPtr setpoint_msg;
+
+         wbc::types::Pose pose;
+         wbc::types::RigidBodyState setpoint;
+         wbc::types::Twist control_output;
+               
+        CoMVelocityTaskInterface(wbc::TaskPtr task, 
+                                 wbc::CartesianPosPDControllerPtr controller,
+                                 wbc::RobotModelPtr robot_model, 
+                                 std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
+        virtual void updateTask();
+        void setpoint_callback(const SetpointMsgPtr msg);
+    };
+
+    class CoMAccelerationTaskInterface : public TaskInterface{
+      protected:
+         using SetpointMsg = robot_control_msgs::msg::RigidBodyState;
+         using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
+         using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
+         using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;
+
+      public:
+         wbc::CartesianPosPDControllerPtr controller;
+         wbc::RobotModelPtr robot_model;
          SetpointSubscription setpoint_subscriber;
          RTSetpointBuffer rt_setpoint_buffer;
          SetpointMsgPtr setpoint_msg;
@@ -114,25 +142,15 @@ class TaskInterface{
          wbc::types::Pose pose;
          wbc::types::Twist twist;
          wbc::types::RigidBodyState setpoint;
-         wbc::types::Twist control_output;
+         wbc::types::SpatialAcceleration control_output;
                
-        CoMVelocityTaskInterface(wbc::TaskPtr task, 
-                                 wbc::ControllerPtr controller,
-                                 wbc::RobotModelPtr robot_model, 
-                                 std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
+         CoMAccelerationTaskInterface(wbc::TaskPtr task, 
+                                      wbc::CartesianPosPDControllerPtr controller,
+                                      wbc::RobotModelPtr robot_model, 
+                                      std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
         virtual void updateTask();
-        virtual void reset();
         void setpoint_callback(const SetpointMsgPtr msg);
-    };*/
-
-    /*class CoMAccelerationTaskInterface : public TaskInterface{
-      public:
-        CoMAccelerationTaskInterface(wbc::TaskPtr task, 
-                                     wbc::RobotModelPtr robot_model, 
-                                     std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
-        virtual void updateReference();
-        virtual void updateStatus();
-    };*/
+    };
 
     class JointVelocityTaskInterface : public TaskInterface{
       protected:

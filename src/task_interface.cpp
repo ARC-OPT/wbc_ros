@@ -86,14 +86,13 @@ namespace wbc_ros{
         rt_setpoint_buffer.writeFromNonRT(msg);
     }
 
-    /*CoMVelocityTaskInterface::CoMVelocityTaskInterface(wbc::TaskPtr task, 
-                                                       wbc::ControllerPtr controller,
+    CoMVelocityTaskInterface::CoMVelocityTaskInterface(wbc::TaskPtr task, 
+                                                       wbc::CartesianPosPDControllerPtr controller,
                                                        wbc::RobotModelPtr robot_model, 
                                                        std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-        TaskInterface(task, 
-                      controller,
-                      robot_model, 
-                      node){
+        TaskInterface(task, node),
+        controller(controller),
+        robot_model(robot_model){
         setpoint_subscriber = node->create_subscription<SetpointMsg>("~/" + task->config.name + "/setpoint",  SystemDefaultsQoS(), bind(&CoMVelocityTaskInterface::setpoint_callback, this, placeholders::_1));
         control_output.setZero();                        
     }
@@ -114,29 +113,36 @@ namespace wbc_ros{
         rt_setpoint_buffer.writeFromNonRT(msg);
     }
 
-    void CoMVelocityTaskInterface::reset(){
-        task->reset();
-        control_output.setZero();
-    }*/
 
-    /*CoMAccelerationTaskInterface::CoMAccelerationTaskInterface(TaskPtr task, 
-                                                               RobotModelPtr robot_model, 
-                                                               shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-        TaskInterface(task, 
-                      robot_model, 
-                      node, 
-                      task->config.name + "/reference/" + linear_acc_names,
-                      task->config.name + "/status/" + (position_names + linear_vel_names)){
+    CoMAccelerationTaskInterface::CoMAccelerationTaskInterface(wbc::TaskPtr task, 
+                                                       wbc::CartesianPosPDControllerPtr controller,
+                                                       wbc::RobotModelPtr robot_model, 
+                                                       std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
+        TaskInterface(task, node),
+        controller(controller),
+        robot_model(robot_model){
+        setpoint_subscriber = node->create_subscription<SetpointMsg>("~/" + task->config.name + "/setpoint",  SystemDefaultsQoS(), bind(&CoMAccelerationTaskInterface::setpoint_callback, this, placeholders::_1));
+        control_output.setZero();                        
     }
     
-    void CoMAccelerationTaskInterface::updateReference(){
-        dynamic_pointer_cast<CoMAccelerationTask>(task)->setReference(reference_data);
+    void CoMAccelerationTaskInterface::updateTask(){
+        setpoint_msg = *rt_setpoint_buffer.readFromRT();
+        if(setpoint_msg.get()){
+            fromROS(*setpoint_msg, setpoint);
+            pose = robot_model->pose(dynamic_pointer_cast<SpatialVelocityTask>(task)->tipFrame());
+            twist = robot_model->twist(dynamic_pointer_cast<SpatialVelocityTask>(task)->tipFrame());
+            control_output = dynamic_pointer_cast<CartesianPosPDController>(controller)->update(setpoint.pose, 
+                                                                                                setpoint.twist,
+                                                                                                setpoint.acceleration,
+                                                                                                pose,
+                                                                                                twist);
+        }
+        dynamic_pointer_cast<CoMAccelerationTask>(task)->setReference(control_output.linear);
     }  
 
-    void CoMAccelerationTaskInterface::updateStatus(){        
-        status_data.segment(0,3) = robot_model->centerOfMass().pose.position;
-        status_data.segment(3,3) = robot_model->centerOfMass().twist.linear;
-    }*/     
+    void CoMAccelerationTaskInterface::setpoint_callback(const SetpointMsgPtr msg){
+        rt_setpoint_buffer.writeFromNonRT(msg);
+    }
 
     JointVelocityTaskInterface::JointVelocityTaskInterface(wbc::TaskPtr task, 
                                                            wbc::JointPosPDControllerPtr controller,
