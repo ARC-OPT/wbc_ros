@@ -47,7 +47,7 @@ class TaskInterface{
 
     class SpatialVelocityTaskInterface : public TaskInterface{
       protected:
-         using SetpointMsg = wbc_msgs::msg::RigidBodyState;
+         using SetpointMsg = robot_control_msgs::msg::RigidBodyState;
          using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
          using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
          using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;
@@ -74,7 +74,7 @@ class TaskInterface{
 
     class SpatialAccelerationTaskInterface : public TaskInterface{
       protected:
-         using SetpointMsg = wbc_msgs::msg::RigidBodyState;
+         using SetpointMsg = robot_control_msgs::msg::RigidBodyState;
          using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
          using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
          using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;
@@ -136,7 +136,7 @@ class TaskInterface{
 
     class JointVelocityTaskInterface : public TaskInterface{
       protected:
-         using SetpointMsg = wbc_msgs::msg::JointCommand;
+         using SetpointMsg = robot_control_msgs::msg::JointCommand;
          using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
          using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
          using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;
@@ -160,7 +160,7 @@ class TaskInterface{
 
     class JointAccelerationTaskInterface : public TaskInterface{
       protected:
-         using SetpointMsg = wbc_msgs::msg::JointCommand;
+         using SetpointMsg = robot_control_msgs::msg::JointCommand;
          using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
          using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
          using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;

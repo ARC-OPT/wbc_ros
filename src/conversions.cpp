@@ -24,7 +24,7 @@ void fromROS(const geometry_msgs::msg::Wrench& in, wbc::types::Wrench& out){
     out.torque = Eigen::Vector3d(in.torque.x, in.torque.y, in.torque.z);
 }
 
-void fromROS(const wbc_msgs::msg::JointState& in, wbc::types::JointState& out){
+void fromROS(const robot_control_msgs::msg::JointState& in, wbc::types::JointState& out){
     out.position.resize(in.position.size());
     out.velocity.resize(in.velocity.size());
     out.acceleration.resize(in.acceleration.size());
@@ -36,13 +36,13 @@ void fromROS(const wbc_msgs::msg::JointState& in, wbc::types::JointState& out){
          out.acceleration[i] = in.acceleration[i];
 }
 
-void fromROS(const wbc_msgs::msg::RigidBodyState& in, wbc::types::RigidBodyState& out){
+void fromROS(const robot_control_msgs::msg::RigidBodyState& in, wbc::types::RigidBodyState& out){
     fromROS(in.pose,out.pose);
     fromROS(in.twist,out.twist);
     fromROS(in.acceleration,out.acceleration);
 }
 
-void fromROS(const wbc_msgs::msg::JointCommand& in, wbc::types::JointCommand& out){
+void fromROS(const robot_control_msgs::msg::JointCommand& in, wbc::types::JointCommand& out){
     out.position.resize(in.position.size());
     out.velocity.resize(in.velocity.size());
     out.acceleration.resize(in.acceleration.size());
@@ -57,7 +57,7 @@ void fromROS(const wbc_msgs::msg::JointCommand& in, wbc::types::JointCommand& ou
         out.effort[i] = in.effort[i];
 }
 
-void fromROS(const wbc_msgs::msg::Contacts& in, std::vector<wbc::types::Contact>& out){
+void fromROS(const robot_control_msgs::msg::Contacts& in, std::vector<wbc::types::Contact>& out){
     out.resize(in.active.size());
     for(uint i = 0; i < in.active.size(); i++)
         out[i].active = (int)in.active[i];
@@ -69,18 +69,18 @@ void fromROS(const std_msgs::msg::Float64MultiArray& in, Eigen::VectorXd& out){
         out[i] = in.data[i];
 }
 
-void fromROS(const wbc_msgs::msg::RobotState& in, wbc::types::JointState &joint_state_out, wbc::types::RigidBodyState& floating_base_state_out){
+void fromROS(const robot_control_msgs::msg::RobotState& in, wbc::types::JointState &joint_state_out, wbc::types::RigidBodyState& floating_base_state_out){
     fromROS(in.joint_state, joint_state_out);
     fromROS(in.floating_base_state, floating_base_state_out);
 }
 
-void toROS(const wbc::types::RigidBodyState& in, wbc_msgs::msg::RigidBodyState& out){
+void toROS(const wbc::types::RigidBodyState& in, robot_control_msgs::msg::RigidBodyState& out){
     toROS(in.pose, out.pose);
     toROS(in.twist, out.twist);
     toROS(in.acceleration, out.acceleration);
 }
 
-void toROS(const wbc::types::JointCommand& in, wbc_msgs::msg::JointCommand& out){
+void toROS(const wbc::types::JointCommand& in, robot_control_msgs::msg::JointCommand& out){
     out.position.resize(in.position.size());
     out.velocity.resize(in.velocity.size());
     out.effort.resize(in.effort.size());
@@ -125,13 +125,13 @@ void toROS(const wbc::types::SpatialAcceleration& in, geometry_msgs::msg::Accel&
     out.angular.z = in.angular[2];
 }
 
-void toROS(const wbc::types::Pose& pose, const wbc::types::Twist& twist, const wbc::types::SpatialAcceleration& acc, wbc_msgs::msg::RigidBodyState& out){
+void toROS(const wbc::types::Pose& pose, const wbc::types::Twist& twist, const wbc::types::SpatialAcceleration& acc, robot_control_msgs::msg::RigidBodyState& out){
     toROS(pose,out.pose);
     toROS(twist,out.twist);
     toROS(acc,out.acceleration);
 }
 
-void toROS(const wbc::types::JointState& in, wbc_msgs::msg::JointState& out){
+void toROS(const wbc::types::JointState& in, robot_control_msgs::msg::JointState& out){
     out.position.resize(in.position.size());
     out.velocity.resize(in.velocity.size());
     out.acceleration.resize(in.acceleration.size());

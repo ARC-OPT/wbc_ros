@@ -19,6 +19,7 @@
   <depend>sensor_msgs</depend>
   <depend>pluginlib</depend>
   <depend>wbc_msgs</depend>
+  <depend>robot_control_msgs</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>controller_interface</depend>
   <depend>hardware_interface</depend>

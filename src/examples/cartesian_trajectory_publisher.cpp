@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include "rclcpp/rclcpp.hpp"
-#include <wbc_msgs/msg/rigid_body_state.hpp>
+#include <robot_control_msgs/msg/rigid_body_state.hpp>
 
 using namespace std::chrono_literals;
 
@@ -14,7 +14,7 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
 {
   public:
     CartesianTrajectoryPublisher() : Node("cartesian_trajectory_publisher"){
-        publisher_ = this->create_publisher<wbc_msgs::msg::RigidBodyState>("setpoint", 10);
+        publisher_ = this->create_publisher<robot_control_msgs::msg::RigidBodyState>("setpoint", 10);
 
         declare_parameter("amplitude_x", 0.1);
         declare_parameter("amplitude_y", 0.1);
@@ -49,7 +49,7 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
   private:
     void timer_callback()
     {
-        auto msg = wbc_msgs::msg::RigidBodyState();
+        auto msg = robot_control_msgs::msg::RigidBodyState();
         if(plane == "xy"){
             msg.pose.position.x = init_pos_x + amplitude_x*sin(2*M_PI*frequency*dt);
             msg.pose.position.y = init_pos_y + amplitude_y*cos(2*M_PI*frequency*dt);
@@ -100,7 +100,7 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
         dt += 0.01;
     }
     rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<wbc_msgs::msg::RigidBodyState>::SharedPtr publisher_;
+    rclcpp::Publisher<robot_control_msgs::msg::RigidBodyState>::SharedPtr publisher_;
     double dt;
     double amplitude_x;
     double amplitude_y;

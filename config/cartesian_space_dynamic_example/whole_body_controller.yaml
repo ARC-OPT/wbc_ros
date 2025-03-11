@@ -47,6 +47,6 @@ whole_body_controller:
             type: qpoases
         scene:
             # Scene type. Must be the exact name of one of the registered scene plugins. See src/scenes for all available plugins.
-            type: acceleration_tsid
+            type: acceleration_reduced_tsid
         # Do numerical integration on the solver output, e.g. if output is acceleration type, integrate twice to get velocity and position
         integrate: true

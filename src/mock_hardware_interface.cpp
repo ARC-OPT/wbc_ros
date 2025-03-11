@@ -14,7 +14,7 @@ void MockHardwareInterface::command_callback(const CommandMsgPtr msg){
 }
 
 rclcpp_lifecycle::LifecycleNode::CallbackReturn MockHardwareInterface::on_configure(const rclcpp_lifecycle::State & /*previous_state*/){
-    robot_state_publisher = this->create_publisher<wbc_msgs::msg::RobotState>("~/robot_state", 10);
+    robot_state_publisher = this->create_publisher<robot_control_msgs::msg::RobotState>("~/robot_state", 10);
     joint_state_publisher = this->create_publisher<sensor_msgs::msg::JointState>("/joint_states", 10);
     command_subscriber = this->create_subscription<CommandMsg>("~/command", rclcpp::SystemDefaultsQoS(), bind(&MockHardwareInterface::command_callback, this, placeholders::_1));
     

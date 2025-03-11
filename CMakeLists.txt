@@ -11,6 +11,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   std_msgs
   geometry_msgs
   wbc_msgs
+  robot_control_msgs
   sensor_msgs
   rclcpp_lifecycle
   generate_parameter_library
@@ -49,7 +50,7 @@ generate_parameter_library(whole_body_controller_parameters
 add_library(whole_body_controller SHARED src/whole_body_controller.cpp src/conversions.cpp src/task_interface.cpp)
 add_library(mock_hardware_interface SHARED src/mock_hardware_interface.cpp)
 ament_target_dependencies(whole_body_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
-ament_target_dependencies(mock_hardware_interface rclcpp_lifecycle wbc_msgs sensor_msgs rclcpp_components)
+ament_target_dependencies(mock_hardware_interface rclcpp_lifecycle robot_control_msgs sensor_msgs rclcpp_components)
 
 target_link_libraries(whole_body_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} whole_body_controller_parameters)
 target_compile_features(whole_body_controller PUBLIC cxx_std_17)
@@ -91,9 +92,9 @@ ament_package()
 add_executable(joint_trajectory_publisher src/examples/joint_trajectory_publisher.cpp)
 add_executable(cartesian_trajectory_publisher src/examples/cartesian_trajectory_publisher.cpp)
 add_executable(cartesian_pose_publisher src/examples/cartesian_pose_publisher.cpp)
-ament_target_dependencies(joint_trajectory_publisher rclcpp wbc_msgs)
-ament_target_dependencies(cartesian_trajectory_publisher rclcpp wbc_msgs)
-ament_target_dependencies(cartesian_pose_publisher rclcpp wbc_msgs)
+ament_target_dependencies(joint_trajectory_publisher rclcpp robot_control_msgs)
+ament_target_dependencies(cartesian_trajectory_publisher rclcpp robot_control_msgs)
+ament_target_dependencies(cartesian_pose_publisher rclcpp robot_control_msgs)
 
 install(TARGETS joint_trajectory_publisher
                 cartesian_trajectory_publisher

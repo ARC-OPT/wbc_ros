@@ -58,11 +58,11 @@ class WholeBodyController : public rclcpp_lifecycle::LifecycleNode{
    };   
 
    // Some shortcuts
-   using CommandMsg = wbc_msgs::msg::JointCommand;
+   using CommandMsg = robot_control_msgs::msg::JointCommand;
    using CommandPublisher = rclcpp::Publisher<CommandMsg>;
    using RTCommandPublisher = realtime_tools::RealtimePublisher<CommandMsg>;
 
-   using RobotStateMsg = wbc_msgs::msg::RobotState;
+   using RobotStateMsg = robot_control_msgs::msg::RobotState;
    using RobotStateMsgPtr = std::shared_ptr<RobotStateMsg>;
    using RobotStateSubscription = rclcpp::Subscription<RobotStateMsg>::SharedPtr;
    using RTRobotStateBuffer = realtime_tools::RealtimeBuffer<RobotStateMsgPtr>;
@@ -76,7 +76,7 @@ class WholeBodyController : public rclcpp_lifecycle::LifecycleNode{
    using TimingStatsPublisher = rclcpp::Publisher<TimingStatsMsg>;
    using RTTimingStatsPublisher = realtime_tools::RealtimePublisher<TimingStatsMsg>;
 
-   using ContactsMsg = wbc_msgs::msg::Contacts;
+   using ContactsMsg = robot_control_msgs::msg::Contacts;
    using ContactsMsgPtr = std::shared_ptr<ContactsMsg>;
    using ContactsSubription = rclcpp::Subscription<ContactsMsg>::SharedPtr;
    using RTContactsBuffer = realtime_tools::RealtimeBuffer<ContactsMsgPtr>;    

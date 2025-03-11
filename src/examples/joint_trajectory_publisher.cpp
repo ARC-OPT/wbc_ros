@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include "rclcpp/rclcpp.hpp"
-#include <wbc_msgs/msg/joint_command.hpp>
+#include <robot_control_msgs/msg/joint_command.hpp>
 
 using namespace std::chrono_literals;
 
@@ -11,7 +11,7 @@ class JointTrajectoryPublisher : public rclcpp::Node
 {
   public:
     JointTrajectoryPublisher() : Node("joint_trajectory_publisher"){
-        publisher = this->create_publisher<wbc_msgs::msg::JointCommand>("setpoint", 10);
+        publisher = this->create_publisher<robot_control_msgs::msg::JointCommand>("setpoint", 10);
 
         declare_parameter("amplitude", 0.1);
         declare_parameter("frequency", 1.0);
@@ -34,7 +34,7 @@ class JointTrajectoryPublisher : public rclcpp::Node
   private:
     void timer_callback()
     {
-        auto msg = wbc_msgs::msg::JointCommand();
+        auto msg = robot_control_msgs::msg::JointCommand();
         msg.position.resize(joint_names.size());
         msg.velocity.resize(joint_names.size());
         msg.acceleration.resize(joint_names.size());
@@ -47,7 +47,7 @@ class JointTrajectoryPublisher : public rclcpp::Node
         dt += 0.01;
     }
     rclcpp::TimerBase::SharedPtr timer;
-    rclcpp::Publisher<wbc_msgs::msg::JointCommand>::SharedPtr publisher;
+    rclcpp::Publisher<robot_control_msgs::msg::JointCommand>::SharedPtr publisher;
     double amplitude;
     double frequency;
     std::vector<std::string> joint_names;

@@ -4,22 +4,22 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
-#include <wbc_msgs/msg/joint_command.hpp>
-#include <wbc_msgs/msg/robot_state.hpp>
+#include <robot_control_msgs/msg/robot_state.hpp>
+#include <robot_control_msgs/msg/joint_command.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 
 namespace wbc_ros{
 
 class MockHardwareInterface : public rclcpp_lifecycle::LifecycleNode{
 
-    using CommandMsg = wbc_msgs::msg::JointCommand;
+    using CommandMsg = robot_control_msgs::msg::JointCommand;
     using CommandMsgPtr = std::shared_ptr<CommandMsg>;
     using CommandSubscription = rclcpp::Subscription<CommandMsg>::SharedPtr;
 
     using JointStateMsg = sensor_msgs::msg::JointState;
     using JointStatePublisher = rclcpp::Publisher<JointStateMsg>::SharedPtr;
 
-    using RobotStateMsg = wbc_msgs::msg::RobotState;
+    using RobotStateMsg = robot_control_msgs::msg::RobotState;
     using RobotStatePublisher = rclcpp::Publisher<RobotStateMsg>::SharedPtr;
 
 protected:
