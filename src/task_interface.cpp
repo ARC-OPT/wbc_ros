@@ -195,22 +195,20 @@ namespace wbc_ros{
         rt_setpoint_buffer.writeFromNonRT(msg);
     } 
 
-    /*ContactForceTaskInterface::ContactForceTaskInterface(TaskPtr task, 
-                                                         RobotModelPtr robot_model, 
+    ContactForceTaskInterface::ContactForceTaskInterface(TaskPtr task, 
                                                          shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-        TaskInterface(task, 
-                      robot_model, 
-                      node, 
-                      task->config.name + "/reference/" + force_names,
-                      vector<string>()){ 
+        TaskInterface(task, node){
     }
     
-    void ContactForceTaskInterface::updateReference(){
-        reference.force = reference_data;
-        dynamic_pointer_cast<ContactForceTask>(task)->setReference(reference);
-    }  
+    void ContactForceTaskInterface::updateTask(){
+        setpoint_msg = *rt_setpoint_buffer.readFromRT();
+        if(setpoint_msg.get()){
+            fromROS(*setpoint_msg, setpoint);  
+            dynamic_pointer_cast<ContactForceTask>(task)->setReference(setpoint);
+        }
+    }    
 
-    void ContactForceTaskInterface::updateStatus(){
-        // No status need for contact force tasks (feed forward only)
-    }*/                   
+    void ContactForceTaskInterface::setpoint_callback(const SetpointMsgPtr msg){
+        rt_setpoint_buffer.writeFromNonRT(msg);
+    }               
 }

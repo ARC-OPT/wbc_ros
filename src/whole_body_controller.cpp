@@ -135,8 +135,8 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn WholeBodyController::on_configur
             }
             case TaskType::contact_force:{
                 task = std::make_shared<ContactForceTask>(TaskConfig(task_name, task_param.priority, task_param.weights, task_param.activation),
-                                                      robot_model,
-                                                      task_param.ref_frame);
+                                                          robot_model,
+                                                          task_param.ref_frame);
                 break;
             }
             default:{

@@ -200,25 +200,22 @@ class TaskInterface{
          void setpoint_callback(const SetpointMsgPtr msg);
     };
 
-    /*class JointAccelerationTaskInterface : public TaskInterface{
-      public:
-         JointAccelerationTaskInterface(wbc::TaskPtr task, 
-                                        wbc::RobotModelPtr robot_model, 
-                                        std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
-        virtual void updateReference();
-        virtual void updateStatus();
-    };
-
     class ContactForceTaskInterface : public TaskInterface{
+      protected:
+         using SetpointMsg = geometry_msgs::msg::Wrench;
+         using SetpointMsgPtr = std::shared_ptr<SetpointMsg>;
+         using SetpointSubscription = rclcpp::Subscription<SetpointMsg>::SharedPtr;
+         using RTSetpointBuffer = realtime_tools::RealtimeBuffer<SetpointMsgPtr>;                                       
       public:
-         wbc::types::Wrench reference;       
-
-         ContactForceTaskInterface(wbc::TaskPtr task, 
-                                   wbc::RobotModelPtr robot_model, 
+         SetpointSubscription setpoint_subscriber;
+         RTSetpointBuffer rt_setpoint_buffer;
+         SetpointMsgPtr setpoint_msg;
+         wbc::types::Wrench setpoint;
+         ContactForceTaskInterface(wbc::TaskPtr task,
                                    std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node);
-        virtual void updateReference();
-        virtual void updateStatus();
-    };*/
+         virtual void updateTask();
+         virtual void setpoint_callback(const SetpointMsgPtr msg                                                                                                                                                                                                                                                                                                                      );
+    };
 
 } // namespace wbc_ros
 
