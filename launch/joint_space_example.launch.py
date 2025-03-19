@@ -45,6 +45,7 @@ def generate_launch_description():
         remappings=[('/setpoint', '/whole_body_controller/joint_position/setpoint')],
         parameters=[trajectory_publisher_config])
 
+    # WBC and mock hardware interface container
     container = ComposableNodeContainer(
         name='wbc_node',
         namespace='',
@@ -53,7 +54,7 @@ def generate_launch_description():
         composable_node_descriptions=[
             ComposableNode(
                 package='wbc_ros',
-                plugin='wbc_ros::WholeBodyController',
+                plugin='wbc_ros::SingleArmController',
                 name='whole_body_controller',
                 remappings=[('/whole_body_controller/solver_output', '/mock_hardware_interface/command')],
                 parameters=[robot_description, wbc_config]),
@@ -67,7 +68,7 @@ def generate_launch_description():
         ],
         output='screen'
     )
-
+    
     return LaunchDescription([
         robot_state_publisher,
         container,

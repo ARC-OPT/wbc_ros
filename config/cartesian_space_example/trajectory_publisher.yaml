@@ -1,9 +1,9 @@
 /cartesian_trajectory_publisher:
   ros__parameters:
     # Amplitude of the circular trajectory in x-direction
-    amplitude_x: 0.1
+    amplitude_x: 0.05
     # Amplitude of the circular trajectory in y-direction
-    amplitude_y: 0.1
+    amplitude_y: 0.05
     # Frequency of the circular trajectory
     frequency: 0.3
     # Plane in which the trajectory should be executed, cyn be one of [xy,yz,xz]

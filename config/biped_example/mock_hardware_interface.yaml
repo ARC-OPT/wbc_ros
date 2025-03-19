@@ -1,0 +1,11 @@
+mock_hardware_interface:
+    ros__parameters:
+        # Update rate in Hz. This is the update rate of the controller manager. However, if you don' t configure the update rate for any of the 
+        # controllers, every controller will run at this rate
+        update_rate: 1000
+        # Joint names
+        joint_names: ["joint_ll_hip_1","joint_ll_hip_2","joint_ll_knee",
+                      "joint_rl_hip_1","joint_rl_hip_2","joint_rl_knee"]
+        # Initial joint positions
+        initial_position: [0.0, 0.7, -1.5, 
+                           0.0, 0.7, -1.5]

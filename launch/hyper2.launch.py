@@ -1,0 +1,74 @@
+from launch import LaunchDescription
+from launch_ros.substitutions import FindPackageShare
+from launch.substitutions import PathJoinSubstitution,Command,FindExecutable
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+from launch_ros.actions import ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
+
+import os
+import xacro
+
+def generate_launch_description():
+    # Load configuration files
+    base_path = os.path.join(get_package_share_directory('wbc_ros'),'config','biped_example')
+    wbc_config = base_path + '/whole_body_controller.yaml'
+    pose_publisher_config_l = base_path + '/pose_publisher_foot_l.yaml'
+    pose_publisher_config_r = base_path + '/pose_publisher_foot_r.yaml'
+
+    # Create the robot description parameter (URDF) from the iiwa.config.xacro file. Use the "fake" flag, which means that the input command is mirrored to the
+    # robot state, producing a simple mini simulation
+    with open('/home/dfki.uni-bremen.de/dmronga/ros2_ws/install/wbc_ros/share/wbc_ros/models/urdf/hyper/HyPer-1.urdf', 'r') as file:
+        robot_description = file.read()
+    robot_description = {'robot_description': robot_description}
+
+    # The robot state publisher computes the transform between all robot links given the joint_status topic to visualize the robot in rviz
+    robot_state_publisher = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='/',
+        output='both',
+        parameters=[robot_description])
+    
+    # This node publishes a foot pose
+    pose_publisher_l = Node(
+        package='wbc_ros',
+        executable='cartesian_trajectory_publisher',
+        name='foot_l_trajectory_publisher',
+        namespace='',
+        remappings=[('/setpoint', '/whole_body_controller/foot_l_pose/setpoint')],
+        parameters=[pose_publisher_config_l])     
+    
+    # This node publishes a foot pose
+    pose_publisher_r = Node(
+        package='wbc_ros',
+        executable='cartesian_trajectory_publisher',
+        name='foot_r_trajectory_publisher',
+        namespace='',
+        remappings=[('/setpoint', '/whole_body_controller/foot_r_pose/setpoint')],
+        parameters=[pose_publisher_config_r])      
+    
+    # WBC and mock hardware interface container
+    container = ComposableNodeContainer(
+        name='wbc_node',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container',
+        composable_node_descriptions=[
+            ComposableNode(
+                package='wbc_ros',
+                plugin='wbc_ros::BipedController',
+                name='whole_body_controller',
+                remappings=[('/whole_body_controller/robot_state', '/robot_state'),
+                            ('/whole_body_controller/solver_output', '/joint_cmd')],
+                parameters=[robot_description, wbc_config])
+        ],
+        output='screen'
+    )
+
+    return LaunchDescription([
+        robot_state_publisher,
+        pose_publisher_l,
+        pose_publisher_r,
+        container
+    ])

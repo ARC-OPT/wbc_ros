@@ -16,7 +16,6 @@ using namespace wbc;
 namespace wbc_ros{
 
 WholeBodyController::WholeBodyController(const rclcpp::NodeOptions & options) : rclcpp_lifecycle::LifecycleNode("whole_body_controller", options){
-    // Create the parameter listener and read all ROS parameters
     param_listener = std::make_shared<whole_body_controller::ParamListener>(this->get_node_parameters_interface());
     params = param_listener->get_params();
 }
@@ -28,10 +27,6 @@ void WholeBodyController::joint_weight_callback(const JointWeightMsgPtr msg){
 void WholeBodyController::robot_state_callback(const RobotStateMsgPtr msg){
     has_robot_state = true;
     rt_robot_state_buffer.writeFromNonRT(msg);
-}
-
-void WholeBodyController::contacts_callback(const ContactsMsgPtr msg){
-    rt_contacts_buffer.writeFromNonRT(msg);
 }
 
 rclcpp_lifecycle::LifecycleNode::CallbackReturn WholeBodyController::on_configure(const rclcpp_lifecycle::State & /*previous_state*/){
@@ -66,7 +61,6 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn WholeBodyController::on_configur
         RCLCPP_ERROR(this->get_logger(), "Failed to configure robot model");
         return CallbackReturn::ERROR;
     }
-    //contacts_interface = make_shared<ContactsInterface>(robot_model);
 
     RCLCPP_INFO(this->get_logger(), "Configuring solver: %s", params.solver.type.c_str());
     PluginLoader::loadPlugin("libwbc-solvers-" + params.solver.type + ".so");
@@ -163,7 +157,6 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn WholeBodyController::on_configur
 
     // Subscribers/Publishers
 
-    // Solver output for easier debugging
     solver_output_publisher = this->create_publisher<CommandMsg>("~/solver_output", rclcpp::SystemDefaultsQoS());
     rt_solver_output_publisher = std::make_unique<RTCommandPublisher>(solver_output_publisher);
 
@@ -194,31 +187,26 @@ void WholeBodyController::updateController(){
         return;
     }
 
-    // 1. Update the internal robot model with the current robot state (joint state + floating base + contacts)
+    // 1. Update the internal robot model with the current robot state
+    // Update joint state and floating base state
     rclcpp::Time start = this->get_clock()->now();
     robot_state_msg = *rt_robot_state_buffer.readFromRT();   
     if(robot_state_msg->joint_state.position.size() > 0)
         fromROS(*robot_state_msg, joint_state, floating_base_state);
     else
-        return;
-        
+        return;        
     robot_model->update(joint_state.position, joint_state.velocity, joint_state.acceleration,
                         floating_base_state.pose, floating_base_state.twist, floating_base_state.acceleration);
+    // Update contacts
+    fromROS(robot_state_msg->contacts, contacts);
+    robot_model->setContacts(contacts);
     timing_stats.time_robot_model_update = (this->get_clock()->now() - start).seconds();
 
-    contacts_msg = *rt_contacts_buffer.readFromRT();
-    if(contacts_msg.get()){
-        fromROS(*contacts_msg, contacts);
-        robot_model->setContacts(contacts);
-    }
-
-    start = this->get_clock()->now();
-
     // 2. Update Tasks (Task weights, joint weights, Controllers)
-    for(auto task : task_interfaces){
-        task->updateTaskWeights();
+    start = this->get_clock()->now();
+    for(auto task : task_interfaces)
         task->updateTask();
-    }
+        
     joint_weight_msg = *rt_joint_weight_buffer.readFromRT();
     if(joint_weight_msg.get())
         robot_model->setJointWeights(Eigen::Map<Eigen::VectorXd>(joint_weight_msg->data.data(), joint_weight_msg->data.size())); 
@@ -237,11 +225,6 @@ void WholeBodyController::updateController(){
         joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::VELOCITY);
     else
         joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::ACCELERATION);    
-
-    timing_stats.time_per_cycle = (this->get_clock()->now() - stamp).seconds();
-    rt_timing_stats_publisher->lock();
-    rt_timing_stats_publisher->msg_ = timing_stats;
-    rt_timing_stats_publisher->unlockAndPublish();
 
     rt_solver_output_publisher->lock();    
     toROS(solver_output, rt_solver_output_publisher->msg_);

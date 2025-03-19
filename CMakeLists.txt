@@ -43,32 +43,46 @@ link_directories(
   ${wbc-tasks_LIBRARIES}
 )
 
-generate_parameter_library(whole_body_controller_parameters
-  src/whole_body_controller_parameters.yaml
+generate_parameter_library(single_arm_controller_parameters
+  src/single_arm_controller_parameters.yaml
+)
+generate_parameter_library(biped_controller_parameters
+  src/biped_controller_parameters.yaml
 )
 
-add_library(whole_body_controller SHARED src/whole_body_controller.cpp src/conversions.cpp src/task_interface.cpp)
-add_library(mock_hardware_interface SHARED src/mock_hardware_interface.cpp)
-ament_target_dependencies(whole_body_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+add_library(biped_controller SHARED src/biped_controller.cpp src/conversions.cpp)
+add_library(single_arm_controller SHARED src/single_arm_controller.cpp src/conversions.cpp)
+add_library(mock_hardware_interface SHARED src/examples/mock_hardware_interface.cpp)
+ament_target_dependencies(single_arm_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(biped_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_target_dependencies(mock_hardware_interface rclcpp_lifecycle robot_control_msgs sensor_msgs rclcpp_components)
 
-target_link_libraries(whole_body_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} whole_body_controller_parameters)
-target_compile_features(whole_body_controller PUBLIC cxx_std_17)
-target_include_directories(whole_body_controller PUBLIC
+target_link_libraries(single_arm_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} single_arm_controller_parameters)
+target_link_libraries(biped_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} biped_controller_parameters)
+target_compile_features(single_arm_controller PUBLIC cxx_std_17)
+target_compile_features(biped_controller PUBLIC cxx_std_17)
+target_include_directories(single_arm_controller PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/wbc_ros>
+)
+target_include_directories(biped_controller PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/wbc_ros>
 )
 
-rclcpp_components_register_node(whole_body_controller PLUGIN "wbc_ros::WholeBodyController" EXECUTABLE whole_body_controller_node)
+rclcpp_components_register_node(single_arm_controller PLUGIN "wbc_ros::SingleArmController" EXECUTABLE single_arm_controller_node)
+rclcpp_components_register_node(biped_controller PLUGIN "wbc_ros::BipedController" EXECUTABLE biped_controller_node)
 rclcpp_components_register_node(mock_hardware_interface PLUGIN "wbc_ros::MockHardwareInterface" EXECUTABLE mock_hardware_interface_node)
 
 install(
   DIRECTORY include/
   DESTINATION include/wbc_ros
 )
-install(TARGETS whole_body_controller
-                mock_hardware_interface
-                whole_body_controller_parameters
+install(TARGETS mock_hardware_interface
+                single_arm_controller
+                biped_controller
+                single_arm_controller_parameters
+                biped_controller_parameters
         EXPORT export_wbc_ros
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib

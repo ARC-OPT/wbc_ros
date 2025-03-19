@@ -72,6 +72,7 @@ namespace wbc_ros{
     }
 
     void SpatialAccelerationTaskInterface::updateTask(){
+        updateTaskWeights();
         setpoint_msg = *rt_setpoint_buffer.readFromRT();
         if(setpoint_msg.get()){
             fromROS(*setpoint_msg, setpoint);
@@ -98,6 +99,7 @@ namespace wbc_ros{
     }
     
     void CoMVelocityTaskInterface::updateTask(){
+        updateTaskWeights();
         setpoint_msg = *rt_setpoint_buffer.readFromRT();
         if(setpoint_msg.get()){
             fromROS(*setpoint_msg, setpoint);
@@ -126,6 +128,7 @@ namespace wbc_ros{
     }
     
     void CoMAccelerationTaskInterface::updateTask(){
+        updateTaskWeights();
         setpoint_msg = *rt_setpoint_buffer.readFromRT();
         if(setpoint_msg.get()){
             fromROS(*setpoint_msg, setpoint);
@@ -156,6 +159,7 @@ namespace wbc_ros{
     }
     
     void JointVelocityTaskInterface::updateTask(){
+        updateTaskWeights();
         setpoint_msg = *rt_setpoint_buffer.readFromRT();
         if(setpoint_msg.get()){
             fromROS(*setpoint_msg, setpoint);
@@ -181,6 +185,7 @@ namespace wbc_ros{
     }
     
     void JointAccelerationTaskInterface::updateTask(){
+        updateTaskWeights();
         setpoint_msg = *rt_setpoint_buffer.readFromRT();
         if(setpoint_msg.get()){
             fromROS(*setpoint_msg, setpoint);
@@ -201,6 +206,7 @@ namespace wbc_ros{
     }
     
     void ContactForceTaskInterface::updateTask(){
+        updateTaskWeights();
         setpoint_msg = *rt_setpoint_buffer.readFromRT();
         if(setpoint_msg.get()){
             fromROS(*setpoint_msg, setpoint);  

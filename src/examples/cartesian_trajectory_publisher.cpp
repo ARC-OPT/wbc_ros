@@ -19,6 +19,9 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
         declare_parameter("amplitude_x", 0.1);
         declare_parameter("amplitude_y", 0.1);
         declare_parameter("amplitude_z", 0.1);
+        declare_parameter("phase_shift_x", 0.0);
+        declare_parameter("phase_shift_y", 0.0);
+        declare_parameter("phase_shift_z", 0.0);
         declare_parameter("frequency", 1.0);
         declare_parameter("plane", "xy");
         declare_parameter("init_pos_x", 0.0);
@@ -32,6 +35,9 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
         amplitude_x     = get_parameter("amplitude_x").as_double();
         amplitude_y     = get_parameter("amplitude_y").as_double();
         amplitude_z     = get_parameter("amplitude_z").as_double();
+        phase_shift_x   = get_parameter("phase_shift_x").as_double();
+        phase_shift_y   = get_parameter("phase_shift_y").as_double();
+        phase_shift_z   = get_parameter("phase_shift_z").as_double();
         frequency       = get_parameter("frequency").as_double();
         plane           = get_parameter("plane").as_string();
         init_pos_x      = get_parameter("init_pos_x").as_double();
@@ -51,37 +57,37 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
     {
         auto msg = robot_control_msgs::msg::RigidBodyState();
         if(plane == "xy"){
-            msg.pose.position.x = init_pos_x + amplitude_x*sin(2*M_PI*frequency*dt);
-            msg.pose.position.y = init_pos_y + amplitude_y*cos(2*M_PI*frequency*dt);
+            msg.pose.position.x = init_pos_x + amplitude_x*sin(2*M_PI*frequency*dt + phase_shift_x);
+            msg.pose.position.y = init_pos_y + amplitude_y*cos(2*M_PI*frequency*dt + phase_shift_y);
             msg.pose.position.z = init_pos_z;
-            msg.twist.linear.x = cos(2*M_PI*frequency*dt);
-            msg.twist.linear.y = -sin(2*M_PI*frequency*dt);
+            msg.twist.linear.x = cos(2*M_PI*frequency*dt + phase_shift_x);
+            msg.twist.linear.y = -sin(2*M_PI*frequency*dt + phase_shift_y);
             msg.twist.linear.z = 0.0;
-            msg.acceleration.linear.x = -sin(2*M_PI*frequency*dt);
-            msg.acceleration.linear.y = -cos(2*M_PI*frequency*dt);
+            msg.acceleration.linear.x = -sin(2*M_PI*frequency*dt + phase_shift_x);
+            msg.acceleration.linear.y = -cos(2*M_PI*frequency*dt + phase_shift_y);
             msg.acceleration.linear.z = 0.0;
         }
         else if(plane == "xz"){
-            msg.pose.position.x = init_pos_x + amplitude_x*sin(2*M_PI*frequency*dt);
+            msg.pose.position.x = init_pos_x + amplitude_x*sin(2*M_PI*frequency*dt + phase_shift_x);
             msg.pose.position.y = init_pos_y;
-            msg.pose.position.z = init_pos_z + amplitude_z*cos(2*M_PI*frequency*dt);
-            msg.twist.linear.x = cos(2*M_PI*frequency*dt);
+            msg.pose.position.z = init_pos_z + amplitude_z*cos(2*M_PI*frequency*dt + phase_shift_z);
+            msg.twist.linear.x = amplitude_x*2*M_PI*frequency*cos(2*M_PI*frequency*dt + phase_shift_x);
             msg.twist.linear.y = 0.0;
-            msg.twist.linear.z = -sin(2*M_PI*frequency*dt);
-            msg.acceleration.linear.x = -sin(2*M_PI*frequency*dt);
+            msg.twist.linear.z = -amplitude_z*2*M_PI*frequency*sin(2*M_PI*frequency*dt + phase_shift_z);
+            msg.acceleration.linear.x = -amplitude_z*2*M_PI*frequency*amplitude_z*2*M_PI*frequency*sin(2*M_PI*frequency*dt + phase_shift_x);
             msg.acceleration.linear.y = 0.0;
-            msg.acceleration.linear.z = -cos(2*M_PI*frequency*dt);
+            msg.acceleration.linear.z = -amplitude_z*2*M_PI*frequency*amplitude_z*2*M_PI*frequency*cos(2*M_PI*frequency*dt + phase_shift_z);
         }
         else if(plane == "yz"){
             msg.pose.position.x = init_pos_x;
-            msg.pose.position.y = init_pos_y + amplitude_y*sin(2*M_PI*frequency*dt);
-            msg.pose.position.z = init_pos_z + amplitude_z*cos(2*M_PI*frequency*dt);
+            msg.pose.position.y = init_pos_y + amplitude_y*sin(2*M_PI*frequency*dt + phase_shift_y);
+            msg.pose.position.z = init_pos_z + amplitude_z*cos(2*M_PI*frequency*dt + phase_shift_z);
             msg.twist.linear.x = 0.0;
-            msg.twist.linear.y = cos(2*M_PI*frequency*dt);
-            msg.twist.linear.z = -sin(2*M_PI*frequency*dt);
+            msg.twist.linear.y = cos(2*M_PI*frequency*dt + phase_shift_y);
+            msg.twist.linear.z = -sin(2*M_PI*frequency*dt + phase_shift_z);
             msg.acceleration.linear.x = 0.0;
-            msg.acceleration.linear.y = -sin(2*M_PI*frequency*dt);
-            msg.acceleration.linear.z = -cos(2*M_PI*frequency*dt);
+            msg.acceleration.linear.y = -sin(2*M_PI*frequency*dt + phase_shift_y);
+            msg.acceleration.linear.z = -cos(2*M_PI*frequency*dt + phase_shift_z);
         }
         else
             throw std::runtime_error("Invalid parameter: plane: " + plane);
@@ -105,6 +111,9 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
     double amplitude_x;
     double amplitude_y;
     double amplitude_z;
+    double phase_shift_x;
+    double phase_shift_y;
+    double phase_shift_z;
     double frequency;
     std::string plane;
     double init_pos_x;

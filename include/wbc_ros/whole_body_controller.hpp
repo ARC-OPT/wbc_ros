@@ -111,17 +111,12 @@ protected:
    RTRobotStateBuffer rt_robot_state_buffer;
    RobotStateMsgPtr robot_state_msg;
 
-   ContactsSubription contacts_subscriber;
-   RTContactsBuffer rt_contacts_buffer;
-   ContactsMsgPtr contacts_msg;
-
    rclcpp::Time stamp;
    rclcpp::TimerBase::SharedPtr timer;
 
    void updateController();
    void joint_weight_callback(const JointWeightMsgPtr msg);
    void robot_state_callback(const RobotStateMsgPtr msg);  
-   void contacts_callback(const ContactsMsgPtr msg);   
 
    // Parameters from ROS
    std::shared_ptr<whole_body_controller::ParamListener> param_listener;

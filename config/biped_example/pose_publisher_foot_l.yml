@@ -1,0 +1,16 @@
+/pose_publisher_foot_l:
+  ros__parameters:
+    # Init position in x
+    pos_x: 0.2
+    # Init position in y
+    pos_y: 0.107
+    # Init position in z
+    pos_z: -0.017
+    # Init orientation in qx
+    ori_qx: 0.0
+    # Init orientation in qy
+    ori_qy: 0.479
+    # Init orientation in qz
+    ori_qz: 0.0
+    # Init orientation in qw
+    ori_qw: 0.878
