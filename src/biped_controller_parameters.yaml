@@ -263,6 +263,50 @@ biped_controller:
                 description: "Reference frame of the task input (frame wrt which the input is expressed).\
                               This has to be the name of a valid link in robot model. If ref_frame != root the input will be transformed to the root frame.",
             }
+        joint_position:
+            weights: {
+                type: double_array,
+                default_value: [],
+                description: "Initial weights for this task. Size has to be same as number of joints. \ 
+                              All entries have to be >= 0.  Can be used to balance contributions of the task variables.\
+                              A value of 0 means that the reference of the corresponding task variable will be ignored while computing the solution.",
+                validation: {
+                    not_empty<>: null
+                }
+            }
+            activation: {
+                type: double,
+                default_value: 0.0,
+                description: "Initial activation for this task. Has to be within 0 and 1. Can be used to enable(1)/disable(0) the whole task,\
+                            or to apply a smooth activation function.",
+                validation: {
+                    bounds<>: [0.0,1.0]
+                }
+            }
+            p_gain: {
+                type: double_array,
+                default_value: [],
+                description: "Array of proportional gain values, size has to be same as number of joints",
+                validation: {
+                    not_empty<>: null
+                }
+            }   
+            d_gain: {
+                type: double_array,
+                default_value: [],
+                description: "Array of derivative gain values, size has to be same as number of joints",
+                validation: {
+                    not_empty<>: null
+                }
+            }
+            max_control_output: {
+                type: double_array,
+                default_value: [],
+                description: "Controller output saturation per element. size has to be same as number of joints",
+                validation: {
+                    not_empty<>: null
+                }
+            }               
     robot_model:
         type: {
             type: string,

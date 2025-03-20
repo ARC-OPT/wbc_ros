@@ -126,6 +126,19 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     tasks.push_back(force_l_iface->task);  
     task_interfaces.push_back(force_l_iface);                            
 
+    // Joint position task
+    auto joint_pos_param = params.tasks.joint_position;
+    JointPositionTaskInterfacePtr joint_pos_iface = std::make_shared<JointPositionTaskInterface>("joint_position", this->shared_from_this());
+    joint_pos_iface->task = std::make_shared<JointAccelerationTask>(TaskConfig("joint_position", 0, joint_pos_param.weights, joint_pos_param.activation), 
+                                                                    robot_model,
+                                                                    params.joint_names); 
+    joint_pos_iface->controller = std::make_shared<JointPosPDController>(params.joint_names.size());                                                                    
+    joint_pos_iface->controller->setPGain(Eigen::Map<Eigen::VectorXd>(joint_pos_param.p_gain.data(), joint_pos_param.p_gain.size()));
+    joint_pos_iface->controller->setDGain(Eigen::Map<Eigen::VectorXd>(joint_pos_param.d_gain.data(), joint_pos_param.d_gain.size()));
+    joint_pos_iface->controller->setMaxCtrlOutput(Eigen::Map<Eigen::VectorXd>(joint_pos_param.max_control_output.data(), joint_pos_param.max_control_output.size()));
+    tasks.push_back(joint_pos_iface->task);
+    task_interfaces.push_back(joint_pos_iface);
+
     RCLCPP_INFO(this->get_logger(), "Configuring scene: %s", params.scene.type.c_str());
     PluginLoader::loadPlugin("libwbc-scenes-" + params.scene.type + ".so");
     scene = std::shared_ptr<Scene>(SceneFactory::createInstance(params.scene.type, robot_model, solver, 0.001));
@@ -142,8 +155,8 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     joint_weight_subscriber = this->create_subscription<DoubleArrayMsg>("~/joint_weights", 
         rclcpp::SystemDefaultsQoS(), std::bind(&BipedController::joint_weight_callback, this, std::placeholders::_1));
 
-    solver_output_publisher = this->create_publisher<CommandMsg>("~/solver_output", rclcpp::SystemDefaultsQoS());
-    rt_solver_output_publisher = std::make_unique<RTCommandPublisher>(solver_output_publisher);
+    solver_output_publisher = this->create_publisher<JointCommandMsg>("~/solver_output", rclcpp::SystemDefaultsQoS());
+    rt_solver_output_publisher = std::make_unique<RTJointCommandPublisher>(solver_output_publisher);
 
     timing_stats_publisher = this->create_publisher<TimingStatsMsg>("~/timing_stats", rclcpp::SystemDefaultsQoS());
     rt_timing_stats_publisher = std::make_unique<RTTimingStatsPublisher>(timing_stats_publisher);

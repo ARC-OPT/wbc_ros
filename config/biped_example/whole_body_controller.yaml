@@ -86,4 +86,15 @@ whole_body_controller:
                 activation: 0.0
                 # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
                 ref_frame: base_link
+            joint_position: 
+                # Initial weights for this task. Size has to be same as number of joints
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1.
+                activation: 0.0
+                # Array of proportional gain values, size has to be same as number of joints
+                p_gain: [2.0,2.0,2.0,2.0,2.0,2.0]
+                # Array of derivative gain values, size has to be same as number of joints
+                d_gain: [0.0,0.0,0.0,0.0,0.0,0.0]
+                # Controller output saturation per element. Size has to be same as number of joints
+                max_control_output: [100000.0,100000.0,100000.0,100000.0,100000.0,100000.0]
 
