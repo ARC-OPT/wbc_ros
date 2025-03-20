@@ -39,6 +39,7 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     robot_model_cfg.file_or_string       = urdf_string;
     robot_model_cfg.submechanism_file    = params.robot_model.submechanism_file;  
     robot_model_cfg.floating_base        = params.robot_model.floating_base;  
+    robot_model_cfg.joint_blacklist      = params.robot_model.joint_blacklist;
     auto contacts_param = params.robot_model.contacts;
     for(uint i = 0; i < contacts_param.names.size(); i++)
         contacts.push_back(Contact(contacts_param.names[i], contacts_param.active[i], contacts_param.mu));

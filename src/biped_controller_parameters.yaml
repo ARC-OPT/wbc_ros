@@ -326,6 +326,14 @@ biped_controller:
             default_value: false,
             description: "Optionally attach a virtual 6 DoF floating base to the model.",
         }
+        joint_blacklist: {
+            type: string_array,
+            default_value: [],
+            description: "Optional list of blacklisted (unused) joints in the URDF model.",
+            validation: {
+                unique<>: null
+            }
+        }
         contacts:
             names: {
                 type: string_array,
