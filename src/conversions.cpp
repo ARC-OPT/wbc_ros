@@ -91,13 +91,6 @@ void toROS(const wbc::types::JointCommand& in, const std::vector<int>& joint_ind
         out.velocity[i] = in.velocity[joint_indices[i]];        
     for(uint i = 0; i < in.position.size(); i++)
         out.effort[i] = in.effort[joint_indices[i]];
-    
-    out.kp.resize(in.position.size());
-    out.kd.resize(in.velocity.size());
-    for(uint i = 0; i < in.position.size(); i++)
-        out.kp[i] = 3.0;
-    for(uint i = 0; i < in.velocity.size(); i++)
-        out.kd[i] = 1.0;
 }
 
 void toROS(const Eigen::VectorXd& in, std_msgs::msg::Float64MultiArray& out){
