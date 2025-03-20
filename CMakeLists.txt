@@ -100,6 +100,16 @@ ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()
 
 ##############
+## Helpers ##
+##############
+
+add_executable(joint_state_converter src/helpers/joint_state_converter.cpp)
+ament_target_dependencies(joint_state_converter rclcpp robot_control_msgs sensor_msgs)
+
+install(TARGETS joint_state_converter
+        RUNTIME DESTINATION lib/${PROJECT_NAME})
+
+##############
 ## Examples ##
 ##############
 
