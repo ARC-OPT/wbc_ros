@@ -215,7 +215,7 @@ void BipedController::updateController(){
     timing_stats.time_solve = (this->get_clock()->now() - start).seconds();
 
     // 5. Integrate and publish solution
-    joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::ACCELERATION);
+    joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::ACCELERATION, IntegrationMethod::RECTANGULAR, true);
 
     rt_solver_output_publisher->lock();    
     toROS(solver_output, joint_idx_map, rt_solver_output_publisher->msg_);
