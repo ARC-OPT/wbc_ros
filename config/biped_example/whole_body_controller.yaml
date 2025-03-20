@@ -11,8 +11,6 @@ whole_body_controller:
         joint_names: ["joint_ll_hip_1","joint_ll_hip_2","joint_ll_knee",
                       "joint_rl_hip_1","joint_rl_hip_2","joint_rl_knee"]
         robot_model:
-            # Absolute path to plain URDF file of the robot
-            file: install/wbc_ros/share/wbc_ros/models/urdf/hyper/HyPer-1.urdf
             # Robot model type. Must be the exact name of one of the registered robot model plugins. See src/robot_models for all available plugins. Default is pinocchio
             type: pinocchio
             # Optionally attach a virtual 6 DoF floating base to the model
