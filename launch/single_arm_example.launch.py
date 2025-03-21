@@ -10,7 +10,7 @@ import os
 
 def generate_launch_description():
     # Load configuration files
-    base_path = os.path.join(get_package_share_directory('wbc_ros'),'config','cartesian_space_example')
+    base_path = os.path.join(get_package_share_directory('wbc_ros'),'config','single_arm_example')
     wbc_config = base_path + '/whole_body_controller.yaml'
     mock_hardware_config = base_path + '/mock_hardware_interface.yaml'
     trajectory_publisher_config = base_path + '/trajectory_publisher.yaml'
