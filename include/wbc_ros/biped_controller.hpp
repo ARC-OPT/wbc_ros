@@ -263,17 +263,11 @@ namespace wbc_ros{
                     setpoint_msg = *rt_setpoint_buffer.readFromRT();
                     if(setpoint_msg.get()){
                         fromROS(*setpoint_msg, joint_idx_map, setpoint);
-                        std::cout<<setpoint.position.transpose()<<std::endl;
-                        std::cout<<setpoint.velocity.transpose()<<std::endl;
-                        std::cout<<setpoint.acceleration.transpose()<<std::endl;
-                        std::cout<<robot_model->jointState().position.transpose()<<std::endl;
-                        std::cout<<robot_model->jointState().velocity.transpose()<<std::endl;
                         Eigen::VectorXd ctrl_out = controller->update(setpoint.position, 
                                                                       setpoint.velocity, 
                                                                       setpoint.acceleration,
                                                                       robot_model->jointState().position,
                                                                       robot_model->jointState().velocity);
-                        std::cout<<ctrl_out.transpose()<<std::endl<<std::endl;
                         task->setReference(ctrl_out);
                     }
                 }
