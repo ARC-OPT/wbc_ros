@@ -23,6 +23,11 @@ void BipedController::robot_state_callback(const RobotStateMsgPtr msg){
     rt_robot_state_buffer.writeFromNonRT(msg);
 }
 
+void BipedController::contacts_callback(const ContactsMsgPtr msg){
+    rt_contacts_buffer.writeFromNonRT(msg);
+}
+
+
 rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(const rclcpp_lifecycle::State & /*previous_state*/){
 
     std::string urdf_string;
@@ -153,6 +158,9 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     robot_state_subscriber = this->create_subscription<RobotStateMsg>("~/robot_state",
         rclcpp::SystemDefaultsQoS(), std::bind(&BipedController::robot_state_callback, this, placeholders::_1));
 
+    contacts_subscriber = this->create_subscription<ContactsMsg>("~/contatcs",
+        rclcpp::SystemDefaultsQoS(), std::bind(&BipedController::contacts_callback, this, placeholders::_1));
+
     joint_weight_subscriber = this->create_subscription<DoubleArrayMsg>("~/joint_weights", 
         rclcpp::SystemDefaultsQoS(), std::bind(&BipedController::joint_weight_callback, this, std::placeholders::_1));
 
@@ -192,8 +200,11 @@ void BipedController::updateController(){
     robot_model->update(joint_state.position, joint_state.velocity, joint_state.acceleration,
                         floating_base_state.pose, floating_base_state.twist, floating_base_state.acceleration);
     // Update contacts
-    fromROS(robot_state_msg->contacts, contacts);
-    robot_model->setContacts(contacts);
+    contacts_msg = *rt_contacts_buffer.readFromRT();  
+    if(contacts_msg.get()){
+        fromROS(*contacts_msg, contacts);
+        robot_model->setContacts(contacts);
+    }
     timing_stats.time_robot_model_update = (this->get_clock()->now() - start).seconds();
 
     // 2. Update Tasks

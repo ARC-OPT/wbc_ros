@@ -62,7 +62,12 @@ namespace wbc_ros{
         using WrenchMsg = geometry_msgs::msg::Wrench;
         using WrenchMsgPtr = std::shared_ptr<WrenchMsg>;
         using WrenchSubscription = rclcpp::Subscription<WrenchMsg>::SharedPtr;
-        using RTWrenchBuffer = realtime_tools::RealtimeBuffer<WrenchMsgPtr>;          
+        using RTWrenchBuffer = realtime_tools::RealtimeBuffer<WrenchMsgPtr>;       
+
+        using ContactsMsg = robot_control_msgs::msg::Contacts;
+        using ContactsMsgPtr = robot_control_msgs::msg::Contacts::SharedPtr;
+        using ContactsSubscription = rclcpp::Subscription<ContactsMsg>::SharedPtr;
+        using RTContactsBuffer = realtime_tools::RealtimeBuffer<ContactsMsgPtr>;       
 
         class TaskInterface{
             DoubleArraySubscription task_weight_subscriber;
@@ -297,6 +302,7 @@ namespace wbc_ros{
             void updateController();
             void joint_weight_callback(const DoubleArrayMsgPtr msg);
             void robot_state_callback(const RobotStateMsgPtr msg);
+            void contacts_callback(const ContactsMsgPtr msg);
 
         protected:
             std::vector<TaskInterfacePtr> task_interfaces;
@@ -328,6 +334,10 @@ namespace wbc_ros{
             RobotStateSubscription robot_state_subscriber;
             RTRobotStateBuffer rt_robot_state_buffer;
             RobotStateMsgPtr robot_state_msg;
+
+            ContactsSubscription contacts_subscriber;
+            RTContactsBuffer rt_contacts_buffer;
+            ContactsMsgPtr contacts_msg;
 
             rclcpp::Time stamp;
             rclcpp::TimerBase::SharedPtr timer;
