@@ -16,12 +16,12 @@ def generate_launch_description():
     mock_hardware_config = base_path + '/mock_hardware_interface.yaml'
     trajectory_publisher_config_l = base_path + '/trajectory_publisher_foot_l.yaml'
     trajectory_publisher_config_r = base_path + '/trajectory_publisher_foot_r.yaml'
-
+    urdf_path = os.path.join(get_package_share_directory('wbc_ros'), 'models', 'urdf', 'hyper', 'HyPer-1.urdf')
+    
     # Create the robot description parameter (URDF) from the iiwa.config.xacro file. Use the "fake" flag, which means that the input command is mirrored to the
     # robot state, producing a simple mini simulation
-    with open('/home/dfki.uni-bremen.de/dmronga/ros2_ws/install/wbc_ros/share/wbc_ros/models/urdf/hyper/HyPer-1.urdf', 'r') as file:
+    with open(urdf_path, 'r') as file:
         robot_description = file.read()
-    print(robot_description)
     robot_description = {'robot_description': robot_description}
 
     # The robot state publisher computes the transform between all robot links given the joint_status topic to visualize the robot in rviz
