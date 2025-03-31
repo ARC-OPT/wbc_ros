@@ -33,10 +33,6 @@ class JointStateConverter : public Node{
             //joint_state.velocity = msg->velocity;
             //joint_state.effort = msg->effort;
 
-            joint_state.position.push_back(-0.28);
-            joint_state.position.push_back(0);
-
-
             joint_state_publisher->publish(joint_state);
         }
 
