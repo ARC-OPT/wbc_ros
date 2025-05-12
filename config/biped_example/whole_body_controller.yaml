@@ -21,6 +21,17 @@ whole_body_controller:
         scene:
             # Scene type. Must be the exact name of one of the registered scene plugins. See src/scenes for all available plugins.
             type: acceleration_reduced_tsid
+        # P-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same as the number of joints"
+        p_gain_stance: [0.0,0.0,0.0,0.0,0.0,0.0]
+        # D-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same as the number of joints"
+        d_gain_stance: [0.0,0.0,0.0,0.0,0.0,0.0]
+        # P-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same as the number of joints"
+        p_gain_swing: [0.0,0.0,0.0,0.0,0.0,0.0]
+        # D-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same as the number of joints"
+        d_gain_swing: [0.0,0.0,0.0,0.0,0.0,0.0]
+        integrator:
+            # Integrate from current state (true) or from internal integrator state (false)
+            from_current_state: true
         tasks: 
             com_position: 
                 # Initial weights for this task. Size has to be 3

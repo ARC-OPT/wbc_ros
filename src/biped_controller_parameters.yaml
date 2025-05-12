@@ -37,6 +37,52 @@ biped_controller:
             not_empty<>: null,        
         }
     }
+    p_gain_stance: {
+        type: double_array, 
+        default_value: [],
+        description: "P-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same \
+                      as the number of joints",
+        validation: {
+            not_empty<>: null,
+            lower_element_bounds<>: [0.0]
+        }
+    }
+    d_gain_stance: {
+        type: double_array, 
+        default_value: [],
+        description: "D-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same \
+                      as the number of joints",
+        validation: {
+            not_empty<>: null,
+            lower_element_bounds<>: [0.0]
+        }
+    }
+    p_gain_swing: {
+        type: double_array, 
+        default_value: [],
+        description: "P-Gains for the low-level PD controller during swing phase. These are sent along with the solver output to the motor drivers. Size has to be same \
+                      as the number of joints",
+        validation: {
+            not_empty<>: null,
+            lower_element_bounds<>: [0.0]
+        }
+    }
+    d_gain_swing: {
+        type: double_array, 
+        default_value: [],
+        description: "D-Gains for the low-level PD controller during swing phase. These are sent along with the solver output to the motor drivers. Size has to be same \
+                      as the number of joints",
+        validation: {
+            not_empty<>: null,
+            lower_element_bounds<>: [0.0]
+        }
+    }
+    integrator: 
+        from_current_state: {
+            type: bool,
+            default_value: false,
+            description: "Integrate from current state (true) or from internal integrator state (false)"
+        }
     tasks:
         com_position:
             weights: {

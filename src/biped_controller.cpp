@@ -44,6 +44,12 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
         throw std::runtime_error("Invalid update_rate parameter");
     }
 
+    integrate_from_current_state = params.integrator.from_current_state;
+    p_gain_stance = params.p_gain_stance;
+    d_gain_stance = params.d_gain_stance;
+    p_gain_swing = params.p_gain_swing;
+    d_gain_swing = params.d_gain_swing;
+
     RobotModelConfig robot_model_cfg;
     robot_model_cfg.file_or_string       = urdf_string;
     robot_model_cfg.submechanism_file    = params.robot_model.submechanism_file;  
@@ -176,6 +182,10 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
 
     timing_stats_publisher = this->create_publisher<TimingStatsMsg>("~/timing_stats", rclcpp::SystemDefaultsQoS());
     rt_timing_stats_publisher = std::make_unique<RTTimingStatsPublisher>(timing_stats_publisher);
+    rt_solver_output_publisher->msg_.kp = p_gain_stance;
+    rt_solver_output_publisher->msg_.kd = d_gain_stance;
+
+    robot_model->setContacts(contacts);
 
     //  Timer to run control loop
 
@@ -243,7 +253,7 @@ void BipedController::updateController(){
     timing_stats.time_solve = (this->get_clock()->now() - start).seconds();
 
     // 5. Integrate and publish solution
-    joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::ACCELERATION, IntegrationMethod::RECTANGULAR, true);
+    joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::ACCELERATION, IntegrationMethod::RECTANGULAR, integrate_from_current_state);
 
     rt_solver_output_publisher->lock();    
     toROS(solver_output, joint_idx_map, rt_solver_output_publisher->msg_);
