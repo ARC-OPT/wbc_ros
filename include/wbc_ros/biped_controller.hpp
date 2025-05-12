@@ -35,10 +35,20 @@ namespace wbc_ros{
         using JointCommandSubscription = rclcpp::Subscription<JointCommandMsg>::SharedPtr;
         using RTJointCommandBuffer = realtime_tools::RealtimeBuffer<JointCommandMsgPtr>;
 
+        using JointStateMsg = robot_control_msgs::msg::JointState;
+        using JointStateMsgPtr = std::shared_ptr<JointStateMsg>;
+        using JointStateSubscription = rclcpp::Subscription<JointStateMsg>::SharedPtr;
+        using RTJointStateBuffer = realtime_tools::RealtimeBuffer<JointStateMsgPtr>;
+
         using RobotStateMsg = robot_control_msgs::msg::RobotState;
         using RobotStateMsgPtr = std::shared_ptr<RobotStateMsg>;
         using RobotStateSubscription = rclcpp::Subscription<RobotStateMsg>::SharedPtr;
         using RTRobotStateBuffer = realtime_tools::RealtimeBuffer<RobotStateMsgPtr>;
+
+        using ContactsMsg = robot_control_msgs::msg::Contacts;
+        using ContactsMsgPtr = std::shared_ptr<ContactsMsg>;
+        using ContactsSubscription = rclcpp::Subscription<ContactsMsg>::SharedPtr;
+        using RTContactsBuffer = realtime_tools::RealtimeBuffer<ContactsMsgPtr>;
 
         using DoubleArrayMsg = std_msgs::msg::Float64MultiArray;
         using DoubleArrayMsgPtr = std::shared_ptr<DoubleArrayMsg>;
@@ -57,17 +67,15 @@ namespace wbc_ros{
         using RigidBodyStateMsg = robot_control_msgs::msg::RigidBodyState;
         using RigidBodyStateMsgPtr = std::shared_ptr<RigidBodyStateMsg>;
         using RigidBodyStateSubscription = rclcpp::Subscription<RigidBodyStateMsg>::SharedPtr;
-        using RTRigidBodyStateBuffer = realtime_tools::RealtimeBuffer<RigidBodyStateMsgPtr>;     
+        using RTRigidBodyStateBuffer = realtime_tools::RealtimeBuffer<RigidBodyStateMsgPtr>;    
+         
+        using RigidBodyStatePublisher = rclcpp::Publisher<RigidBodyStateMsg>;
+        using RTRigidBodyStatePublisher = realtime_tools::RealtimePublisher<RigidBodyStateMsg>;
 
         using WrenchMsg = geometry_msgs::msg::Wrench;
         using WrenchMsgPtr = std::shared_ptr<WrenchMsg>;
         using WrenchSubscription = rclcpp::Subscription<WrenchMsg>::SharedPtr;
-        using RTWrenchBuffer = realtime_tools::RealtimeBuffer<WrenchMsgPtr>;       
-
-        using ContactsMsg = robot_control_msgs::msg::Contacts;
-        using ContactsMsgPtr = robot_control_msgs::msg::Contacts::SharedPtr;
-        using ContactsSubscription = rclcpp::Subscription<ContactsMsg>::SharedPtr;
-        using RTContactsBuffer = realtime_tools::RealtimeBuffer<ContactsMsgPtr>;       
+        using RTWrenchBuffer = realtime_tools::RealtimeBuffer<WrenchMsgPtr>;         
 
         class TaskInterface{
             DoubleArraySubscription task_weight_subscriber;
@@ -123,13 +131,18 @@ namespace wbc_ros{
         class CoMTaskInterface : public TaskInterface{
             RigidBodyStateSubscription setpoint_subscriber;
             RTRigidBodyStateBuffer rt_setpoint_buffer;
-            RigidBodyStateMsgPtr setpoint_msg;            
+            RigidBodyStateMsgPtr setpoint_msg;          
+
+            RigidBodyStatePublisher::SharedPtr status_publisher;
+            std::unique_ptr<RTRigidBodyStatePublisher> rt_status_publisher;  
             public:
                 CoMTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
                     TaskInterface(task_name, node),
                     has_setpoint(false){
                     setpoint_subscriber = node->create_subscription<RigidBodyStateMsg>("~/" + task_name + "/setpoint", rclcpp::SystemDefaultsQoS(), 
-                        bind(&CoMTaskInterface::setpoint_callback, this, std::placeholders::_1));                                                                           
+                        bind(&CoMTaskInterface::setpoint_callback, this, std::placeholders::_1));   
+                    status_publisher = node->create_publisher<RigidBodyStateMsg>("~/" + task_name + "/status", rclcpp::SystemDefaultsQoS());
+                    rt_status_publisher = std::make_unique<RTRigidBodyStatePublisher>(status_publisher);                                                                        
                 }
                 void setpoint_callback(const RigidBodyStateMsgPtr msg){
                     rt_setpoint_buffer.writeFromNonRT(msg);
@@ -149,6 +162,10 @@ namespace wbc_ros{
                                                              robot_model->centerOfMass().twist).linear;
                         task->setReference(ctrl_out);
                     }
+
+                    rt_status_publisher->lock();
+                    toROS(robot_model->centerOfMass(), rt_status_publisher->msg_);
+                    rt_status_publisher->unlockAndPublish();
                 }
                 virtual void reset(){
                     task->reset();
@@ -164,13 +181,18 @@ namespace wbc_ros{
             RigidBodyStateSubscription setpoint_subscriber;
             RTRigidBodyStateBuffer rt_setpoint_buffer;
             RigidBodyStateMsgPtr setpoint_msg;
+
+            RigidBodyStatePublisher::SharedPtr status_publisher;
+            std::unique_ptr<RTRigidBodyStatePublisher> rt_status_publisher;
+
             public:
                 FootTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
                     TaskInterface(task_name, node),
                     has_setpoint(false){
                     setpoint_subscriber = node->create_subscription<RigidBodyStateMsg>("~/" + task_name + "/setpoint", rclcpp::SystemDefaultsQoS(), 
                         bind(&FootTaskInterface::setpoint_callback, this, std::placeholders::_1));   
-
+                    status_publisher = node->create_publisher<RigidBodyStateMsg>("~/" + task_name + "/status", rclcpp::SystemDefaultsQoS());
+                    rt_status_publisher = std::make_unique<RTRigidBodyStatePublisher>(status_publisher);
                 }       
                 void setpoint_callback(const RigidBodyStateMsgPtr msg){
                     rt_setpoint_buffer.writeFromNonRT(msg);
@@ -190,6 +212,14 @@ namespace wbc_ros{
                                                              robot_model->twist(task->tipFrame()));
                         task->setReference(ctrl_out);
                     }
+
+                    rt_status_publisher->lock();
+                    toROS(robot_model->pose(task->tipFrame()), 
+                          robot_model->twist(task->tipFrame()), 
+                          robot_model->acceleration(task->tipFrame()),
+                          rt_status_publisher->msg_);
+                    rt_status_publisher->unlockAndPublish();
+
                 }
                 virtual void reset(){
                     task->reset();
@@ -294,8 +324,10 @@ namespace wbc_ros{
             virtual CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
     
             void updateController();
+            void handleContacts(const std::vector<wbc::types::Contact>& contacts);
             void joint_weight_callback(const DoubleArrayMsgPtr msg);
             void robot_state_callback(const RobotStateMsgPtr msg);
+            void joint_state_callback(const JointStateMsgPtr msg);
             void contacts_callback(const ContactsMsgPtr msg);
 
         protected:
@@ -307,11 +339,16 @@ namespace wbc_ros{
             wbc::types::JointState joint_state;
             wbc::types::RigidBodyState floating_base_state;
             std::vector<wbc::types::Contact> contacts;
-            bool has_robot_state;
+            bool has_robot_state, has_joint_state;
             int update_rate;
             wbc::types::JointCommand solver_output;
             wbc::HierarchicalQP qp;
             wbc::JointIntegrator joint_integrator;
+            bool integrate_from_current_state;
+            std::vector<double> p_gain_stance;
+            std::vector<double> d_gain_stance;
+            std::vector<double> p_gain_swing;
+            std::vector<double> d_gain_swing;
 
             JointCommandMsg solver_output_msg;
             JointCommandPublisher::SharedPtr solver_output_publisher;
@@ -333,6 +370,10 @@ namespace wbc_ros{
             RTContactsBuffer rt_contacts_buffer;
             ContactsMsgPtr contacts_msg;
 
+            JointStateSubscription joint_state_subscriber;
+            RTJointStateBuffer rt_joint_state_buffer;
+            JointStateMsgPtr joint_state_msg;
+
             rclcpp::Time stamp;
             rclcpp::TimerBase::SharedPtr timer;
 
@@ -342,9 +383,6 @@ namespace wbc_ros{
             std::vector<int> joint_idx_map;
 
     };
-
-
-
 }
 
 #endif

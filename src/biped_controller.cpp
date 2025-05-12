@@ -23,10 +23,14 @@ void BipedController::robot_state_callback(const RobotStateMsgPtr msg){
     rt_robot_state_buffer.writeFromNonRT(msg);
 }
 
+void BipedController::joint_state_callback(const JointStateMsgPtr msg){
+    has_joint_state = true;
+    rt_joint_state_buffer.writeFromNonRT(msg);
+}
+
 void BipedController::contacts_callback(const ContactsMsgPtr msg){
     rt_contacts_buffer.writeFromNonRT(msg);
 }
-
 
 rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(const rclcpp_lifecycle::State & /*previous_state*/){
 
@@ -158,11 +162,14 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     robot_state_subscriber = this->create_subscription<RobotStateMsg>("~/robot_state",
         rclcpp::SystemDefaultsQoS(), std::bind(&BipedController::robot_state_callback, this, placeholders::_1));
 
-    contacts_subscriber = this->create_subscription<ContactsMsg>("~/contatcs",
-        rclcpp::SystemDefaultsQoS(), std::bind(&BipedController::contacts_callback, this, placeholders::_1));
+    joint_state_subscriber = this->create_subscription<JointStateMsg>("~/joint_state",
+        rclcpp::SystemDefaultsQoS(), std::bind(&BipedController::joint_state_callback, this, placeholders::_1));
 
     joint_weight_subscriber = this->create_subscription<DoubleArrayMsg>("~/joint_weights", 
         rclcpp::SystemDefaultsQoS(), std::bind(&BipedController::joint_weight_callback, this, std::placeholders::_1));
+
+    contacts_subscriber = this->create_subscription<ContactsMsg>("~/contacts", 
+        rclcpp::SystemDefaultsQoS(), std::bind(&BipedController::contacts_callback, this, std::placeholders::_1));
 
     solver_output_publisher = this->create_publisher<JointCommandMsg>("~/solver_output", rclcpp::SystemDefaultsQoS());
     rt_solver_output_publisher = std::make_unique<RTJointCommandPublisher>(solver_output_publisher);
@@ -178,32 +185,42 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     return rclcpp_lifecycle::LifecycleNode::CallbackReturn::SUCCESS;
 }
 
+void BipedController::handleContacts(const vector<types::Contact> &contacts){
+    robot_model->setContacts(contacts);
+    // TODO
+    // 1. Activate force tasks only for legs which are in contact. Is this required?
+    // 2. Schedule PD-gains based on the contacts
+}
+
 void BipedController::updateController(){
      timing_stats.desired_period = 1.0/update_rate;
     if(stamp.nanoseconds() != 0)
         timing_stats.actual_period = (this->get_clock()->now() - stamp).seconds();
     stamp = this->get_clock()->now();
 
-    if(!has_robot_state){
+    if(!has_robot_state && !has_joint_state){
         RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 3000, "No robot state");
         return;
     }
 
-    // 1. Update the internal robot model with the current robot state
-    // Update joint state
+    // 1. Update the internal robot model with the current robot state, floating base state, and contact information
     rclcpp::Time start = this->get_clock()->now();
-    robot_state_msg = *rt_robot_state_buffer.readFromRT();   
-    if(robot_state_msg->joint_state.position.size() > 0)
+    robot_state_msg = *rt_robot_state_buffer.readFromRT(); 
+    joint_state_msg = *rt_joint_state_buffer.readFromRT();
+    if(robot_state_msg.get()){
         fromROS(*robot_state_msg, joint_idx_map, joint_state, floating_base_state);
+    }
+    else if(joint_state_msg.get())
+        fromROS(*joint_state_msg, joint_idx_map, joint_state);
     else
         return;
     robot_model->update(joint_state.position, joint_state.velocity, joint_state.acceleration,
                         floating_base_state.pose, floating_base_state.twist, floating_base_state.acceleration);
-    // Update contacts
-    contacts_msg = *rt_contacts_buffer.readFromRT();  
-    if(contacts_msg.get()){
-        fromROS(*contacts_msg, contacts);
-        robot_model->setContacts(contacts);
+
+    contacts_msg = *rt_contacts_buffer.readFromRT();
+    if(contacts_msg.get()){        
+        fromROS(robot_state_msg->contacts, contacts);
+        handleContacts(contacts);
     }
     timing_stats.time_robot_model_update = (this->get_clock()->now() - start).seconds();
 
@@ -239,7 +256,7 @@ void BipedController::updateController(){
 }
 
 rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_activate(const rclcpp_lifecycle::State & /*previous_state*/){
-    has_robot_state = false;
+    has_robot_state = has_joint_state = false;
     for(auto ti : task_interfaces)
         ti->reset();
     joint_integrator.reinit();
