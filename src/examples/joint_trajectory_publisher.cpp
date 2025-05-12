@@ -40,8 +40,8 @@ class JointTrajectoryPublisher : public rclcpp::Node
         msg.acceleration.resize(joint_names.size());
         for(uint i = 0; i < joint_names.size(); i++){
             msg.position[i] = initial_positions[i] + amplitude*sin(frequency*dt);
-            msg.velocity[i] = cos(frequency*dt);
-            msg.acceleration[i] = -sin(frequency*dt);
+            msg.velocity[i] = amplitude*cos(frequency*dt);
+            msg.acceleration[i] = -amplitude*sin(frequency*dt);
         }
         publisher->publish(msg);
         dt += 0.01;

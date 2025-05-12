@@ -60,11 +60,11 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
             msg.pose.position.x = init_pos_x + amplitude_x*sin(2*M_PI*frequency*dt + phase_shift_x);
             msg.pose.position.y = init_pos_y + amplitude_y*cos(2*M_PI*frequency*dt + phase_shift_y);
             msg.pose.position.z = init_pos_z;
-            msg.twist.linear.x = cos(2*M_PI*frequency*dt + phase_shift_x);
-            msg.twist.linear.y = -sin(2*M_PI*frequency*dt + phase_shift_y);
+            msg.twist.linear.x = amplitude_x*cos(2*M_PI*frequency*dt + phase_shift_x);
+            msg.twist.linear.y = -amplitude_y*sin(2*M_PI*frequency*dt + phase_shift_y);
             msg.twist.linear.z = 0.0;
-            msg.acceleration.linear.x = -sin(2*M_PI*frequency*dt + phase_shift_x);
-            msg.acceleration.linear.y = -cos(2*M_PI*frequency*dt + phase_shift_y);
+            msg.acceleration.linear.x = -amplitude_x*sin(2*M_PI*frequency*dt + phase_shift_x);
+            msg.acceleration.linear.y = -amplitude_y*cos(2*M_PI*frequency*dt + phase_shift_y);
             msg.acceleration.linear.z = 0.0;
         }
         else if(plane == "xz"){
