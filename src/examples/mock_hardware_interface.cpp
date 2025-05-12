@@ -18,7 +18,7 @@ class MockHardwareInterface  : public rclcpp_lifecycle::LifecycleNode{
     using JointStateMsg = sensor_msgs::msg::JointState;
     using JointStatePublisher = rclcpp::Publisher<JointStateMsg>::SharedPtr;
 
-    using RobotStateMsg = robot_control_msgs::msg::RobotState;
+    using RobotStateMsg = robot_control_msgs::msg::JointState;
     using RobotStatePublisher = rclcpp::Publisher<RobotStateMsg>::SharedPtr;
 
 public:
@@ -38,11 +38,9 @@ public:
         vector<double> initial_position = this->get_parameter("initial_position").as_double_array(); 
         vector<bool> contacts = this->get_parameter("contacts").as_bool_array(); 
 
-        robot_state.joint_state.position.resize(joint_names.size());
-        robot_state.joint_state.velocity.resize(joint_names.size());
-        robot_state.joint_state.acceleration.resize(joint_names.size());      
-        for(auto c : contacts)
-            robot_state.contacts.active.push_back(c);
+        robot_state.position.resize(joint_names.size());
+        robot_state.velocity.resize(joint_names.size());
+        robot_state.acceleration.resize(joint_names.size());
 
         joint_command.position.resize(joint_names.size());
         joint_command.velocity.resize(joint_names.size());
@@ -70,9 +68,9 @@ private:
         joint_state.header.stamp = this->get_clock()->now();
         joint_state_publisher->publish(joint_state);
 
-        robot_state.joint_state.position = joint_state.position;
-        robot_state.joint_state.velocity = joint_state.velocity;
-        robot_state.joint_state.effort = joint_state.effort;
+        robot_state.position = joint_state.position;
+        robot_state.velocity = joint_state.velocity;
+        robot_state.effort = joint_state.effort;
         robot_state_publisher->publish(robot_state);
     }
     void command_callback(const robot_control_msgs::msg::JointCommand::SharedPtr msg){
