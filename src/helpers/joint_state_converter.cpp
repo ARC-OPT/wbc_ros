@@ -23,19 +23,14 @@ class JointStateConverter : public Node{
             this->declare_parameter("joint_names", vector<string>());
             joint_state.name = this->get_parameter("joint_names").as_string_array(); 
 
-
             RCLCPP_INFO(get_logger(), "Joint State Converter is running");
         }
 
-        void robot_state_callback(const RobotStateMsgPtr msg){ 
+        void robot_state_callback(const RobotStateMsgPtr msg){
             joint_state.header.stamp = this->get_clock()->now();
             joint_state.position = msg->position;
-            //joint_state.velocity = msg->velocity;
-            //joint_state.effort = msg->effort;
-
-            joint_state.position.push_back(-0.28);
-            joint_state.position.push_back(0);
-
+            joint_state.velocity = msg->velocity;
+            joint_state.effort = msg->effort;
 
             joint_state_publisher->publish(joint_state);
         }
