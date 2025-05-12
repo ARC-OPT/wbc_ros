@@ -16,6 +16,7 @@ def generate_launch_description():
     mock_hardware_config = base_path + '/mock_hardware_interface.yaml'
     trajectory_publisher_config_l = base_path + '/trajectory_publisher_foot_l.yaml'
     trajectory_publisher_config_r = base_path + '/trajectory_publisher_foot_r.yaml'
+    trajectory_publisher_config = base_path + '/trajectory_publisher_joint.yaml'
     urdf_path = os.path.join(get_package_share_directory('wbc_ros'), 'models', 'urdf', 'hyper', 'HyPer-1.urdf')
     
     # Create the robot description parameter (URDF) from the iiwa.config.xacro file. Use the "fake" flag, which means that the input command is mirrored to the
@@ -48,6 +49,15 @@ def generate_launch_description():
         namespace='',
         remappings=[('/setpoint', '/whole_body_controller/foot_r_pose/setpoint')],
         parameters=[trajectory_publisher_config_r])
+    
+    # This node publishes a circular trajectory and sends it to the Cartesian position controller
+    joint_trajectory_publisher = Node(
+        package='wbc_ros',
+        executable='joint_trajectory_publisher',
+        name='joint_trajectory_publisher',
+        namespace='',
+        remappings=[('/setpoint', '/whole_body_controller/joint_position/setpoint')],
+        parameters=[trajectory_publisher_config])
       
     # Convert robot state to joint states
     converter = Node(

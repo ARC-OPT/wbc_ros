@@ -1,0 +1,17 @@
+/joint_trajectory_publisher:
+  ros__parameters:
+    # Amplitude of the sine/cosine curve
+    amplitude: 0.0
+    # Frequency of the sine/cosine curve
+    frequency: 3.0
+    # Joint names used in the trajectory
+    joint_names: ["joint_ll_hip_1","joint_ll_hip_2","joint_ll_knee",
+                  "joint_rl_hip_1","joint_rl_hip_2","joint_rl_knee"]
+    # Initial position  of all joints
+    initial_positions:
+      joint_ll_hip_1: 0.0
+      joint_ll_hip_2: -0.126
+      joint_ll_knee: -0.69
+      joint_rl_hip_1: 0.0
+      joint_rl_hip_2: 0.126
+      joint_rl_knee: 0.69
