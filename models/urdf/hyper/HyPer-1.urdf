@@ -58,7 +58,7 @@
                 <origin xyz="0.1785 0.055 0" rpy="3.1416 -1.5708 0"/>
                 <parent link="base_link"/>
                 <child link="link_ll_hip_1"/>
-                <axis xyz="0 0 1"/>
+                <axis xyz="0 0 -1"/>
                 <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
         </joint>
         <link name="link_ll_hip_2">
@@ -87,7 +87,7 @@
                 <origin xyz="0 -0.05185 0" rpy="1.5708 0 0"/>
                 <parent link="link_ll_hip_1"/>
                 <child link="link_ll_hip_2"/>
-                <axis xyz="0 0 1"/>
+                <axis xyz="0 0 -1"/>
                 <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
         </joint>
         <link name="link_ll_knee">
@@ -122,7 +122,8 @@
         <link name="link_ll_foot">
                 <inertial>
                         <origin xyz="8.32667268468867E-17 1.11022302462516E-16 -0.000321674370353242" rpy="0 0 0"/>
-                        <mass value="0.0367881989501166"/>
+                        <!--mass value="0.0367881989501166"/-->
+                        <mass value="0.045"/><!-- DM: Measured on scales -->
                         <inertia ixx="5.64573152001465E-06" ixy="1.06404982245401E-12" ixz="4.27555270880889E-19" iyy="6.89467553884924E-06" iyz="-7.54901955321639E-19" izz="5.69202224874889E-06"/>
                 </inertial>
                 <visual>
@@ -181,7 +182,7 @@
                 <origin xyz="0.1785 -0.055 0" rpy="3.1416 -1.5708 0"/>
                 <parent link="base_link"/>
                 <child link="link_rl_hip_1"/>
-                <axis xyz="0 0 1"/>
+                <axis xyz="0 0 -1"/>
                 <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
         </joint>
         <link name="link_rl_hip_2">
@@ -239,13 +240,14 @@
                 <origin xyz="-0.3 0 0" rpy="0 0 0"/>
                 <parent link="link_rl_hip_2"/>
                 <child link="link_rl_knee"/>
-                <axis xyz="0 0 1"/>
+                <axis xyz="0 0 -1"/>
                 <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
         </joint>
         <link name="link_rl_foot">
                 <inertial>
                         <origin xyz="5.55111512312578E-17 -4.16333634234434E-17 -0.000321674370353242" rpy="0 0 0"/>
-                        <mass value="0.0367881989501167"/>
+                        <!--mass value="0.0367881989501167"/-->
+                        <mass value="0.045"/><!-- DM: Measured on scales-->
                         <inertia ixx="5.64573152001469E-06" ixy="1.06404981350407E-12" ixz="2.82768803128799E-20" iyy="6.89467553885105E-06" iyz="-7.55128256566323E-19" izz="5.69202224875067E-06"/>
                 </inertial>
                 <visual>
