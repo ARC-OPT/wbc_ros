@@ -48,6 +48,16 @@ def generate_launch_description():
         namespace='',
         remappings=[('/setpoint', '/whole_body_controller/foot_r_pose/setpoint')],
         parameters=[trajectory_publisher_config_r])
+      
+    # Convert robot state to joint states
+    converter = Node(
+        package='wbc_ros',
+        executable='joint_state_converter',
+        name='joint_state_converter',
+        namespace='',
+        remappings=[('/joint_state_converter/joint_state', '/cubemars_hardware_node/joint_states')],
+        parameters=[{'joint_names': ["joint_ll_hip_1","joint_ll_hip_2","joint_ll_knee",
+                                     "joint_rl_hip_1","joint_rl_hip_2","joint_rl_knee"]}])
         
     # WBC and mock hardware interface container
     container = ComposableNodeContainer(
@@ -75,6 +85,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         robot_state_publisher,
+        converter,
         trajectory_publisher_l,
         trajectory_publisher_r,
         container
