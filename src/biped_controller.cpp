@@ -139,21 +139,17 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     task_interfaces.push_back(foot_l_iface);
 
     // Contact force tasks
-    auto force_r_param = params.tasks.contact_force_r;
-    force_r_iface = std::make_shared<ContactForceTaskInterface>("foot_r_force", this->shared_from_this());   
-    force_r_iface->task = std::make_shared<ContactForceTask>(TaskConfig("foot_r_force", 0, force_r_param.weights, force_r_param.activation),
-                                                             robot_model,
-                                                             force_r_param.ref_frame);
-    tasks.push_back(force_r_iface->task);            
-    task_interfaces.push_back(force_r_iface);
-
     auto force_l_param = params.tasks.contact_force_l;
-    force_l_iface = std::make_shared<ContactForceTaskInterface>("foot_l_force", this->shared_from_this());   
-    force_l_iface->task = std::make_shared<ContactForceTask>(TaskConfig("foot_l_force", 0, force_l_param.weights, force_l_param.activation),
-                                                             robot_model,
-                                                             force_l_param.ref_frame);
-    tasks.push_back(force_l_iface->task);                          
-    task_interfaces.push_back(force_l_iface);
+    force_l_task = std::make_shared<ContactForceTask>(TaskConfig("foot_l_force", 0, force_l_param.weights, force_l_param.activation),
+                                                      robot_model,
+                                                      force_l_param.ref_frame);
+    tasks.push_back(force_l_task);
+
+    auto force_r_param = params.tasks.contact_force_r;
+    force_r_task = std::make_shared<ContactForceTask>(TaskConfig("foot_r_force", 0, force_r_param.weights, force_r_param.activation),
+                                                      robot_model,
+                                                      force_r_param.ref_frame);
+    tasks.push_back(force_r_task);
 
     // Joint position task
     auto joint_pos_param = params.tasks.joint_position;
@@ -212,7 +208,8 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     return rclcpp_lifecycle::LifecycleNode::CallbackReturn::SUCCESS;
 }
 
-void BipedController::handleContacts(const vector<types::Contact> &contacts){
+void BipedController::handleContacts(const ContactsMsgPtr msg){
+    fromROS(*msg, contacts);
     assert(contacts.size() == 2);
     robot_model->setContacts(contacts);
 
@@ -226,7 +223,9 @@ void BipedController::handleContacts(const vector<types::Contact> &contacts){
             d_gain[j] = d_gain_stance[j];
         }
         foot_l_iface->task->setActivation(0);
-        force_l_iface->task->setActivation(1);
+        force_l_task->setActivation(1);
+        fromROS(msg->wrenches[0], contact_force_l);
+        force_l_task->setReference(contact_force_l);
     }
      else{
         for(auto j : joint_idx_map_left_leg){
@@ -234,7 +233,7 @@ void BipedController::handleContacts(const vector<types::Contact> &contacts){
             d_gain[j] = d_gain_swing[j];
         }
         foot_l_iface->task->setActivation(1);
-        force_l_iface->task->setActivation(0);
+        force_l_task->setActivation(0);
     }
 
     // Right Leg
@@ -244,7 +243,9 @@ void BipedController::handleContacts(const vector<types::Contact> &contacts){
             d_gain[j] = d_gain_stance[j];
         }
         foot_r_iface->task->setActivation(0);
-        force_r_iface->task->setActivation(1);
+        force_r_task->setActivation(1);
+        fromROS(msg->wrenches[1], contact_force_r);
+        force_r_task->setReference(contact_force_r);
     }
     else{
         for(auto j : joint_idx_map_right_leg){
@@ -252,7 +253,7 @@ void BipedController::handleContacts(const vector<types::Contact> &contacts){
             d_gain[j] = d_gain_swing[j];
         }
         foot_r_iface->task->setActivation(1);
-        force_r_iface->task->setActivation(0);
+        force_r_task->setActivation(0);
     }
 }
 
@@ -282,10 +283,8 @@ void BipedController::updateController(){
                         floating_base_state.pose, floating_base_state.twist, floating_base_state.acceleration);
 
     contacts_msg = *rt_contacts_buffer.readFromRT();
-    if(contacts_msg.get()){        
-        fromROS(robot_state_msg->contacts, contacts);
-        handleContacts(contacts);
-    }
+    if(contacts_msg.get())
+        handleContacts(contacts_msg);
     timing_stats.time_robot_model_update = (this->get_clock()->now() - start).seconds();
 
     // 2. Update Tasks
@@ -346,8 +345,8 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_cleanup(cons
     com_task_iface.reset();
     foot_l_iface.reset();
     foot_r_iface.reset();
-    force_l_iface.reset();
-    force_r_iface.reset();
+    force_l_task.reset();
+    force_r_task.reset();
     joint_pos_iface.reset();
     robot_state_subscriber.reset();
     joint_state_subscriber.reset();

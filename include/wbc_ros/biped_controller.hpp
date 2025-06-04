@@ -6,7 +6,6 @@
 #include <realtime_tools/realtime_buffer.hpp>
 #include <realtime_tools/realtime_publisher.hpp>
 #include <wbc_msgs/msg/wbc_timing_stats.hpp>
-#include <wbc_msgs/msg/task_status.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
 #include <std_msgs/msg/float64.hpp>
 
@@ -27,6 +26,38 @@
 
 namespace wbc_ros{
 
+    /**
+     * ROS 2 Interface for the Whole-Body Controller specific to bipedal walking. It sets up and solves the following QP:
+     *  \f[
+     *        \begin{array}{ccc}
+     *        minimize &  \| \mathbf{J}\ddot{\mathbf{q}} - \dot{\mathbf{v}}_d + \dot{\mathbf{J}}\dot{\mathbf{q}}\|_2 \\
+     *        \mathbf{\ddot{q}},\mathbf{f} & & \\
+     *           s.t.  & \mathbf{H}\mathbf{\ddot{q}} + \mathbf{h} = S\mathbf{\tau} + \mathbf{J}_{c,i}^T\mathbf{f} \quad \forall i & \\
+     *                 & \mathbf{J}_{c,i}\mathbf{\ddot{q}} = -\dot{\mathbf{J}}_{c,i}\dot{q} \quad \forall i & \\
+     *                 & \mathbf{\tau}_m \leq \mathbf{\tau} \leq \mathbf{\tau}_M & \\
+     *        \end{array}
+     *  \f]
+     * and computes
+     *  \f[
+     *        \tau = \mathbf{H}\ddot{\mathbf{q}} + \mathbf{h} - \sum_i \mathbf{J}_{c,i}^T\mathbf{f}
+     *  \f]
+     * where
+     *  \f[
+     *        \dot{\mathbf{v}}_d = \dot{\mathbf{v}}_r + \mathbf{K}_d(\mathbf{v}_r-\mathbf{v}) + \mathbf{K}_p(\mathbf{x}_r-\mathbf{x})
+     *  \f]
+     * 
+     * Published Topics:
+     *  - ´~/solver_output´ (´robot_control_msgs/msg/JointCommand´) - The QP solution (position, velocity, torque) 
+     *  - ´~/timing_stats (´wbc_msgs/msg/TimingStats´) - Debug message showing the computation time
+     * 
+     * Subscribed Topics:
+     *  - ´~/com_position/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the CoM (full pose, twist, spatial acceleration)
+     *  - ´~/foot_l_pose/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the left foot (position, linear velocity, linear acceleration)
+     *  - ´~/foot_r_pose/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the right foot (position, linear velocity, linear acceleration)
+     *  - ´~/robot_state´ (´robot_control_msgs/msg/JointState´)
+     *  - ´~/contacts´ (´robot_control_msgs/msg/Contacts´)
+     *  - ´~/joint_weights´ (´std_msgs/msg/Float64MultiArray´) 
+     */
     class BipedController : public rclcpp_lifecycle::LifecycleNode{
 
         using JointCommandMsg = robot_control_msgs::msg::JointCommand;
@@ -60,11 +91,6 @@ namespace wbc_ros{
         using TimingStatsPublisher = rclcpp::Publisher<TimingStatsMsg>;
         using RTTimingStatsPublisher = realtime_tools::RealtimePublisher<TimingStatsMsg>;
 
-        using DoubleMsg = std_msgs::msg::Float64;
-        using DoubleMsgPtr = std::shared_ptr<DoubleMsg>;
-        using DoubleSubscription = rclcpp::Subscription<DoubleMsg>::SharedPtr;
-        using RTDoubleBuffer = realtime_tools::RealtimeBuffer<DoubleMsgPtr>;
-
         using RigidBodyStateMsg = robot_control_msgs::msg::RigidBodyState;
         using RigidBodyStateMsgPtr = std::shared_ptr<RigidBodyStateMsg>;
         using RigidBodyStateSubscription = rclcpp::Subscription<RigidBodyStateMsg>::SharedPtr;
@@ -73,79 +99,12 @@ namespace wbc_ros{
         using RigidBodyStatePublisher = rclcpp::Publisher<RigidBodyStateMsg>;
         using RTRigidBodyStatePublisher = realtime_tools::RealtimePublisher<RigidBodyStateMsg>;
 
-        using WrenchMsg = geometry_msgs::msg::Wrench;
-        using WrenchMsgPtr = std::shared_ptr<WrenchMsg>;
-        using WrenchSubscription = rclcpp::Subscription<WrenchMsg>::SharedPtr;
-        using RTWrenchBuffer = realtime_tools::RealtimeBuffer<WrenchMsgPtr>;    
-
-        using TaskStatusMsg = wbc_msgs::msg::TaskStatus;     
-        using TaskStatusPublisher = rclcpp::Publisher<TaskStatusMsg>;
-        using RTTaskStatusPublisher = realtime_tools::RealtimePublisher<TaskStatusMsg>;
-
         class TaskInterface{
-            DoubleArraySubscription task_weight_subscriber;
-            RTDoubleArrayBuffer rt_task_weight_buffer;
-            DoubleArrayMsgPtr task_weight_msg;
-
-            DoubleSubscription task_activation_subscriber;
-            RTDoubleBuffer rt_task_activation_buffer;
-            DoubleMsgPtr task_activation_msg;
-
-            TaskStatusPublisher::SharedPtr task_status_publisher;
-            std::unique_ptr<RTTaskStatusPublisher> rt_task_status_publisher; 
-
-            // Helpers
-            Eigen::VectorXd y_solution;
-            Eigen::VectorXd y;
-
             public:
-                TaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-                    has_task_weights(false),
-                    has_task_activation(false),
-                    task_name(task_name){  
-                    task_weight_subscriber = node->create_subscription<DoubleArrayMsg>("~/" + task_name + "/task_weights", 
-                                                                                      rclcpp::SystemDefaultsQoS(), 
-                                                                                      bind(&TaskInterface::task_weight_callback, this, std::placeholders::_1));
-                    task_activation_subscriber = node->create_subscription<DoubleMsg>("~/" + task_name + "/activation", 
-                                                                                      rclcpp::SystemDefaultsQoS(), 
-                                                                                      bind(&TaskInterface::task_activation_callback, this, std::placeholders::_1));
+                TaskInterface(){
                 }
-                void task_weight_callback(const DoubleArrayMsgPtr msg){
-                    rt_task_weight_buffer.writeFromNonRT(msg);
-                    has_task_weights = true;
-                }
-                void task_activation_callback(const DoubleMsgPtr msg){
-                    rt_task_activation_buffer.writeFromNonRT(msg);
-                    has_task_activation = true;
-                }
-                void updateTaskWeights(wbc::TaskPtr task){
-                    if(has_task_weights){
-                        task_weight_msg = *rt_task_weight_buffer.readFromRT();
-                        if(task_weight_msg.get()){
-                            task->setWeights(Eigen::Map<Eigen::VectorXd>(task_weight_msg->data.data(), task_weight_msg->data.size()));
-                        }
-                    }
-                    if(has_task_activation){
-                        task_activation_msg = *rt_task_activation_buffer.readFromRT();
-                        if (task_activation_msg.get())
-                            task->setActivation(task_activation_msg->data);
-                    }
-                }
-
                 virtual void update(wbc::RobotModelPtr robot_model) = 0;
                 virtual void reset() = 0;
-                void publishTaskStatus(wbc::TaskPtr task, const Eigen::VectorXd& solver_output_acc, const Eigen::VectorXd& robot_acc){
-                    y_solution = task->A * solver_output_acc; // neglect acceleration bias
-                    y = task->A * robot_acc;
-                    rt_task_status_publisher->lock();
-                    rt_task_status_publisher->msg_.y_ref = std::vector<float>(task->y_ref_world.data(), task->y_ref_world.data() + task->y_ref_world.size());
-                    rt_task_status_publisher->msg_.y_solution = std::vector<float>(y_solution.data(), y_solution.data() + y_solution.size());
-                    rt_task_status_publisher->msg_.y = std::vector<float>(y.data(), y.data() + y.size());
-                    rt_task_status_publisher->unlockAndPublish();
-                }
-                bool has_task_weights;
-                bool has_task_activation;
-             std::string task_name;
         };
         using TaskInterfacePtr = std::shared_ptr<TaskInterface>;   
 
@@ -158,7 +117,7 @@ namespace wbc_ros{
             std::unique_ptr<RTRigidBodyStatePublisher> rt_feedback_publisher;  
             public:
                 CoMTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-                    TaskInterface(task_name, node),
+                    TaskInterface(),
                     has_setpoint(false){
                     setpoint_subscriber = node->create_subscription<RigidBodyStateMsg>("~/" + task_name + "/setpoint", rclcpp::SystemDefaultsQoS(), 
                         bind(&CoMTaskInterface::setpoint_callback, this, std::placeholders::_1));   
@@ -170,7 +129,6 @@ namespace wbc_ros{
                     has_setpoint = true;
                 }
                 virtual void update(wbc::RobotModelPtr robot_model){
-                    updateTaskWeights(task);
                     if(!has_setpoint)
                         return;
                     setpoint_msg = *rt_setpoint_buffer.readFromRT();
@@ -208,7 +166,7 @@ namespace wbc_ros{
 
             public:
                 FootTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-                    TaskInterface(task_name, node),
+                    TaskInterface(),
                     has_setpoint(false){
                     setpoint_subscriber = node->create_subscription<RigidBodyStateMsg>("~/" + task_name + "/setpoint", rclcpp::SystemDefaultsQoS(), 
                         bind(&FootTaskInterface::setpoint_callback, this, std::placeholders::_1));   
@@ -220,7 +178,6 @@ namespace wbc_ros{
                     has_setpoint = true;
                 }
                 virtual void update(wbc::RobotModelPtr robot_model){
-                    updateTaskWeights(task);
                     if(!has_setpoint)
                         return;
                     setpoint_msg = *rt_setpoint_buffer.readFromRT();
@@ -233,7 +190,6 @@ namespace wbc_ros{
                                                              robot_model->twist(task->tipFrame()));
                         task->setReference(ctrl_out);
                     }
-
                     rt_feedback_publisher->lock();
                     toROS(robot_model->pose(task->tipFrame()), 
                           robot_model->twist(task->tipFrame()), 
@@ -252,48 +208,13 @@ namespace wbc_ros{
         };
         using FootTaskInterfacePtr = std::shared_ptr<FootTaskInterface>;   
 
-        class ContactForceTaskInterface : public TaskInterface{  
-            WrenchSubscription setpoint_subscriber;
-            RTWrenchBuffer rt_setpoint_buffer;
-            WrenchMsgPtr setpoint_msg;
-            public:
-                ContactForceTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-                    TaskInterface(task_name, node),
-                    has_setpoint(false){
-                    setpoint_subscriber = node->create_subscription<WrenchMsg>("~/" + task_name + "/setpoint", rclcpp::SystemDefaultsQoS(), 
-                        bind(&ContactForceTaskInterface::setpoint_callback, this, std::placeholders::_1));  
-                }     
-                void setpoint_callback(const WrenchMsgPtr msg){
-                    rt_setpoint_buffer.writeFromNonRT(msg);
-                    has_setpoint = true;
-                }
-                virtual void update(wbc::RobotModelPtr /*robot_model*/){
-                    updateTaskWeights(task);
-                    if(!has_setpoint)
-                        return;
-                    setpoint_msg = *rt_setpoint_buffer.readFromRT();
-                    if(setpoint_msg.get()){
-                        fromROS(*setpoint_msg, setpoint);
-                        task->setReference(setpoint);
-                    }
-                }
-                virtual void reset(){
-                    task->reset();
-                }
-                bool has_setpoint;
-                wbc::types::Wrench setpoint;
-                wbc::ContactForceTaskPtr task;
-
-        };
-        using ContactForceTaskInterfacePtr = std::shared_ptr<ContactForceTaskInterface>;  
-
         class JointPositionTaskInterface : public TaskInterface{
             JointCommandSubscription setpoint_subscriber;
             RTJointCommandBuffer rt_setpoint_buffer;
             JointCommandMsgPtr setpoint_msg;
             public:
                 JointPositionTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-                    TaskInterface(task_name, node),
+                    TaskInterface(),
                     has_setpoint(false){
                     setpoint_subscriber = node->create_subscription<JointCommandMsg>("~/" + task_name + "/setpoint", rclcpp::SystemDefaultsQoS(), 
                         bind(&JointPositionTaskInterface::setpoint_callback, this, std::placeholders::_1));   
@@ -308,7 +229,6 @@ namespace wbc_ros{
                         for(auto n : task->jointNames())
                             joint_idx_map.push_back(robot_model->jointIndex(n));
                     }
-                    updateTaskWeights(task);
                     if(!has_setpoint)
                         return;
                     setpoint_msg = *rt_setpoint_buffer.readFromRT();
@@ -345,7 +265,7 @@ namespace wbc_ros{
             virtual CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
     
             void updateController();
-            void handleContacts(const std::vector<wbc::types::Contact>& contacts);
+            void handleContacts(const ContactsMsgPtr msg);
             void joint_weight_callback(const DoubleArrayMsgPtr msg);
             void robot_state_callback(const RobotStateMsgPtr msg);
             void joint_state_callback(const JointStateMsgPtr msg);
@@ -355,10 +275,11 @@ namespace wbc_ros{
             CoMTaskInterfacePtr com_task_iface;
             FootTaskInterfacePtr foot_l_iface;
             FootTaskInterfacePtr foot_r_iface;
-            ContactForceTaskInterfacePtr force_l_iface;
-            ContactForceTaskInterfacePtr force_r_iface;
             JointPositionTaskInterfacePtr joint_pos_iface;
             std::vector<TaskInterfacePtr> task_interfaces;
+
+            wbc::ContactForceTaskPtr force_l_task;
+            wbc::ContactForceTaskPtr force_r_task;
 
             wbc::ScenePtr scene;
             wbc::RobotModelPtr robot_model;
@@ -366,6 +287,7 @@ namespace wbc_ros{
             wbc::types::JointState joint_state;
             wbc::types::RigidBodyState floating_base_state;
             std::vector<wbc::types::Contact> contacts;
+            wbc::types::Wrench contact_force_l, contact_force_r;
             bool has_robot_state, has_joint_state;
             int update_rate;
             wbc::types::JointCommand solver_output;
