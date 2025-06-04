@@ -51,7 +51,7 @@ namespace wbc_ros{
      *  - ´~/timing_stats (´wbc_msgs/msg/TimingStats´) - Debug message showing the computation time
      * 
      * Subscribed Topics:
-     *  - ´~/com_position/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the CoM (full pose, twist, spatial acceleration)
+     *  - ´~/com_position/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the CoM (position, linear velocity, linear acceleration)
      *  - ´~/foot_l_pose/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the left foot (position, linear velocity, linear acceleration)
      *  - ´~/foot_r_pose/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the right foot (position, linear velocity, linear acceleration)
      *  - ´~/robot_state´ (´robot_control_msgs/msg/JointState´)

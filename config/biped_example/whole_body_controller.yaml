@@ -14,20 +14,20 @@ whole_body_controller:
             # Robot model type. Must be the exact name of one of the registered robot model plugins. See src/robot_models for all available plugins. Default is pinocchio
             type: pinocchio
             # Optionally attach a virtual 6 DoF floating base to the model
-            floating_base: false
+            floating_base: true
             contacts:
                 left_leg:
                     # Link name that can be in contact with the environment. Has to be valid link name in the robot model.
                     name: "link_ll_foot"
                     # Is the link is in contact with the environment initially?
-                    active: 0
+                    active: 1
                     # Friction coeffcient for the contact point.
                     mu: 0.6
                 right_leg:
                     # Link name that can be in contact with the environment. Has to be valid link name in the robot model.
                     name: "link_rl_foot"
                     # Is the link is in contact with the environment initially?
-                    active: 0
+                    active: 1
                     # Friction coeffcient for the contact point.
                     mu: 0.6
         solver:
