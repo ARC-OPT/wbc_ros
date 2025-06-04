@@ -80,14 +80,16 @@ def generate_launch_description():
                 package='wbc_ros',
                 plugin='wbc_ros::BipedController',
                 name='whole_body_controller',
-                remappings=[('/whole_body_controller/solver_output', '/mock_hardware_interface/command')],
+                #remappings=[('/whole_body_controller/solver_output', '/cubemars_hardware_node/joint_commands'),
+                #            ('/whole_body_controller/joint_state', '/cubemars_hardware_node/joint_states')],
+                remappings=[('/whole_body_controller/solver_output', '/mock_hardware_interface/command'),
+                            ('/whole_body_controller/joint_state', '/mock_hardware_interface/robot_state')],
                 parameters=[robot_description, wbc_config]),
             ComposableNode(
                 package='wbc_ros',
                 plugin='wbc_ros::MockHardwareInterface',
                 name='mock_hardware_interface',
                 namespace='',
-                remappings=[('/mock_hardware_interface/robot_state', '/whole_body_controller/robot_state')],
                 parameters=[mock_hardware_config])
         ],
         output='screen'
@@ -96,7 +98,8 @@ def generate_launch_description():
     return LaunchDescription([
         robot_state_publisher,
         converter,
-        trajectory_publisher_l,
-        trajectory_publisher_r,
+        joint_trajectory_publisher,
+        #trajectory_publisher_l,
+        #trajectory_publisher_r,   
         container
     ])

@@ -31,6 +31,8 @@ void fromROS(const robot_control_msgs::msg::RobotState& in, const std::vector<in
 
 void toROS(const wbc::types::RigidBodyState& in, robot_control_msgs::msg::RigidBodyState& out);
 void toROS(const wbc::types::JointCommand& in, const std::vector<int>& joint_indices, robot_control_msgs::msg::JointCommand& out);
+void toROS(const wbc::types::JointCommand& in, const std::vector<double> &kp, const std::vector<double> &kd, const std::vector<int>& joint_indices, 
+           robot_control_msgs::msg::JointCommand& out);
 void toROS(const Eigen::VectorXd& in, std_msgs::msg::Float64MultiArray& out);
 void toROS(const wbc::types::Pose& in, geometry_msgs::msg::Pose& out);
 void toROS(const wbc::types::Twist& in, geometry_msgs::msg::Twist& out);

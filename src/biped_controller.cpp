@@ -44,11 +44,8 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
         throw std::runtime_error("Invalid update_rate parameter");
     }
 
+    // Integrator params
     integrate_from_current_state = params.integrator.from_current_state;
-    p_gain_stance = params.p_gain_stance;
-    d_gain_stance = params.d_gain_stance;
-    p_gain_swing = params.p_gain_swing;
-    d_gain_swing = params.d_gain_swing;
 
     RobotModelConfig robot_model_cfg;
     robot_model_cfg.file_or_string       = urdf_string;
@@ -56,8 +53,8 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     robot_model_cfg.floating_base        = params.robot_model.floating_base;  
     robot_model_cfg.joint_blacklist      = params.robot_model.joint_blacklist;
     auto contacts_param = params.robot_model.contacts;
-    for(uint i = 0; i < contacts_param.names.size(); i++)
-        contacts.push_back(Contact(contacts_param.names[i], contacts_param.active[i], contacts_param.mu));
+    contacts.push_back(Contact(contacts_param.left_leg.name, contacts_param.left_leg.active, contacts_param.left_leg.mu));
+    contacts.push_back(Contact(contacts_param.right_leg.name, contacts_param.right_leg.active, contacts_param.right_leg.mu));
     robot_model_cfg.contact_points = contacts;
 
     RCLCPP_INFO(this->get_logger(), "Configuring robot model: %s", params.robot_model.type.c_str());
@@ -78,6 +75,22 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
             joint_idx_map.push_back(robot_model->jointIndex(params.joint_names[i]));
     }
 
+    // Gain scheduling params
+    auto gain_sched_param = params.gain_scheduling;
+    p_gain_stance = gain_sched_param.p_gain_stance;
+    d_gain_stance = gain_sched_param.d_gain_stance;
+    p_gain_swing = gain_sched_param.p_gain_swing;
+    d_gain_swing = gain_sched_param.d_gain_swing;
+    vector<string> jts_left_leg = gain_sched_param.joint_names_left_leg;
+    vector<string> jts_right_leg = gain_sched_param.joint_names_right_leg;
+    for(auto j : jts_left_leg)
+        joint_idx_map_left_leg.push_back(robot_model->jointIndex(j));
+    for(auto j : jts_right_leg)
+        joint_idx_map_right_leg.push_back(robot_model->jointIndex(j));
+    // Assume stance phase at startup
+    p_gain = p_gain_stance; 
+    d_gain = d_gain_stance;
+
     RCLCPP_INFO(this->get_logger(), "Configuring solver: %s", params.solver.type.c_str());
     PluginLoader::loadPlugin("libwbc-solvers-" + params.solver.type + ".so");
     solver = shared_ptr<QPSolver>(QPSolverFactory::createInstance(params.solver.type));
@@ -87,7 +100,7 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
 
     // CoM Task
     auto com_param = params.tasks.com_position;                                                     
-    CoMTaskInterfacePtr com_task_iface = std::make_shared<CoMTaskInterface>("com_position", this->shared_from_this());
+    com_task_iface = std::make_shared<CoMTaskInterface>("com_position", this->shared_from_this());
     com_task_iface->task = std::make_shared<CoMAccelerationTask>(TaskConfig("com_position", 0, com_param.weights, com_param.activation), 
                                                                  robot_model);
     Eigen::VectorXd p_gain(6), d_gain(6), max_ctrl_out(6);
@@ -102,7 +115,7 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
 
     // Foot tasks
     auto foot_r_param = params.tasks.foot_r_pose;
-    FootTaskInterfacePtr foot_r_iface = std::make_shared<FootTaskInterface>("foot_r_pose", this->shared_from_this());
+    foot_r_iface = std::make_shared<FootTaskInterface>("foot_r_pose", this->shared_from_this());
     foot_r_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("foot_r_pose", 0, foot_r_param.weights, foot_r_param.activation), 
                                                                    robot_model,
                                                                    foot_r_param.tip_frame,
@@ -114,7 +127,7 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     task_interfaces.push_back(foot_r_iface);
 
     auto foot_l_param = params.tasks.foot_l_pose;
-    FootTaskInterfacePtr foot_l_iface = std::make_shared<FootTaskInterface>("foot_l_pose", this->shared_from_this());
+    foot_l_iface = std::make_shared<FootTaskInterface>("foot_l_pose", this->shared_from_this());
     foot_l_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("foot_l_pose", 0, foot_l_param.weights, foot_l_param.activation), 
                                                                    robot_model,
                                                                    foot_l_param.tip_frame,
@@ -127,24 +140,24 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
 
     // Contact force tasks
     auto force_r_param = params.tasks.contact_force_r;
-    ContactForceTaskInterfacePtr force_r_iface = std::make_shared<ContactForceTaskInterface>("foot_r_force", this->shared_from_this());   
+    force_r_iface = std::make_shared<ContactForceTaskInterface>("foot_r_force", this->shared_from_this());   
     force_r_iface->task = std::make_shared<ContactForceTask>(TaskConfig("foot_r_force", 0, force_r_param.weights, force_r_param.activation),
                                                              robot_model,
                                                              force_r_param.ref_frame);
-    tasks.push_back(force_r_iface->task);
+    tasks.push_back(force_r_iface->task);            
     task_interfaces.push_back(force_r_iface);
 
     auto force_l_param = params.tasks.contact_force_l;
-    ContactForceTaskInterfacePtr force_l_iface = std::make_shared<ContactForceTaskInterface>("foot_l_force", this->shared_from_this());   
+    force_l_iface = std::make_shared<ContactForceTaskInterface>("foot_l_force", this->shared_from_this());   
     force_l_iface->task = std::make_shared<ContactForceTask>(TaskConfig("foot_l_force", 0, force_l_param.weights, force_l_param.activation),
                                                              robot_model,
                                                              force_l_param.ref_frame);
-    tasks.push_back(force_l_iface->task);  
-    task_interfaces.push_back(force_l_iface);                            
+    tasks.push_back(force_l_iface->task);                          
+    task_interfaces.push_back(force_l_iface);
 
     // Joint position task
     auto joint_pos_param = params.tasks.joint_position;
-    JointPositionTaskInterfacePtr joint_pos_iface = std::make_shared<JointPositionTaskInterface>("joint_position", this->shared_from_this());
+    joint_pos_iface = std::make_shared<JointPositionTaskInterface>("joint_position", this->shared_from_this());
     joint_pos_iface->task = std::make_shared<JointAccelerationTask>(TaskConfig("joint_position", 0, joint_pos_param.weights, joint_pos_param.activation), 
                                                                     robot_model,
                                                                     params.joint_names); 
@@ -162,6 +175,12 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
         RCLCPP_ERROR(this->get_logger(), "Failed to configure scene");
         return CallbackReturn::ERROR;
     } 
+
+    joint_state.position.resize(robot_model->nj());
+    joint_state.velocity.resize(robot_model->nj());
+    joint_state.velocity.setZero();
+    joint_state.acceleration.resize(robot_model->nj());
+    joint_state.acceleration.setZero();
 
     // Subscribers/Publishers
 
@@ -182,8 +201,6 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
 
     timing_stats_publisher = this->create_publisher<TimingStatsMsg>("~/timing_stats", rclcpp::SystemDefaultsQoS());
     rt_timing_stats_publisher = std::make_unique<RTTimingStatsPublisher>(timing_stats_publisher);
-    rt_solver_output_publisher->msg_.kp = p_gain_stance;
-    rt_solver_output_publisher->msg_.kd = d_gain_stance;
 
     robot_model->setContacts(contacts);
 
@@ -196,10 +213,47 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
 }
 
 void BipedController::handleContacts(const vector<types::Contact> &contacts){
+    assert(contacts.size() == 2);
     robot_model->setContacts(contacts);
-    // TODO
-    // 1. Activate force tasks only for legs which are in contact. Is this required?
-    // 2. Schedule PD-gains based on the contacts
+
+    // 1. Schedule PD-gains based on the contacts
+    // 2. Activate force tasks / deactivate position tasks for legs which are in contact.
+
+    // Left Leg
+    if(contacts[0].active){
+        for(auto j : joint_idx_map_left_leg){
+            p_gain[j] = p_gain_stance[j];
+            d_gain[j] = d_gain_stance[j];
+        }
+        foot_l_iface->task->setActivation(0);
+        force_l_iface->task->setActivation(1);
+    }
+     else{
+        for(auto j : joint_idx_map_left_leg){
+            p_gain[j] = p_gain_swing[j];
+            d_gain[j] = d_gain_swing[j];
+        }
+        foot_l_iface->task->setActivation(1);
+        force_l_iface->task->setActivation(0);
+    }
+
+    // Right Leg
+    if(contacts[1].active){
+        for(auto j : joint_idx_map_right_leg){
+            p_gain[j] = p_gain_stance[j];
+            d_gain[j] = d_gain_stance[j];
+        }
+        foot_r_iface->task->setActivation(0);
+        force_r_iface->task->setActivation(1);
+    }
+    else{
+        for(auto j : joint_idx_map_right_leg){
+            p_gain[j] = p_gain_swing[j];
+            d_gain[j] = d_gain_swing[j];
+        }
+        foot_r_iface->task->setActivation(1);
+        force_r_iface->task->setActivation(0);
+    }
 }
 
 void BipedController::updateController(){
@@ -255,8 +309,8 @@ void BipedController::updateController(){
     // 5. Integrate and publish solution
     joint_integrator.integrate(robot_model->jointState(), solver_output, 1.0/update_rate, types::CommandMode::ACCELERATION, IntegrationMethod::RECTANGULAR, integrate_from_current_state);
 
-    rt_solver_output_publisher->lock();    
-    toROS(solver_output, joint_idx_map, rt_solver_output_publisher->msg_);
+    rt_solver_output_publisher->lock();
+    toROS(solver_output, p_gain, d_gain, joint_idx_map, rt_solver_output_publisher->msg_);
     rt_solver_output_publisher->unlockAndPublish();
 
     timing_stats.time_per_cycle = (this->get_clock()->now() - stamp).seconds();
@@ -279,11 +333,32 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_activate(con
 
 rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/){
     timer->cancel();
-
     return rclcpp_lifecycle::LifecycleNode::CallbackReturn::SUCCESS;
 }
 
 rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/){
+    task_interfaces.clear();
+    joint_idx_map.clear();
+    joint_idx_map_left_leg.clear();
+    joint_idx_map_right_leg.clear();
+    contacts.clear();
+
+    com_task_iface.reset();
+    foot_l_iface.reset();
+    foot_r_iface.reset();
+    force_l_iface.reset();
+    force_r_iface.reset();
+    joint_pos_iface.reset();
+    robot_state_subscriber.reset();
+    joint_state_subscriber.reset();
+    timing_stats_publisher.reset();
+    solver_output_publisher.reset();
+    contacts_subscriber.reset();
+    joint_weight_subscriber.reset();
+    robot_model.reset();
+    scene.reset();
+    solver.reset();
+    
     return rclcpp_lifecycle::LifecycleNode::CallbackReturn::SUCCESS;
 }
 

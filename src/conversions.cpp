@@ -28,13 +28,13 @@ void fromROS(const robot_control_msgs::msg::JointState& in, const std::vector<in
     assert(joint_indices.size() == in.position.size());
     out.position.resize(in.position.size());
     out.velocity.resize(in.velocity.size());
-    out.acceleration.resize(in.acceleration.size());
+    out.acceleration.resize(in.velocity.size());
     for(uint i = 0; i < in.position.size(); i++)
         out.position[joint_indices[i]]     = in.position[i];
     for(uint i = 0; i < in.velocity.size(); i++)
-         out.velocity[joint_indices[i]]     = in.velocity[i];
+        out.velocity[joint_indices[i]]     = in.velocity[i];
     for(uint i = 0; i < in.acceleration.size(); i++)
-         out.acceleration[joint_indices[i]] = in.acceleration[i];
+        out.acceleration[joint_indices[i]] = in.acceleration[i];
 }
 
 void fromROS(const robot_control_msgs::msg::RigidBodyState& in, wbc::types::RigidBodyState& out){
@@ -84,13 +84,26 @@ void toROS(const wbc::types::RigidBodyState& in, robot_control_msgs::msg::RigidB
 void toROS(const wbc::types::JointCommand& in, const std::vector<int>& joint_indices, robot_control_msgs::msg::JointCommand& out){
     out.position.resize(in.position.size());
     out.velocity.resize(in.velocity.size());
+    out.acceleration.resize(in.effort.size());
     out.effort.resize(in.effort.size());
     for(uint i = 0; i < in.position.size(); i++)
         out.position[i] = in.position[joint_indices[i]];
     for(uint i = 0; i < in.position.size(); i++)
-        out.velocity[i] = in.velocity[joint_indices[i]];        
-    for(uint i = 0; i < in.position.size(); i++)
+        out.velocity[i] = in.velocity[joint_indices[i]];
+    for(uint i = 0; i < in.acceleration.size(); i++)
+        out.acceleration[i] = in.acceleration[joint_indices[i]];
+    for(uint i = 0; i < in.effort.size(); i++)
         out.effort[i] = in.effort[joint_indices[i]];
+}
+
+void toROS(const wbc::types::JointCommand& in, const std::vector<double> &kp, const std::vector<double> &kd, const std::vector<int>& joint_indices, robot_control_msgs::msg::JointCommand& out){
+    toROS(in, joint_indices, out);
+    out.kp.resize(kp.size());
+    out.kd.resize(kd.size());    
+    for(uint i = 0; i < kp.size(); i++)
+        out.kp[i] = kp[joint_indices[i]]; 
+    for(uint i = 0; i < kd.size(); i++)
+        out.kd[i] = kd[joint_indices[i]];
 }
 
 void toROS(const Eigen::VectorXd& in, std_msgs::msg::Float64MultiArray& out){
@@ -98,6 +111,7 @@ void toROS(const Eigen::VectorXd& in, std_msgs::msg::Float64MultiArray& out){
     for(uint i = 0; i < in.size(); i++)
         out.data[i] = in[i];
 }
+
 void toROS(const wbc::types::Pose& in, geometry_msgs::msg::Pose& out){
     out.position.x = in.position[0];
     out.position.y = in.position[1];

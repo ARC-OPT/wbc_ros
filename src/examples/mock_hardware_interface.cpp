@@ -4,6 +4,7 @@
 #include <robot_control_msgs/msg/joint_command.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include <random>
 
 using namespace std;
 
@@ -21,6 +22,10 @@ class MockHardwareInterface  : public rclcpp_lifecycle::LifecycleNode{
     using RobotStateMsg = robot_control_msgs::msg::JointState;
     using RobotStatePublisher = rclcpp::Publisher<RobotStateMsg>::SharedPtr;
 
+    const double vel_noise_mean = 0.0;
+    double vel_noise_std_dev;
+    std::default_random_engine generator;
+
 public:
    MockHardwareInterface(const rclcpp::NodeOptions & options) : rclcpp_lifecycle::LifecycleNode("mock_hardware_interface", options){
 
@@ -32,11 +37,13 @@ public:
         this->declare_parameter("joint_names", vector<string>());
         this->declare_parameter("initial_position", vector<double>());
         this->declare_parameter("contacts", vector<bool>());
+        this->declare_parameter("vel_noise_std_dev", 0.1);
 
         update_rate = this->get_parameter("update_rate").as_int(); 
         vector<string> joint_names = this->get_parameter("joint_names").as_string_array(); 
         vector<double> initial_position = this->get_parameter("initial_position").as_double_array(); 
         vector<bool> contacts = this->get_parameter("contacts").as_bool_array(); 
+        vel_noise_std_dev = this->get_parameter("vel_noise_std_dev").as_double(); 
 
         robot_state.position.resize(joint_names.size());
         robot_state.velocity.resize(joint_names.size());
@@ -62,8 +69,11 @@ public:
 
 private:
     void timer_callback(){
+
+        std::normal_distribution<double> dist(vel_noise_mean, vel_noise_std_dev);
         joint_state.position = joint_command.position;
-        joint_state.velocity = joint_command.velocity;
+        for(uint i = 0; i < joint_command.velocity.size(); i++)
+            joint_state.velocity[i] = joint_command.velocity[i] + dist(generator);
         joint_state.effort   = joint_command.effort;
         joint_state.header.stamp = this->get_clock()->now();
         joint_state_publisher->publish(joint_state);

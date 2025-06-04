@@ -1,23 +1,23 @@
 /foot_r_trajectory_publisher:
   ros__parameters:
     # Amplitude of the circular trajectory in x-direction
-    amplitude_x: 0.05
+    amplitude_x: 0.06
     # Amplitude of the circular trajectory in z-direction
-    amplitude_z: 0.05
+    amplitude_z: 0.06
     # Phase shift of the circular trajectory in x-direction
     phase_shift_x: 0.0
     # Phase shift of the circular trajectory in z-direction
     phase_shift_z: 0.0
     # Frequency of the circular trajectory
-    frequency: 0.3
+    frequency: 1.0
     # Plane in which the trajectory should be executed, cyn be one of [xy,yz,xz]
     plane: "xz"
     # Initial position x of the robot
     init_pos_x: 0.2
     # Initial position y of the robot
-    init_pos_y: -0.107
+    init_pos_y: 0.107
     # Initial position z of the robot
-    init_pos_z: -0.417
+    init_pos_z: -0.5
     # Initial orientation qx of the robot
     init_ori_qx: 0.0
     # Initial orientation qy of the robot

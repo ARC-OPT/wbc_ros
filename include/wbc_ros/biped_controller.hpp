@@ -6,6 +6,7 @@
 #include <realtime_tools/realtime_buffer.hpp>
 #include <realtime_tools/realtime_publisher.hpp>
 #include <wbc_msgs/msg/wbc_timing_stats.hpp>
+#include <wbc_msgs/msg/task_status.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
 #include <std_msgs/msg/float64.hpp>
 
@@ -75,7 +76,11 @@ namespace wbc_ros{
         using WrenchMsg = geometry_msgs::msg::Wrench;
         using WrenchMsgPtr = std::shared_ptr<WrenchMsg>;
         using WrenchSubscription = rclcpp::Subscription<WrenchMsg>::SharedPtr;
-        using RTWrenchBuffer = realtime_tools::RealtimeBuffer<WrenchMsgPtr>;         
+        using RTWrenchBuffer = realtime_tools::RealtimeBuffer<WrenchMsgPtr>;    
+
+        using TaskStatusMsg = wbc_msgs::msg::TaskStatus;     
+        using TaskStatusPublisher = rclcpp::Publisher<TaskStatusMsg>;
+        using RTTaskStatusPublisher = realtime_tools::RealtimePublisher<TaskStatusMsg>;
 
         class TaskInterface{
             DoubleArraySubscription task_weight_subscriber;
@@ -85,6 +90,13 @@ namespace wbc_ros{
             DoubleSubscription task_activation_subscriber;
             RTDoubleBuffer rt_task_activation_buffer;
             DoubleMsgPtr task_activation_msg;
+
+            TaskStatusPublisher::SharedPtr task_status_publisher;
+            std::unique_ptr<RTTaskStatusPublisher> rt_task_status_publisher; 
+
+            // Helpers
+            Eigen::VectorXd y_solution;
+            Eigen::VectorXd y;
 
             public:
                 TaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
@@ -122,6 +134,15 @@ namespace wbc_ros{
 
                 virtual void update(wbc::RobotModelPtr robot_model) = 0;
                 virtual void reset() = 0;
+                void publishTaskStatus(wbc::TaskPtr task, const Eigen::VectorXd& solver_output_acc, const Eigen::VectorXd& robot_acc){
+                    y_solution = task->A * solver_output_acc; // neglect acceleration bias
+                    y = task->A * robot_acc;
+                    rt_task_status_publisher->lock();
+                    rt_task_status_publisher->msg_.y_ref = std::vector<float>(task->y_ref_world.data(), task->y_ref_world.data() + task->y_ref_world.size());
+                    rt_task_status_publisher->msg_.y_solution = std::vector<float>(y_solution.data(), y_solution.data() + y_solution.size());
+                    rt_task_status_publisher->msg_.y = std::vector<float>(y.data(), y.data() + y.size());
+                    rt_task_status_publisher->unlockAndPublish();
+                }
                 bool has_task_weights;
                 bool has_task_activation;
              std::string task_name;
@@ -133,16 +154,16 @@ namespace wbc_ros{
             RTRigidBodyStateBuffer rt_setpoint_buffer;
             RigidBodyStateMsgPtr setpoint_msg;          
 
-            RigidBodyStatePublisher::SharedPtr status_publisher;
-            std::unique_ptr<RTRigidBodyStatePublisher> rt_status_publisher;  
+            RigidBodyStatePublisher::SharedPtr feedback_publisher;
+            std::unique_ptr<RTRigidBodyStatePublisher> rt_feedback_publisher;  
             public:
                 CoMTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
                     TaskInterface(task_name, node),
                     has_setpoint(false){
                     setpoint_subscriber = node->create_subscription<RigidBodyStateMsg>("~/" + task_name + "/setpoint", rclcpp::SystemDefaultsQoS(), 
                         bind(&CoMTaskInterface::setpoint_callback, this, std::placeholders::_1));   
-                    status_publisher = node->create_publisher<RigidBodyStateMsg>("~/" + task_name + "/status", rclcpp::SystemDefaultsQoS());
-                    rt_status_publisher = std::make_unique<RTRigidBodyStatePublisher>(status_publisher);                                                                        
+                    feedback_publisher = node->create_publisher<RigidBodyStateMsg>("~/" + task_name + "/feedback", rclcpp::SystemDefaultsQoS());
+                    rt_feedback_publisher = std::make_unique<RTRigidBodyStatePublisher>(feedback_publisher);                                                                        
                 }
                 void setpoint_callback(const RigidBodyStateMsgPtr msg){
                     rt_setpoint_buffer.writeFromNonRT(msg);
@@ -163,9 +184,9 @@ namespace wbc_ros{
                         task->setReference(ctrl_out);
                     }
 
-                    rt_status_publisher->lock();
-                    toROS(robot_model->centerOfMass(), rt_status_publisher->msg_);
-                    rt_status_publisher->unlockAndPublish();
+                    rt_feedback_publisher->lock();
+                    toROS(robot_model->centerOfMass(), rt_feedback_publisher->msg_);
+                    rt_feedback_publisher->unlockAndPublish();
                 }
                 virtual void reset(){
                     task->reset();
@@ -182,8 +203,8 @@ namespace wbc_ros{
             RTRigidBodyStateBuffer rt_setpoint_buffer;
             RigidBodyStateMsgPtr setpoint_msg;
 
-            RigidBodyStatePublisher::SharedPtr status_publisher;
-            std::unique_ptr<RTRigidBodyStatePublisher> rt_status_publisher;
+            RigidBodyStatePublisher::SharedPtr feedback_publisher;
+            std::unique_ptr<RTRigidBodyStatePublisher> rt_feedback_publisher;
 
             public:
                 FootTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
@@ -191,8 +212,8 @@ namespace wbc_ros{
                     has_setpoint(false){
                     setpoint_subscriber = node->create_subscription<RigidBodyStateMsg>("~/" + task_name + "/setpoint", rclcpp::SystemDefaultsQoS(), 
                         bind(&FootTaskInterface::setpoint_callback, this, std::placeholders::_1));   
-                    status_publisher = node->create_publisher<RigidBodyStateMsg>("~/" + task_name + "/status", rclcpp::SystemDefaultsQoS());
-                    rt_status_publisher = std::make_unique<RTRigidBodyStatePublisher>(status_publisher);
+                    feedback_publisher = node->create_publisher<RigidBodyStateMsg>("~/" + task_name + "/feedback", rclcpp::SystemDefaultsQoS());
+                    rt_feedback_publisher = std::make_unique<RTRigidBodyStatePublisher>(feedback_publisher);
                 }       
                 void setpoint_callback(const RigidBodyStateMsgPtr msg){
                     rt_setpoint_buffer.writeFromNonRT(msg);
@@ -213,12 +234,12 @@ namespace wbc_ros{
                         task->setReference(ctrl_out);
                     }
 
-                    rt_status_publisher->lock();
+                    rt_feedback_publisher->lock();
                     toROS(robot_model->pose(task->tipFrame()), 
                           robot_model->twist(task->tipFrame()), 
                           robot_model->acceleration(task->tipFrame()),
-                          rt_status_publisher->msg_);
-                    rt_status_publisher->unlockAndPublish();
+                          rt_feedback_publisher->msg_);
+                    rt_feedback_publisher->unlockAndPublish();
 
                 }
                 virtual void reset(){
@@ -331,6 +352,12 @@ namespace wbc_ros{
             void contacts_callback(const ContactsMsgPtr msg);
 
         protected:
+            CoMTaskInterfacePtr com_task_iface;
+            FootTaskInterfacePtr foot_l_iface;
+            FootTaskInterfacePtr foot_r_iface;
+            ContactForceTaskInterfacePtr force_l_iface;
+            ContactForceTaskInterfacePtr force_r_iface;
+            JointPositionTaskInterfacePtr joint_pos_iface;
             std::vector<TaskInterfacePtr> task_interfaces;
 
             wbc::ScenePtr scene;
@@ -349,6 +376,8 @@ namespace wbc_ros{
             std::vector<double> d_gain_stance;
             std::vector<double> p_gain_swing;
             std::vector<double> d_gain_swing;
+            std::vector<double> p_gain;
+            std::vector<double> d_gain;
 
             JointCommandMsg solver_output_msg;
             JointCommandPublisher::SharedPtr solver_output_publisher;
@@ -381,6 +410,8 @@ namespace wbc_ros{
             biped_controller::Params params;
 
             std::vector<int> joint_idx_map;
+            std::vector<int> joint_idx_map_left_leg;
+            std::vector<int> joint_idx_map_right_leg;
 
     };
 }

@@ -7,5 +7,7 @@ mock_hardware_interface:
         joint_names: ["joint_ll_hip_1","joint_ll_hip_2","joint_ll_knee",
                       "joint_rl_hip_1","joint_rl_hip_2","joint_rl_knee"]
         # Initial joint positions
-        initial_position: [0.0, 0.7, -1.5, 
-                           0.0, 0.7, -1.5]
+        initial_position: [0.0, -0.7, -1.5, 
+                           0.0, -0.7, -1.5]
+        # Std dev. which is put on top of the joint state velocity
+        vel_noise_std_dev: 0.001

@@ -48,7 +48,7 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
         init_ori_qz     = get_parameter("init_ori_qz").as_double();
         init_ori_qw     = get_parameter("init_ori_qw").as_double();
 
-        timer_ = this->create_wall_timer(10ms, std::bind(&CartesianTrajectoryPublisher::timer_callback, this));
+        timer_ = this->create_wall_timer(1ms, std::bind(&CartesianTrajectoryPublisher::timer_callback, this));
         dt = 0;
     }
 
@@ -74,9 +74,9 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
             msg.twist.linear.x = amplitude_x*2*M_PI*frequency*cos(2*M_PI*frequency*dt + phase_shift_x);
             msg.twist.linear.y = 0.0;
             msg.twist.linear.z = -amplitude_z*2*M_PI*frequency*sin(2*M_PI*frequency*dt + phase_shift_z);
-            msg.acceleration.linear.x = -amplitude_z*2*M_PI*frequency*amplitude_z*2*M_PI*frequency*sin(2*M_PI*frequency*dt + phase_shift_x);
+            msg.acceleration.linear.x = -amplitude_z*2*M_PI*frequency*2*M_PI*frequency*sin(2*M_PI*frequency*dt + phase_shift_x);
             msg.acceleration.linear.y = 0.0;
-            msg.acceleration.linear.z = -amplitude_z*2*M_PI*frequency*amplitude_z*2*M_PI*frequency*cos(2*M_PI*frequency*dt + phase_shift_z);
+            msg.acceleration.linear.z = -amplitude_z*2*M_PI*frequency*2*M_PI*frequency*cos(2*M_PI*frequency*dt + phase_shift_z);
         }
         else if(plane == "yz"){
             msg.pose.position.x = init_pos_x;
@@ -103,7 +103,7 @@ class CartesianTrajectoryPublisher : public rclcpp::Node
         msg.acceleration.angular.y = 0.0;
         msg.acceleration.angular.z = 0.0;
         publisher_->publish(msg);
-        dt += 0.01;
+        dt += 0.001;
     }
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<robot_control_msgs::msg::RigidBodyState>::SharedPtr publisher_;

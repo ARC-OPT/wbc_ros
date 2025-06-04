@@ -23,11 +23,6 @@ biped_controller:
             not_empty<>: null
         }
     }
-    prefix: {
-        type: string,
-        default_value: "",
-        description: "Prefix used in the robot description parameter to claim the correct state and command interface names."
-    }
     joint_weights: {
         type: double_array,
         default_value: [],
@@ -37,46 +32,63 @@ biped_controller:
             not_empty<>: null,        
         }
     }
-    p_gain_stance: {
-        type: double_array, 
-        default_value: [],
-        description: "P-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same \
-                      as the number of joints",
-        validation: {
-            not_empty<>: null,
-            lower_element_bounds<>: [0.0]
+    gain_scheduling:
+        p_gain_stance: {
+            type: double_array, 
+            default_value: [],
+            description: "P-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same \
+                          as the number of joints. Order is the same as in joint_names property.",
+            validation: {
+                not_empty<>: null,
+                lower_element_bounds<>: [0.0]
+            }
         }
-    }
-    d_gain_stance: {
-        type: double_array, 
-        default_value: [],
-        description: "D-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same \
-                      as the number of joints",
-        validation: {
-            not_empty<>: null,
-            lower_element_bounds<>: [0.0]
+        d_gain_stance: {
+            type: double_array, 
+            default_value: [],
+            description: "D-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same \
+                          as the number of joints. Order is the same as in joint_names property.",
+            validation: {
+                not_empty<>: null,
+                lower_element_bounds<>: [0.0]
+            }
         }
-    }
-    p_gain_swing: {
-        type: double_array, 
-        default_value: [],
-        description: "P-Gains for the low-level PD controller during swing phase. These are sent along with the solver output to the motor drivers. Size has to be same \
-                      as the number of joints",
-        validation: {
-            not_empty<>: null,
-            lower_element_bounds<>: [0.0]
+        p_gain_swing: {
+            type: double_array, 
+            default_value: [],
+            description: "P-Gains for the low-level PD controller during swing phase. These are sent along with the solver output to the motor drivers. Size has to be same \
+                          as the number of joints. Order is the same as in joint_names property.",
+            validation: {
+                not_empty<>: null,
+                lower_element_bounds<>: [0.0]
+            }
         }
-    }
-    d_gain_swing: {
-        type: double_array, 
-        default_value: [],
-        description: "D-Gains for the low-level PD controller during swing phase. These are sent along with the solver output to the motor drivers. Size has to be same \
-                      as the number of joints",
-        validation: {
-            not_empty<>: null,
-            lower_element_bounds<>: [0.0]
+        d_gain_swing: {
+            type: double_array, 
+            default_value: [],
+            description: "D-Gains for the low-level PD controller during swing phase. These are sent along with the solver output to the motor drivers. Size has to be same \
+                          as the number of joints. Order is the same as in joint_names property.",
+            validation: {
+                not_empty<>: null,
+                lower_element_bounds<>: [0.0]
+            }
         }
-    }
+        joint_names_left_leg: {
+            type: string_array,
+            default_value: [],
+            description: "Joint names of the left leg in the correct order (same as in joint_names property). These are required to set the low-level PD-gains correctly.",
+            validation: {
+                not_empty<>: null
+            }
+        }
+        joint_names_right_leg: {
+            type: string_array,
+            default_value: [],
+            description: "Joint names of the right leg in the correct order (same as in joint_names property). These are required to set the low-level PD-gains correctly.",
+            validation: {
+                not_empty<>: null
+            }
+        }
     integrator: 
         from_current_state: {
             type: bool,
@@ -381,47 +393,88 @@ biped_controller:
             }
         }
         contacts:
-            names: {
-                type: string_array,
-                default_value: [],
-                description: "Link names that can be in contact with the environment. These have to be valid link names in the robot model.",
-                validation: {
-                    unique<>: null
+            left_leg: 
+                name: {
+                    type: string,
+                    default_value: "",
+                    description: "Link name that can be in contact with the environment. Has to be valid link name in the robot model.",
+                    validation: {
+                        not_empty<>: null
+                    }
                 }
-            }
-            active: {
-                type: int_array,
-                default_value: [],
-                description: "Array that states, for every contacting link, if the link is in contact with the environment initially",
-                validation: {
-                    subset_of<>: [[0,1]]
+                active: {
+                    type: int,
+                    default_value: 1,
+                    description: "Is the link is in contact with the environment initially?",
+                    validation: {
+                        one_of<>: [[0,1]]
+                    }
+                }         
+                mu: {
+                    type: double,
+                    default_value: 0.0,
+                    description: "Friction coeffcient for the contact point.",
+                    validation: {
+                        gt_eq<>: [0.0]
+                    }
                 }
-
-            }         
-            mu: {
-                type: double,
-                default_value: 0.0,
-                description: "Friction coeffcient for the contact point.",
-                validation: {
-                    gt_eq<>: [0.0]
+                wx: {
+                    type: double,
+                    default_value: 0.0,
+                    description: "x-dimension of the contact surface (only for surface contacts).",
+                    validation: {
+                        gt_eq<>: [0.0]
+                    }
                 }
-            }
-            wx: {
-                type: double,
-                default_value: 0.0,
-                description: "x-dimension of the contact surface (only for surface contacts).",
-                validation: {
-                    gt_eq<>: [0.0]
+                wy: {
+                    type: double,
+                    default_value: 0.0,
+                    description: "y-dimension of the contact surface (only for surface contacts).",
+                    validation: {
+                        gt_eq<>: [0.0]
+                    }
                 }
-            }
-            wy: {
-                type: double,
-                default_value: 0.0,
-                description: "y-dimension of the contact surface (only for surface contacts).",
-                validation: {
-                    gt_eq<>: [0.0]
+            right_leg: 
+                name: {
+                    type: string,
+                    default_value: "",
+                    description: "Link name that can be in contact with the environment. Has to be valid link name in the robot model.",
+                    validation: {
+                        not_empty<>: null
+                    }
                 }
-            }
+                active: {
+                    type: int,
+                    default_value: 1,
+                    description: "Is the link is in contact with the environment initially?",
+                    validation: {
+                        one_of<>: [[0,1]]
+                    }
+                }         
+                mu: {
+                    type: double,
+                    default_value: 0.0,
+                    description: "Friction coeffcient for the contact point.",
+                    validation: {
+                        gt_eq<>: [0.0]
+                    }
+                }
+                wx: {
+                    type: double,
+                    default_value: 0.0,
+                    description: "x-dimension of the contact surface (only for surface contacts).",
+                    validation: {
+                        gt_eq<>: [0.0]
+                    }
+                }
+                wy: {
+                    type: double,
+                    default_value: 0.0,
+                    description: "y-dimension of the contact surface (only for surface contacts).",
+                    validation: {
+                        gt_eq<>: [0.0]
+                    }
+                }
     solver:
         type: {
             type: string,
