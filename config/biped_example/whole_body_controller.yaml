@@ -55,17 +55,21 @@ whole_body_controller:
             # Integrate from current state (true) or from internal integrator state (false)
             from_current_state: true
         tasks: 
-            com_position: 
-                # Initial weights for this task. Size has to be 3
-                weights: [1.0,1.0,1.0]
+            body_pose: 
+                # Initial weights for this task. Size has to be 6
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0]
                 # Initial activation for this task. Has to be within 0 and 1.
                 activation: 0.0
-                # Array of proportional gain values, size has to be 3
-                p_gain: [10.0,10.0,10.0]
-                # Array of derivative gain values, size has to be 3
-                d_gain: [10.0,10.0,10.0]
-                # Controller output saturation per element. Size has to be 3
-                max_control_output: [100000.0,100000.0,100000.0]
+                # Array of proportional gain values, size has to be 6
+                p_gain: [10.0,10.0,10.0,10.0,10.0,10.0]
+                # Array of derivative gain values, size has to be 6
+                d_gain: [10.0,10.0,10.0,10.0,10.0,10.0]
+                # Controller output saturation per element. Size has to be 6
+                max_control_output: [100000.0,100000.0,100000.0,100000.0,100000.0,100000.0]
+                # Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
+                tip_frame: link_rbase_linkl_foot
+                # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
+                ref_frame: world
             foot_r_pose: 
                 # Initial weights for this task. Size has to be 6
                 weights: [1.0,1.0,1.0,0.0,0.0,0.0]

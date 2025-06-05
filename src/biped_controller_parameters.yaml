@@ -96,17 +96,17 @@ biped_controller:
             description: "Integrate from current state (true) or from internal integrator state (false)"
         }
     tasks:
-        com_position:
+        body_pose:
             weights: {
                 type: double_array,
                 default_value: [],
-                description: "Initial weights for this task. Size has to be 3. \ 
+                description: "Initial weights for this task. Size has to be 6. \ 
                               All entries have to be >= 0.  Can be used to balance contributions of the task variables.\
                               A value of 0 means that the reference of the corresponding task variable will be ignored while computing the solution.",
                 validation: {
                     not_empty<>: null,
                     lower_element_bounds<>: [0.0],
-                    fixed_size<>: 3
+                    fixed_size<>: 6
                 }
             }
             activation: {
@@ -117,32 +117,43 @@ biped_controller:
                 validation: {
                     bounds<>: [0.0,1.0]
                 }
+            }        
+            tip_frame: {
+                type: string,
+                default_value: "",
+                description: "Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.",
+            }
+            ref_frame: {
+                type: string,
+                default_value: "",
+                description: "Reference frame of the task input (frame wrt which the input is expressed).\
+                              This has to be the name of a valid link in robot model. If ref_frame != root the input will be transformed to the root frame.",
             }      
             p_gain: {
                 type: double_array,
                 default_value: [],
-                description: "Array of proportional gain values, size has to be 3",
+                description: "Array of proportional gain values, size has to be 6",
                 validation: {
                     not_empty<>: null,
-                    fixed_size<>: 3
+                    fixed_size<>: 6
                 }
             }   
             d_gain: {
                 type: double_array,
                 default_value: [],
-                description: "Array of derivative gain values, size has to be 3",
+                description: "Array of derivative gain values, size has to be 6",
                 validation: {
                     not_empty<>: null,
-                    fixed_size<>: 3
+                    fixed_size<>: 6
                 }
             }
             max_control_output: {
                 type: double_array,
                 default_value: [],
-                description: "Controller output saturation per element. Size has to be 3",
+                description: "Controller output saturation per element. Size has to be 6",
                 validation: {
                     not_empty<>: null,
-                    fixed_size<>: 3
+                    fixed_size<>: 6
                 }
             }
         foot_r_pose:

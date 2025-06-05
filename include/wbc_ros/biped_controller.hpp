@@ -16,7 +16,6 @@
 #include <wbc/core/QuadraticProgram.hpp>
 #include <wbc/controllers/CartesianPosPDController.hpp>
 #include <wbc/controllers/JointPosPDController.hpp>
-#include <wbc/tasks/CoMAccelerationTask.hpp>
 #include <wbc/tasks/SpatialAccelerationTask.hpp>
 #include <wbc/tasks/JointAccelerationTask.hpp>
 #include <wbc/tasks/ContactForceTask.hpp>
@@ -26,15 +25,23 @@
 
 namespace wbc_ros{
 
-    /**
-     * ROS 2 Interface for the Whole-Body Controller specific to bipedal walking. It sets up and solves the following QP:
+    /** @brief ROS 2 Interface for the Whole-Body Controller specific to bipedal walking. 
+     * 
+     * This Controller implements full or reduced TSID (https://github.com/stack-of-tasks/tsid), depending on the scene.type parameter. 
+     * It gets the feet position, velocities and acceleration, the CoM pose and twist, as well as the feet contact forces as input, and produces
+     * a joint position, velocity, acceleration and torque as output.
+     * The reduced TSID sets up and solves the following QP:
+     * 
      *  \f[
      *        \begin{array}{ccc}
-     *        minimize &  \| \mathbf{J}\ddot{\mathbf{q}} - \dot{\mathbf{v}}_d + \dot{\mathbf{J}}\dot{\mathbf{q}}\|_2 \\
-     *        \mathbf{\ddot{q}},\mathbf{f} & & \\
-     *           s.t.  & \mathbf{H}\mathbf{\ddot{q}} + \mathbf{h} = S\mathbf{\tau} + \mathbf{J}_{c,i}^T\mathbf{f} \quad \forall i & \\
-     *                 & \mathbf{J}_{c,i}\mathbf{\ddot{q}} = -\dot{\mathbf{J}}_{c,i}\dot{q} \quad \forall i & \\
-     *                 & \mathbf{\tau}_m \leq \mathbf{\tau} \leq \mathbf{\tau}_M & \\
+     *        \underset{\mathbf{\ddot{q}},\mathbf{f}}{\text{minimize}} &  \| \underbrace{\left(\mathbf{J}_{com}\ddot{\mathbf{q}} - \dot{\mathbf{v}}_{d,com} + \dot{\mathbf{J}}_{com}\dot{\mathbf{q}}\right)}_{\text{Center of mass}} + 
+     *        \underbrace{\sum_i \left(\mathbf{J}_i\ddot{\mathbf{q}} - \dot{\mathbf{v}}_{d,i} + \dot{\mathbf{J}}_i\dot{\mathbf{q}}\right)}_{\text{Feet positions}} + 
+     *        \underbrace{\sum_i\left(\mathbf{f}_{d,i} - \mathbf{f}\right)}_{\text{Feet contact forces}}\|_2 \\
+     *         & & \\
+     *           s.t.  & \mathbf{H}\mathbf{\ddot{q}} + \mathbf{h} = \mathbf{S}\mathbf{\tau} + \mathbf{J}_{c,i}^T\mathbf{f} \quad \forall i & \text{(Equations of motion)}\\
+     *                 & \mathbf{J}_{c,i}\mathbf{\ddot{q}} = -\dot{\mathbf{J}}_{c,i}\dot{q} \quad \forall i & \text{(Rigid Contacts)}\\
+     *                 & \mathbf{e}^T_x \mathbf{f}_i ≤ \mu\mathbf{e}_z \mathbf{f}_i, \quad \forall i & \text{(Friction cone)} \\
+     *                 & \mathbf{\tau}_m \leq \mathbf{\tau} \leq \mathbf{\tau}_M & \text{(Torque limits)}\\
      *        \end{array}
      *  \f]
      * and computes
@@ -43,20 +50,51 @@ namespace wbc_ros{
      *  \f]
      * where
      *  \f[
-     *        \dot{\mathbf{v}}_d = \dot{\mathbf{v}}_r + \mathbf{K}_d(\mathbf{v}_r-\mathbf{v}) + \mathbf{K}_p(\mathbf{x}_r-\mathbf{x})
+     *        \dot{\mathbf{v}}_{d,i} = \dot{\mathbf{v}}_{r,i} + \mathbf{K}_d(\mathbf{v}_{r,i}-\mathbf{v}_i) + \mathbf{K}_p(\mathbf{x}_{r,i}-\mathbf{x}_i)
+     *  \f]
+     * with 
+     *  \f[
+     *        \begin{array}{ccc}
+     *            i & - & \text{Foot index} \\
+     *            n & - & \text{No. of robot joints} \\
+     *            \mathbf{J}_i \in \mathbb{R}^{3 \times (n+6)} & - & \text{i-th Foot Jacobian} \\
+     *            \mathbf{q},\dot{\mathbf{q}},\ddot{\mathbf{q}} \in \mathbb{R}^{n+6}& - & \text{Joint position, velocity, acceleration} \\ 
+     *            \mathbf{\tau} \in \mathbb{R}^{n} & - & \text{Joint torques} \\ 
+     *            \mathbf{f}_i \in \mathbb{R}^{3} & - & \text{Contact force of the i-th foot} \\ 
+     *            \mathbf{f}_{d,i} \in \mathbb{R}^{3} & - & \text{Desired contact force of the i-th foot} \\ 
+     *            \mathbf{H} \in \mathbb{R}^{(n+6) \times (n+6)} & - & \text{Joint space mass-inertia matrix} \\ 
+     *            \mathbf{J}_c \in \mathbb{R}^{3 \times (n+6)} & - & \text{Contact Jacobian} \\ 
+     *            \mathbf{S} \in \mathbb{R}^{(n+6) \times (n)}& - & \text{Actuator selection matrix} \\ 
+     *            \mathbf{h} \in \mathbb{R}^{n+6}& - & \text{Bias forces/torques} \\ 
+     *            \mathbf{e} \in \mathbb{R}^3 &- &\text{Unit vector}\\
+     *            \mu \in \mathbb{R} &- &\text{Contact friction coefficient}\\
+     *            \mathbf{\tau}_m,\mathbf{\tau}_M \in \mathbb{R}^{n}& - & \text{Min./Max. joint torques} \\ 
+     *            \mathbf{x}_i,\mathbf{v}_i & - & \text{Position, velocity of the feet} \\ 
+     *            \mathbf{x}_{r,i},\mathbf{v}_{r,i},\dot{\mathbf{v}}_{r,i} & - & \text{Desired position, velocity, acceleration of the feet} \\ 
+
+     *        \end{array}
      *  \f]
      * 
-     * Published Topics:
-     *  - ´~/solver_output´ (´robot_control_msgs/msg/JointCommand´) - The QP solution (position, velocity, torque) 
-     *  - ´~/timing_stats (´wbc_msgs/msg/TimingStats´) - Debug message showing the computation time
+     * Note: 
+     *   - The QP considers the floating base of the robot, so most of the quantities include the virtual joints of the floating base (dimension n+6)
+     *   - The constraints above are simplified. Additionally, there are terms considering the joint position/velocity/acceleration limits  
      * 
-     * Subscribed Topics:
-     *  - ´~/com_position/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the CoM (position, linear velocity, linear acceleration)
-     *  - ´~/foot_l_pose/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the left foot (position, linear velocity, linear acceleration)
-     *  - ´~/foot_r_pose/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the right foot (position, linear velocity, linear acceleration)
-     *  - ´~/robot_state´ (´robot_control_msgs/msg/JointState´)
-     *  - ´~/contacts´ (´robot_control_msgs/msg/Contacts´)
-     *  - ´~/joint_weights´ (´std_msgs/msg/Float64MultiArray´) 
+     * @b Published @b Topics:
+     *  - @c ~/solver_output (@c robot_control_msgs/msg/JointCommand) - The QP solution (position, velocity, torque) 
+     *  - @c ~/timing_stats (@c wbc_msgs/msg/TimingStats) - Debug message showing the computation time
+     * 
+     * @b Subscribed @b Topics:
+     *  - @c ~/com_position/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the CoM (position, linear velocity, linear acceleration)
+     *  - @c ~/foot_l_pose/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the left foot (position, linear velocity, linear acceleration)
+     *  - @c ~/foot_r_pose/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the right foot (position, linear velocity, linear acceleration)
+     *  - @c ~/joint_position/setpoint (@c robot_control_msgs/msg/JointCommand) - Setpoint for the entire joints (position, velocity, acceleration)
+     *  - @c ~/robot_state (@c robot_control_msgs/msg/RobotState) - Joint and floating base state of the robot
+        - @c ~/joint_state (@c robot_control_msgs/msg/JointState) - Joint state of the robot. Can be used alternatively, if there is no floating base
+     *  - @c ~/contacts (@c robot_control_msgs/msg/Contacts) - Planned contacts (0/1) and contact expected contact wrenches
+     *  - @c ~/joint_weights (@c std_msgs/msg/Float64MultiArray) - Joint weights to control contribution of each individual joint
+     * 
+     * @b Parameters: 
+     * - See @c src/biped_controller_parameters.yaml
      */
     class BipedController : public rclcpp_lifecycle::LifecycleNode{
 
@@ -108,55 +146,7 @@ namespace wbc_ros{
         };
         using TaskInterfacePtr = std::shared_ptr<TaskInterface>;   
 
-        class CoMTaskInterface : public TaskInterface{
-            RigidBodyStateSubscription setpoint_subscriber;
-            RTRigidBodyStateBuffer rt_setpoint_buffer;
-            RigidBodyStateMsgPtr setpoint_msg;          
-
-            RigidBodyStatePublisher::SharedPtr feedback_publisher;
-            std::unique_ptr<RTRigidBodyStatePublisher> rt_feedback_publisher;  
-            public:
-                CoMTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
-                    TaskInterface(),
-                    has_setpoint(false){
-                    setpoint_subscriber = node->create_subscription<RigidBodyStateMsg>("~/" + task_name + "/setpoint", rclcpp::SystemDefaultsQoS(), 
-                        bind(&CoMTaskInterface::setpoint_callback, this, std::placeholders::_1));   
-                    feedback_publisher = node->create_publisher<RigidBodyStateMsg>("~/" + task_name + "/feedback", rclcpp::SystemDefaultsQoS());
-                    rt_feedback_publisher = std::make_unique<RTRigidBodyStatePublisher>(feedback_publisher);                                                                        
-                }
-                void setpoint_callback(const RigidBodyStateMsgPtr msg){
-                    rt_setpoint_buffer.writeFromNonRT(msg);
-                    has_setpoint = true;
-                }
-                virtual void update(wbc::RobotModelPtr robot_model){
-                    if(!has_setpoint)
-                        return;
-                    setpoint_msg = *rt_setpoint_buffer.readFromRT();
-                    if(setpoint_msg.get()){
-                        fromROS(*setpoint_msg, setpoint);
-                        Eigen::Vector3d ctrl_out = controller.update(setpoint.pose, 
-                                                             setpoint.twist, 
-                                                             setpoint.acceleration, 
-                                                             robot_model->centerOfMass().pose, 
-                                                             robot_model->centerOfMass().twist).linear;
-                        task->setReference(ctrl_out);
-                    }
-
-                    rt_feedback_publisher->lock();
-                    toROS(robot_model->centerOfMass(), rt_feedback_publisher->msg_);
-                    rt_feedback_publisher->unlockAndPublish();
-                }
-                virtual void reset(){
-                    task->reset();
-                }
-                bool has_setpoint;
-                wbc::types::RigidBodyState setpoint;
-                wbc::CartesianPosPDController controller;
-                wbc::CoMAccelerationTaskPtr task;
-        };
-        using CoMTaskInterfacePtr = std::shared_ptr<CoMTaskInterface>;   
-
-        class FootTaskInterface : public TaskInterface{
+        class RbsTaskInterface : public TaskInterface{
             RigidBodyStateSubscription setpoint_subscriber;
             RTRigidBodyStateBuffer rt_setpoint_buffer;
             RigidBodyStateMsgPtr setpoint_msg;
@@ -165,11 +155,11 @@ namespace wbc_ros{
             std::unique_ptr<RTRigidBodyStatePublisher> rt_feedback_publisher;
 
             public:
-                FootTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
+                RbsTaskInterface(std::string task_name, std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node) : 
                     TaskInterface(),
                     has_setpoint(false){
                     setpoint_subscriber = node->create_subscription<RigidBodyStateMsg>("~/" + task_name + "/setpoint", rclcpp::SystemDefaultsQoS(), 
-                        bind(&FootTaskInterface::setpoint_callback, this, std::placeholders::_1));   
+                        bind(&RbsTaskInterface::setpoint_callback, this, std::placeholders::_1));   
                     feedback_publisher = node->create_publisher<RigidBodyStateMsg>("~/" + task_name + "/feedback", rclcpp::SystemDefaultsQoS());
                     rt_feedback_publisher = std::make_unique<RTRigidBodyStatePublisher>(feedback_publisher);
                 }       
@@ -206,7 +196,7 @@ namespace wbc_ros{
                 wbc::CartesianPosPDController controller;
                 wbc::SpatialAccelerationTaskPtr task;
         };
-        using FootTaskInterfacePtr = std::shared_ptr<FootTaskInterface>;   
+        using RbsTaskInterfacePtr = std::shared_ptr<RbsTaskInterface>;   
 
         class JointPositionTaskInterface : public TaskInterface{
             JointCommandSubscription setpoint_subscriber;
@@ -272,9 +262,9 @@ namespace wbc_ros{
             void contacts_callback(const ContactsMsgPtr msg);
 
         protected:
-            CoMTaskInterfacePtr com_task_iface;
-            FootTaskInterfacePtr foot_l_iface;
-            FootTaskInterfacePtr foot_r_iface;
+            RbsTaskInterfacePtr body_task_iface;
+            RbsTaskInterfacePtr foot_l_iface;
+            RbsTaskInterfacePtr foot_r_iface;
             JointPositionTaskInterfacePtr joint_pos_iface;
             std::vector<TaskInterfacePtr> task_interfaces;
 

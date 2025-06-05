@@ -98,24 +98,27 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     RCLCPP_INFO(this->get_logger(), "Configuring Tasks");
     vector<wbc::TaskPtr> tasks;
 
-    // CoM Task
-    auto com_param = params.tasks.com_position;                                                     
-    com_task_iface = std::make_shared<CoMTaskInterface>("com_position", this->shared_from_this());
-    com_task_iface->task = std::make_shared<CoMAccelerationTask>(TaskConfig("com_position", 0, com_param.weights, com_param.activation), 
-                                                                 robot_model);
+    // Body Pose Task
+    auto body_param = params.tasks.body_pose;                                                     
+    body_task_iface = std::make_shared<RbsTaskInterface>("body_pose", this->shared_from_this());
+    body_task_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("body_pose", 0, body_param.weights, body_param.activation), 
+                                                                 robot_model,
+                                                                 body_param.tip_frame,
+                                                                 body_param.ref_frame); 
     Eigen::VectorXd p_gain(6), d_gain(6), max_ctrl_out(6);
-    p_gain << com_param.p_gain[0], com_param.p_gain[1], com_param.p_gain[2], 0, 0, 0;
-    d_gain << com_param.d_gain[0], com_param.d_gain[1], com_param.d_gain[2], 0, 0, 0;
-    max_ctrl_out << com_param.max_control_output[0], com_param.max_control_output[1], com_param.max_control_output[2], 0, 0, 0;
-    com_task_iface->controller.setPGain(p_gain);
-    com_task_iface->controller.setDGain(d_gain);
-    com_task_iface->controller.setMaxCtrlOutput(max_ctrl_out);
-    tasks.push_back(com_task_iface->task);
-    task_interfaces.push_back(com_task_iface);
+    p_gain << body_param.p_gain[0], body_param.p_gain[1], body_param.p_gain[2], body_param.p_gain[3], body_param.p_gain[4], body_param.p_gain[5];
+    d_gain << body_param.d_gain[0], body_param.d_gain[1], body_param.d_gain[2], body_param.d_gain[3], body_param.d_gain[4], body_param.d_gain[5];
+    max_ctrl_out << body_param.max_control_output[0], body_param.max_control_output[1], body_param.max_control_output[2],
+                    body_param.max_control_output[3], body_param.max_control_output[4], body_param.max_control_output[5];
+    body_task_iface->controller.setPGain(p_gain);
+    body_task_iface->controller.setDGain(d_gain);
+    body_task_iface->controller.setMaxCtrlOutput(max_ctrl_out);
+    tasks.push_back(body_task_iface->task);
+    task_interfaces.push_back(body_task_iface);
 
     // Foot tasks
     auto foot_r_param = params.tasks.foot_r_pose;
-    foot_r_iface = std::make_shared<FootTaskInterface>("foot_r_pose", this->shared_from_this());
+    foot_r_iface = std::make_shared<RbsTaskInterface>("foot_r_pose", this->shared_from_this());
     foot_r_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("foot_r_pose", 0, foot_r_param.weights, foot_r_param.activation), 
                                                                    robot_model,
                                                                    foot_r_param.tip_frame,
@@ -127,7 +130,7 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     task_interfaces.push_back(foot_r_iface);
 
     auto foot_l_param = params.tasks.foot_l_pose;
-    foot_l_iface = std::make_shared<FootTaskInterface>("foot_l_pose", this->shared_from_this());
+    foot_l_iface = std::make_shared<RbsTaskInterface>("foot_l_pose", this->shared_from_this());
     foot_l_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("foot_l_pose", 0, foot_l_param.weights, foot_l_param.activation), 
                                                                    robot_model,
                                                                    foot_l_param.tip_frame,
@@ -275,8 +278,10 @@ void BipedController::updateController(){
     if(robot_state_msg.get()){
         fromROS(*robot_state_msg, joint_idx_map, joint_state, floating_base_state);
     }
-    else if(joint_state_msg.get())
+    else if(joint_state_msg.get()){
         fromROS(*joint_state_msg, joint_idx_map, joint_state);
+        assert(!robot_model->hasFloatingBase());
+    }
     else
         return;
     robot_model->update(joint_state.position, joint_state.velocity, joint_state.acceleration,
@@ -342,7 +347,7 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_cleanup(cons
     joint_idx_map_right_leg.clear();
     contacts.clear();
 
-    com_task_iface.reset();
+    body_task_iface.reset();
     foot_l_iface.reset();
     foot_r_iface.reset();
     force_l_task.reset();
