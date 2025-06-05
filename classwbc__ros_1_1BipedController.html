@@ -72,6 +72,9 @@ $(function(){ initResizable(false); });
 </div><!--header-->
 <div class="contents">
 
+<p>ROS 2 Interface for the Whole-Body Controller specific to bipedal walking.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="biped__controller_8hpp_source.html">biped_controller.hpp</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for wbc_ros::BipedController:</div>
@@ -113,12 +116,12 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:a7e5d40b425ead20b70065c612c1381c2" id="r_a7e5d40b425ead20b70065c612c1381c2"><td class="memItemLeft" align="right" valign="top">CoMTaskInterfacePtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7e5d40b425ead20b70065c612c1381c2">com_task_iface</a></td></tr>
-<tr class="separator:a7e5d40b425ead20b70065c612c1381c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8010352a2dc728909213f592810f277d" id="r_a8010352a2dc728909213f592810f277d"><td class="memItemLeft" align="right" valign="top">FootTaskInterfacePtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8010352a2dc728909213f592810f277d">foot_l_iface</a></td></tr>
-<tr class="separator:a8010352a2dc728909213f592810f277d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af89274587c8ae8114476f9c63af476ee" id="r_af89274587c8ae8114476f9c63af476ee"><td class="memItemLeft" align="right" valign="top">FootTaskInterfacePtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af89274587c8ae8114476f9c63af476ee">foot_r_iface</a></td></tr>
-<tr class="separator:af89274587c8ae8114476f9c63af476ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab08f6861f9c871af2f35f417a90f404c" id="r_ab08f6861f9c871af2f35f417a90f404c"><td class="memItemLeft" align="right" valign="top">RbsTaskInterfacePtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab08f6861f9c871af2f35f417a90f404c">body_task_iface</a></td></tr>
+<tr class="separator:ab08f6861f9c871af2f35f417a90f404c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfe6e2076ffdcb4115132a811d6242d1" id="r_acfe6e2076ffdcb4115132a811d6242d1"><td class="memItemLeft" align="right" valign="top">RbsTaskInterfacePtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acfe6e2076ffdcb4115132a811d6242d1">foot_l_iface</a></td></tr>
+<tr class="separator:acfe6e2076ffdcb4115132a811d6242d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54fdbb977351fd0959d5540201a489db" id="r_a54fdbb977351fd0959d5540201a489db"><td class="memItemLeft" align="right" valign="top">RbsTaskInterfacePtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a54fdbb977351fd0959d5540201a489db">foot_r_iface</a></td></tr>
+<tr class="separator:a54fdbb977351fd0959d5540201a489db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a549fb6a576dce84db0fd4cd7f66a374a" id="r_a549fb6a576dce84db0fd4cd7f66a374a"><td class="memItemLeft" align="right" valign="top">JointPositionTaskInterfacePtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a549fb6a576dce84db0fd4cd7f66a374a">joint_pos_iface</a></td></tr>
 <tr class="separator:a549fb6a576dce84db0fd4cd7f66a374a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa22172179aafa6d333112c6b86fb9d92" id="r_aa22172179aafa6d333112c6b86fb9d92"><td class="memItemLeft" align="right" valign="top">std::vector&lt; TaskInterfacePtr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa22172179aafa6d333112c6b86fb9d92">task_interfaces</a></td></tr>
@@ -221,13 +224,18 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:aa873f3b74bd4ccf25986e53c7fec8bb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>ROS 2 Interface for the Whole-Body Controller specific to bipedal walking. It sets up and solves the following QP:         </p><p class="formulaDsp">
+<div class="textblock"><p>ROS 2 Interface for the Whole-Body Controller specific to bipedal walking. </p>
+<p>This Controller implements full or reduced TSID (<a href="https://github.com/stack-of-tasks/tsid">https://github.com/stack-of-tasks/tsid</a>), depending on the scene.type parameter. It gets the feet position, velocities and acceleration, the CoM pose and twist, as well as the feet contact forces as input, and produces a joint position, velocity, acceleration and torque as output. The reduced TSID sets up and solves the following QP:</p>
+<p class="formulaDsp">
 \[       \begin{array}{ccc}
-       minimize &amp;  \| \mathbf{J}\ddot{\mathbf{q}} - \dot{\mathbf{v}}_d + \dot{\mathbf{J}}\dot{\mathbf{q}}\|_2 \\
-       \mathbf{\ddot{q}},\mathbf{f} &amp; &amp; \\
-          s.t.  &amp; \mathbf{H}\mathbf{\ddot{q}} + \mathbf{h} = S\mathbf{\tau} + \mathbf{J}_{c,i}^T\mathbf{f} \quad \forall i &amp; \\
-                &amp; \mathbf{J}_{c,i}\mathbf{\ddot{q}} = -\dot{\mathbf{J}}_{c,i}\dot{q} \quad \forall i &amp; \\
-                &amp; \mathbf{\tau}_m \leq \mathbf{\tau} \leq \mathbf{\tau}_M &amp; \\
+       \underset{\mathbf{\ddot{q}},\mathbf{f}}{\text{minimize}} &amp;  \| \underbrace{\left(\mathbf{J}_{com}\ddot{\mathbf{q}} - \dot{\mathbf{v}}_{d,com} + \dot{\mathbf{J}}_{com}\dot{\mathbf{q}}\right)}_{\text{Center of mass}} + 
+       \underbrace{\sum_i \left(\mathbf{J}_i\ddot{\mathbf{q}} - \dot{\mathbf{v}}_{d,i} + \dot{\mathbf{J}}_i\dot{\mathbf{q}}\right)}_{\text{Feet positions}} + 
+       \underbrace{\sum_i\left(\mathbf{f}_{d,i} - \mathbf{f}\right)}_{\text{Feet contact forces}}\|_2 \\
+        &amp; &amp; \\
+          s.t.  &amp; \mathbf{H}\mathbf{\ddot{q}} + \mathbf{h} = \mathbf{S}\mathbf{\tau} + \mathbf{J}_{c,i}^T\mathbf{f} \quad \forall i &amp; \text{(Equations of motion)}\\
+                &amp; \mathbf{J}_{c,i}\mathbf{\ddot{q}} = -\dot{\mathbf{J}}_{c,i}\dot{q} \quad \forall i &amp; \text{(Rigid Contacts)}\\
+                &amp; \mathbf{e}^T_x \mathbf{f}_i ≤ \mu\mathbf{e}_z \mathbf{f}_i, \quad \forall i &amp; \text{(Friction cone)} \\
+                &amp; \mathbf{\tau}_m \leq \mathbf{\tau} \leq \mathbf{\tau}_M &amp; \text{(Torque limits)}\\
        \end{array}
 \]
 </p>
@@ -236,20 +244,52 @@ Protected Attributes</h2></td></tr>
 \]
 </p>
 <p> where   </p><p class="formulaDsp">
-\[       \dot{\mathbf{v}}_d = \dot{\mathbf{v}}_r + \mathbf{K}_d(\mathbf{v}_r-\mathbf{v}) + \mathbf{K}_p(\mathbf{x}_r-\mathbf{x})
+\[       \dot{\mathbf{v}}_{d,i} = \dot{\mathbf{v}}_{r,i} + \mathbf{K}_d(\mathbf{v}_{r,i}-\mathbf{v}_i) + \mathbf{K}_p(\mathbf{x}_{r,i}-\mathbf{x}_i)
 \]
 </p>
-<p>Published Topics:</p><ul>
-<li>´~/solver_output´ (´robot_control_msgs/msg/JointCommand´) - The QP solution (position, velocity, torque)</li>
-<li>´~/timing_stats (´wbc_msgs/msg/TimingStats´) - Debug message showing the computation time</li>
+<p> with                     </p><p class="formulaDsp">
+\[       \begin{array}{ccc}
+           i &amp; - &amp; \text{Foot index} \\
+           n &amp; - &amp; \text{No. of robot joints} \\
+           \mathbf{J}_i \in \mathbb{R}^{3 \times (n+6)} &amp; - &amp; \text{i-th Foot Jacobian} \\
+           \mathbf{q},\dot{\mathbf{q}},\ddot{\mathbf{q}} \in \mathbb{R}^{n+6}&amp; - &amp; \text{Joint position, velocity, acceleration} \\ 
+           \mathbf{\tau} \in \mathbb{R}^{n} &amp; - &amp; \text{Joint torques} \\ 
+           \mathbf{f}_i \in \mathbb{R}^{3} &amp; - &amp; \text{Contact force of the i-th foot} \\ 
+           \mathbf{f}_{d,i} \in \mathbb{R}^{3} &amp; - &amp; \text{Desired contact force of the i-th foot} \\ 
+           \mathbf{H} \in \mathbb{R}^{(n+6) \times (n+6)} &amp; - &amp; \text{Joint space mass-inertia matrix} \\ 
+           \mathbf{J}_c \in \mathbb{R}^{3 \times (n+6)} &amp; - &amp; \text{Contact Jacobian} \\ 
+           \mathbf{S} \in \mathbb{R}^{(n+6) \times (n)}&amp; - &amp; \text{Actuator selection matrix} \\ 
+           \mathbf{h} \in \mathbb{R}^{n+6}&amp; - &amp; \text{Bias forces/torques} \\ 
+           \mathbf{e} \in \mathbb{R}^3 &amp;- &amp;\text{Unit vector}\\
+           \mu \in \mathbb{R} &amp;- &amp;\text{Contact friction coefficient}\\
+           \mathbf{\tau}_m,\mathbf{\tau}_M \in \mathbb{R}^{n}&amp; - &amp; \text{Min./Max. joint torques} \\ 
+           \mathbf{x}_i,\mathbf{v}_i &amp; - &amp; \text{Position, velocity of the feet} \\ 
+           \mathbf{x}_{r,i},\mathbf{v}_{r,i},\dot{\mathbf{v}}_{r,i} &amp; - &amp; \text{Desired position, velocity, acceleration of the feet} \\ 
+
+       \end{array}
+\]
+</p>
+<p>Note:</p><ul>
+<li>The QP considers the floating base of the robot, so most of the quantities include the virtual joints of the floating base (dimension n+6)</li>
+<li>The constraints above are simplified. Additionally, there are terms considering the joint position/velocity/acceleration limits <br  />
+</li>
 </ul>
-<p>Subscribed Topics:</p><ul>
-<li>´~/com_position/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the CoM (position, linear velocity, linear acceleration)</li>
-<li>´~/foot_l_pose/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the left foot (position, linear velocity, linear acceleration)</li>
-<li>´~/foot_r_pose/setpoint´ (´robot_control_msgs/msg/RigidBodyState´) - Setpoint for the right foot (position, linear velocity, linear acceleration)</li>
-<li>´~/robot_state´ (´robot_control_msgs/msg/JointState´)</li>
-<li>´~/contacts´ (´robot_control_msgs/msg/Contacts´)</li>
-<li>´~/joint_weights´ (´std_msgs/msg/Float64MultiArray´) </li>
+<p><b>Published</b> <b>Topics:</b> </p><ul>
+<li><code>~/solver_output</code> (<code>robot_control_msgs/msg/JointCommand</code>) - The QP solution (position, velocity, torque)</li>
+<li><code>~/timing_stats</code> (<code>wbc_msgs/msg/TimingStats</code>) - Debug message showing the computation time</li>
+</ul>
+<p><b>Subscribed</b> <b>Topics:</b> </p><ul>
+<li><code>~/com_position/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the CoM (position, linear velocity, linear acceleration)</li>
+<li><code>~/foot_l_pose/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the left foot (position, linear velocity, linear acceleration)</li>
+<li><code>~/foot_r_pose/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the right foot (position, linear velocity, linear acceleration)</li>
+<li><code>~/joint_position/setpoint</code> (<code>robot_control_msgs/msg/JointCommand</code>) - Setpoint for the entire joints (position, velocity, acceleration)</li>
+<li><code>~/robot_state</code> (<code>robot_control_msgs/msg/RobotState</code>) - Joint and floating base state of the robot</li>
+<li><code>~/joint_state</code> (<code>robot_control_msgs/msg/JointState</code>) - Joint state of the robot. Can be used alternatively, if there is no floating base</li>
+<li><code>~/contacts</code> (<code>robot_control_msgs/msg/Contacts</code>) - Planned contacts (0/1) and contact expected contact wrenches</li>
+<li><code>~/joint_weights</code> (<code>std_msgs/msg/Float64MultiArray</code>) - Joint weights to control contribution of each individual joint</li>
+</ul>
+<p><b>Parameters:</b> </p><ul>
+<li>See <code>src/biped_controller_parameters.yaml</code> </li>
 </ul>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a255fb2420bbc052a7c2f7bbccde38654" name="a255fb2420bbc052a7c2f7bbccde38654"></a>
@@ -548,8 +588,8 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a7e5d40b425ead20b70065c612c1381c2" name="a7e5d40b425ead20b70065c612c1381c2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7e5d40b425ead20b70065c612c1381c2">&#9670;&#160;</a></span>com_task_iface</h2>
+<a id="ab08f6861f9c871af2f35f417a90f404c" name="ab08f6861f9c871af2f35f417a90f404c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab08f6861f9c871af2f35f417a90f404c">&#9670;&#160;</a></span>body_task_iface</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -558,7 +598,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">CoMTaskInterfacePtr wbc_ros::BipedController::com_task_iface</td>
+          <td class="memname">RbsTaskInterfacePtr wbc_ros::BipedController::body_task_iface</td>
         </tr>
       </table>
   </td>
@@ -768,8 +808,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a8010352a2dc728909213f592810f277d" name="a8010352a2dc728909213f592810f277d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8010352a2dc728909213f592810f277d">&#9670;&#160;</a></span>foot_l_iface</h2>
+<a id="acfe6e2076ffdcb4115132a811d6242d1" name="acfe6e2076ffdcb4115132a811d6242d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acfe6e2076ffdcb4115132a811d6242d1">&#9670;&#160;</a></span>foot_l_iface</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -778,7 +818,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">FootTaskInterfacePtr wbc_ros::BipedController::foot_l_iface</td>
+          <td class="memname">RbsTaskInterfacePtr wbc_ros::BipedController::foot_l_iface</td>
         </tr>
       </table>
   </td>
@@ -790,8 +830,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="af89274587c8ae8114476f9c63af476ee" name="af89274587c8ae8114476f9c63af476ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af89274587c8ae8114476f9c63af476ee">&#9670;&#160;</a></span>foot_r_iface</h2>
+<a id="a54fdbb977351fd0959d5540201a489db" name="a54fdbb977351fd0959d5540201a489db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54fdbb977351fd0959d5540201a489db">&#9670;&#160;</a></span>foot_r_iface</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -800,7 +840,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">FootTaskInterfacePtr wbc_ros::BipedController::foot_r_iface</td>
+          <td class="memname">RbsTaskInterfacePtr wbc_ros::BipedController::foot_r_iface</td>
         </tr>
       </table>
   </td>
