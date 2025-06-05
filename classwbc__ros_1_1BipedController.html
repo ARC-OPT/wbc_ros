@@ -230,10 +230,10 @@ Protected Attributes</h2></td></tr>
 <li><code>~/timing_stats</code> (<code>wbc_msgs/msg/TimingStats</code>) - Debug message showing the computation time</li>
 </ul>
 <p><b>Subscribed</b> <b>Topics:</b> </p><ul>
-<li><code>~/com_position/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the CoM (position, linear velocity, linear acceleration)</li>
+<li><code>~/body_pose/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the base of the robot (pose, twist, spatial acceleration)</li>
 <li><code>~/foot_l_pose/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the left foot (position, linear velocity, linear acceleration)</li>
 <li><code>~/foot_r_pose/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the right foot (position, linear velocity, linear acceleration)</li>
-<li><code>~/joint_position/setpoint</code> (<code>robot_control_msgs/msg/JointCommand</code>) - Setpoint for the entire joints (position, velocity, acceleration)</li>
+<li><code>~/joint_position/setpoint</code> (<code>robot_control_msgs/msg/JointCommand</code>) - Setpoint for all joints (position, velocity, acceleration)</li>
 <li><code>~/robot_state</code> (<code>robot_control_msgs/msg/RobotState</code>) - Joint and floating base state of the robot</li>
 <li><code>~/joint_state</code> (<code>robot_control_msgs/msg/JointState</code>) - Joint state of the robot. Can be used alternatively, if there is no floating base</li>
 <li><code>~/contacts</code> (<code>robot_control_msgs/msg/Contacts</code>) - Planned contacts (0/1) and contact expected contact wrenches</li>
