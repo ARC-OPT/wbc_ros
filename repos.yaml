@@ -1,4 +1,8 @@
 repositories:
+  robot_control_msgs:
+    type: git
+    url: https://github.com/dfki-ric-underactuated-lab/robot_control_msgs.git
+    version: main
   wbc_msgs:
     type: git
     url: https://github.com/arc-opt/wbc_msgs.git

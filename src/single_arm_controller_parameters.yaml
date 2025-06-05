@@ -1,0 +1,206 @@
+single_arm_controller:
+    update_rate: {       
+        type: int,
+        default_value: 1000,
+        description: "Control update rate in Hz",
+        validation: {
+            gt<>: [0.0]
+        }
+    }
+    robot_description: {
+        type: string,
+        default_value: "",
+        description: "Robot URDF.",
+        validation: {
+            not_empty<>: null
+        }
+    }
+    joint_names: {
+        type: string_array,
+        default_value: [],
+        description: "This array defines the order of joints used in the solver output. If empty, the order from URDF parser will be used (which is alphabetic).",
+        validation: {
+            unique<>: null
+        }
+    }
+    prefix: {
+        type: string,
+        default_value: "",
+        description: "Prefix used in the robot description parameter to claim the correct state and command interface names."
+    }
+    joint_weights: {
+        type: double_array,
+        default_value: [],
+        description: "The joint weights control the contribution of each individual joint to the solution. Values have to be within [0,1].
+                      A zero means here that the joint is not used at all. Size has to be same as number of robot joints.",
+        validation: {
+            not_empty<>: null,        
+        }
+    }
+    robot_model:
+        type: {
+            type: string,
+            default_value: "rbdl",
+            description: "Robot model type. Must be the exact name of one of the registered robot model plugins. See src/robot_models for all available plugins.*/",
+            validation: {
+                one_of<>: [["rbdl", "pinocchio", "kdl", "hyrodyn"]],
+            }
+        }
+        submechanism_file: {
+            type: string,
+            default_value: "",
+            description: "Only if type:=hyrodyn. Absolute path to submechanism file, which the robot's parallel submechanisms. See Hyrodyn docs for more info.",
+        }
+    solver:
+        type: {
+            type: string,
+            default_value: "qp_oases",
+            description: "QP Solver type. Must be the exact name of one of the registered QP solver plugins. See src/solvers for all available plugins.",
+            validation: {
+                one_of<>: [["qpoases", "hls", "proxqp", "qpswift", "eiquadprog"]],
+            }
+        }
+        file: {
+            type: string,
+            default_value: "",
+            description: "Absolute path to solver configuration file in yaml format. If empty, default solver configuration is used.",
+        }
+    ee_pose_task:
+        weights: {
+            type: double_array,
+            default_value: [],
+            description: "Initial weights for this task. Size has to be 6 (3 xyz-position, 3 xyz-orientation weights). \ 
+                          All entries have to be >= 0.  Can be used to balance contributions of the task variables.\
+                          A value of 0 means that the reference of the corresponding task variable will be ignored while computing the solution.",
+            validation: {
+                not_empty<>: null,
+                lower_element_bounds<>: [0.0],
+                fixed_size<>: 6
+            }
+        }
+        activation: {
+            type: double,
+            default_value: 0.0,
+            description: "Initial activation for this task. Has to be within 0 and 1. Can be used to enable(1)/disable(0) the whole task,\
+                          or to apply a smooth activation function.",
+            validation: {
+                bounds<>: [0.0,1.0]
+            }
+        }
+        tip_frame: {
+            type: string,
+            default_value: "",
+            description: "Only Cartesian tasks:  Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.",
+        }
+        ref_frame: {
+            type: string,
+            default_value: "",
+            description: "Only Cartesian tasks:  Reference frame of the task input (frame wrt which the input is expressed).\
+                          This has to be the name of a valid link in robot model. If ref_frame != root the input will be transformed to the root frame.",
+        }
+        p_gain: {
+            type: double_array,
+            default_value: [],
+            description: "Array of proportional gain values, size has to be same as controller dimension",
+            validation: {
+                not_empty<>: null,
+                fixed_size<>: 6
+            }
+        }
+        max_control_output: {
+            type: double_array,
+            default_value: [],
+            description: "Controller output saturation per element. Size has to be same as controller dimension",
+            validation: {
+                not_empty<>: null,
+                fixed_size<>: 6
+            }
+        }   
+    joint_position_task:
+        weights: {
+            type: double_array,
+            default_value: [],
+            description: "Initial weights for this task. Size has to be same as number of robot joints. \ 
+                          All entries have to be >= 0.  Can be used to balance contributions of the task variables.\
+                          A value of 0 means that the reference of the corresponding task variable will be ignored while computing the solution.",
+            validation: {
+                not_empty<>: null,
+                lower_element_bounds<>: [0.0]
+            }
+        }
+        activation: {
+            type: double,
+            default_value: 0.0,
+            description: "Initial activation for this task. Has to be within 0 and 1. Can be used to enable(1)/disable(0) the whole task,\
+                          or to apply a smooth activation function.",
+            validation: {
+                bounds<>: [0.0,1.0]
+            }
+        }
+        p_gain: {
+            type: double_array,
+            default_value: [],
+            description: "Array of proportional gain values, size has to be same as number of robot joints",
+            validation: {
+                not_empty<>: null
+            }
+        }
+        max_control_output: {
+            type: double_array,
+            default_value: [],
+            description: "Controller output saturation per element. Size has to be same as number of robot joints",
+            validation: {
+                not_empty<>: null
+            }
+        }   
+    elbow_pose_task:
+        weights: {
+            type: double_array,
+            default_value: [],
+            description: "Initial weights for this task. Size has to be 6. \ 
+                          All entries have to be >= 0.  Can be used to balance contributions of the task variables.\
+                          A value of 0 means that the reference of the corresponding task variable will be ignored while computing the solution.",
+            validation: {
+                not_empty<>: null,
+                lower_element_bounds<>: [0.0],
+                fixed_size<>: 6
+            }
+        }
+        activation: {
+            type: double,
+            default_value: 0.0,
+            description: "Initial activation for this task. Has to be within 0 and 1. Can be used to enable(1)/disable(0) the whole task,\
+                          or to apply a smooth activation function.",
+            validation: {
+                bounds<>: [0.0,1.0]
+            }
+        }
+        tip_frame: {
+            type: string,
+            default_value: "",
+            description: "Only Cartesian tasks:  Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.",
+        }
+        ref_frame: {
+            type: string,
+            default_value: "",
+            description: "Only Cartesian tasks:  Reference frame of the task input (frame wrt which the input is expressed).\
+                          This has to be the name of a valid link in robot model. If ref_frame != root the input will be transformed to the root frame.",
+        }        
+        p_gain: {
+            type: double_array,
+            default_value: [],
+            description: "Array of proportional gain values, size has to be 6",
+            validation: {
+                not_empty<>: null,
+                fixed_size<>: 6
+            }
+        }
+        max_control_output: {
+            type: double_array,
+            default_value: [],
+            description: "Controller output saturation per element. Size has to be 6",
+            validation: {
+                not_empty<>: null,
+                fixed_size<>: 6
+            }
+        }   

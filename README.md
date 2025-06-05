@@ -1,7 +1,7 @@
 [![ROS 2 Humble](https://github.com/ARC-OPT/wbc_ros/actions/workflows/build_and_test_ubuntu22.04.yml/badge.svg)](https://github.com/ARC-OPT/wbc_ros/actions/workflows/build_and_test_ubuntu22.04.yml)
 [![ROS 2 Jazzy](https://github.com/ARC-OPT/wbc_ros/actions/workflows/build_and_test_ubuntu24.04.yml/badge.svg)](https://github.com/ARC-OPT/wbc_ros/actions/workflows/build_and_test_ubuntu24.04.yml)
 
-# wbc_ros - A ROS interface for the WBC library
+# wbc_ros - A ROS 2 interface for the WBC library
 
 [Code API](https://arc-opt.github.io/wbc_ros/)  | [Full Documentation](https://arc-opt.github.io/Documentation/)
 
@@ -13,7 +13,7 @@ WBC was initiated and is currently developed at the [Robotics Innovation Center]
 
 ## Requirements / Dependencies
 
-Currently supported OS: Ubuntu22.04
+Currently supported OS: Ubuntu22.04, Ubuntu24.04
 
 wbc_ros requires a ROS2 installation (humble is the only tested distribution) as well as the [WBC library](https://github.com/ARC-OPT/wbc). See package.xml for further dependencies.
 

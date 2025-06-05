@@ -10,14 +10,12 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   realtime_tools
   std_msgs
   geometry_msgs
-  trajectory_msgs
   wbc_msgs
+  robot_control_msgs
   sensor_msgs
-  pluginlib
   rclcpp_lifecycle
-  controller_interface
-  hardware_interface
   generate_parameter_library
+  rclcpp_components
 )
 find_package(ament_cmake REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
@@ -27,54 +25,64 @@ endforeach()
 include(FindPkgConfig)
 pkg_check_modules(wbc-core REQUIRED wbc-core)
 pkg_check_modules(wbc-controllers REQUIRED wbc-controllers)
+pkg_check_modules(wbc-types REQUIRED wbc-types)
+pkg_check_modules(wbc-tasks REQUIRED wbc-tasks)
 
 include_directories(
   ${wbc-core_INCLUDE_DIRS}
   ${wbc-controllers_INCLUDE_DIRS}
+  ${wbc-types_INCLUDE_DIRS}
+  ${wbc-tasks_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/wbc_ros
 )
 
 link_directories(
   ${wbc-core_LIBRARIES}
   ${wbc-controllers_LIBRARIES}
+  ${wbc-types_LIBRARIES}
+  ${wbc-tasks_LIBRARIES}
 )
 
-generate_parameter_library(whole_body_controller_parameters
-  src/whole_body_controller_parameters.yaml
+generate_parameter_library(single_arm_controller_parameters
+  src/single_arm_controller_parameters.yaml
 )
-generate_parameter_library(cartesian_position_controller_parameters
-  src/cartesian_position_controller_parameters.yaml
-)
-generate_parameter_library(joint_position_controller_parameters
-  src/joint_position_controller_parameters.yaml
+generate_parameter_library(biped_controller_parameters
+  src/biped_controller_parameters.yaml
 )
 
-add_library(wbc_ros SHARED src/whole_body_controller.cpp src/conversions.cpp
-                           src/cartesian_position_controller.cpp src/conversions.cpp
-                           src/joint_position_controller.cpp src/conversions.cpp)
+add_library(biped_controller SHARED src/biped_controller.cpp src/conversions.cpp)
+add_library(single_arm_controller SHARED src/single_arm_controller.cpp src/conversions.cpp)
+add_library(mock_hardware_interface SHARED src/examples/mock_hardware_interface.cpp)
+ament_target_dependencies(single_arm_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(biped_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(mock_hardware_interface rclcpp_lifecycle robot_control_msgs sensor_msgs rclcpp_components)
 
-ament_target_dependencies(wbc_ros PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
-
-target_link_libraries(wbc_ros PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-controllers_LIBRARIES})
-target_compile_features(wbc_ros PUBLIC cxx_std_17)
-target_include_directories(wbc_ros PUBLIC
+target_link_libraries(single_arm_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} single_arm_controller_parameters)
+target_link_libraries(biped_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} biped_controller_parameters)
+target_compile_features(single_arm_controller PUBLIC cxx_std_17)
+target_compile_features(biped_controller PUBLIC cxx_std_17)
+target_include_directories(single_arm_controller PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/wbc_ros>
 )
-target_link_libraries(wbc_ros PUBLIC
-  whole_body_controller_parameters
-  cartesian_position_controller_parameters
-  joint_position_controller_parameters
+target_include_directories(biped_controller PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/wbc_ros>
 )
-pluginlib_export_plugin_description_file(controller_interface wbc_plugins.xml)
+
+rclcpp_components_register_node(single_arm_controller PLUGIN "wbc_ros::SingleArmController" EXECUTABLE single_arm_controller_node)
+rclcpp_components_register_node(biped_controller PLUGIN "wbc_ros::BipedController" EXECUTABLE biped_controller_node)
+rclcpp_components_register_node(mock_hardware_interface PLUGIN "wbc_ros::MockHardwareInterface" EXECUTABLE mock_hardware_interface_node)
 
 install(
   DIRECTORY include/
   DESTINATION include/wbc_ros
 )
-install(TARGETS wbc_ros
-                whole_body_controller_parameters
-                cartesian_position_controller_parameters
-                joint_position_controller_parameters
+install(TARGETS mock_hardware_interface
+                single_arm_controller
+                biped_controller
+                single_arm_controller_parameters
+                biped_controller_parameters
         EXPORT export_wbc_ros
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib
@@ -92,15 +100,26 @@ ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()
 
 ##############
+## Helpers ##
+##############
+
+add_executable(joint_state_converter src/helpers/joint_state_converter.cpp)
+ament_target_dependencies(joint_state_converter rclcpp robot_control_msgs sensor_msgs)
+
+install(TARGETS joint_state_converter
+        RUNTIME DESTINATION lib/${PROJECT_NAME})
+
+##############
 ## Examples ##
 ##############
 
 add_executable(joint_trajectory_publisher src/examples/joint_trajectory_publisher.cpp)
 add_executable(cartesian_trajectory_publisher src/examples/cartesian_trajectory_publisher.cpp)
 add_executable(cartesian_pose_publisher src/examples/cartesian_pose_publisher.cpp)
-ament_target_dependencies(joint_trajectory_publisher rclcpp trajectory_msgs)
-ament_target_dependencies(cartesian_trajectory_publisher rclcpp wbc_msgs)
-ament_target_dependencies(cartesian_pose_publisher rclcpp wbc_msgs)
+ament_target_dependencies(joint_trajectory_publisher rclcpp robot_control_msgs)
+ament_target_dependencies(cartesian_trajectory_publisher rclcpp robot_control_msgs)
+ament_target_dependencies(cartesian_pose_publisher rclcpp robot_control_msgs)
+
 install(TARGETS joint_trajectory_publisher
                 cartesian_trajectory_publisher
                 cartesian_pose_publisher

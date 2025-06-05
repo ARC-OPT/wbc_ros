@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot name="20240805_URDF_Biped_002">
+        <link name="base_link">
+                <inertial>
+                        <origin xyz="0.066613572578566 -0.000830925829372993 0.00346023367158472" rpy="0 0 0"/>
+                        <mass value="2.57373458051342"/>
+                        <inertia ixx="0.00356261291181662" ixy="-1.02796842138285E-07" ixz="3.29794722294441E-07" iyy="0.00179651862094299" iyz="-4.31871248209654E-06" izz="0.00265157756122176"/>
+                </inertial>
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_base.obj"/>
+                        </geometry>
+                        <material name="">
+                                <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
+                        </material>
+                </visual>
+                <collision name="base_link_collision">
+                        <origin rpy="0 0 0" xyz="0 0 0"/>
+                        <geometry>
+                                <box size="0.10 0.25 0.10"/>
+                        </geometry>
+                        <drake:proximity_properties>
+                                <drake:compliant_hydroelastic/>
+                                <drake:hydroelastic_modulus value="2.5e5"/>
+                                <drake:hunt_crossley_dissipation value="1.0"/>
+                                <drake:mesh_resolution_hint value="50"/>
+                        </drake:proximity_properties>
+                </collision>
+        </link>
+
+        <link name="link_rl_hip_1">
+                <inertial>
+                        <origin xyz="-6.13562786899223E-05 -0.00146198632456596 -0.00486396214225887" rpy="0 0 0"/>
+                        <mass value="1.10754306316471"/>
+                        <inertia ixx="0.000819419269654457" ixy="-1.94571538735611E-07" ixz="-5.03874923213129E-07" iyy="0.00126081814280755" iyz="4.38055538045595E-08" izz="0.000797454752657205"/>
+                </inertial>
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_1.obj"/>
+                        </geometry>
+                        <material name="">
+                                <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
+                        </material>
+                </visual>
+                <!--collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_1.obj"/>
+            </geometry>
+        </collision-->
+        </link>
+        <joint name="joint_rl_hip_1" type="revolute">
+                <origin xyz="0.1785 0.055 0" rpy="3.1416 -1.5708 0"/>
+                <parent link="base_link"/>
+                <child link="link_rl_hip_1"/>
+                <axis xyz="0 0 1"/>
+                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+        </joint>
+        <link name="link_rl_hip_2">
+                <inertial>
+                        <!--origin xyz="-0.0369577294828647 -0.000697943344591223 0.0210556038082326" rpy="0 0 0"/-->
+                        <origin xyz="-0.0259577294828647 -0.000697943344591223 0.0110556038082326" rpy="0 0 0"/>
+                        <mass value="1.87910910460606"/>
+                        <inertia ixx="0.00128704284593471" ixy="1.33126895700571E-06" ixz="1.46601206975929E-07" iyy="0.00440445429795903" iyz="1.35222766086104E-07" izz="0.00530867381249699"/>
+                </inertial>
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_2.obj"/>
+                        </geometry>
+                        <material name="">
+                                <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
+                        </material>
+                </visual>
+                <!--collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_2.obj"/>
+            </geometry>
+        </collision-->
+        </link>
+        <joint name="joint_rl_hip_2" type="revolute">
+                <origin xyz="0 -0.05185 0" rpy="1.5708 0 0"/>
+                <parent link="link_rl_hip_1"/>
+                <child link="link_rl_hip_2"/>
+                <axis xyz="0 0 1"/>
+                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+        </joint>
+        <link name="link_rl_knee">
+                <inertial>
+                        <origin xyz="-0.0687918003806042 0.000462539357992453 -1.11022302462516E-16" rpy="0 0 0"/>
+                        <mass value="0.329037855656887"/>
+                        <inertia ixx="0.000114871255888798" ixy="-1.61549678818779E-17" ixz="3.52881235453466E-20" iyy="0.00136977083415347" iyz="-3.07445423224001E-20" izz="0.00147413879305238"/>
+                </inertial>
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_knee.obj"/>
+                        </geometry>
+                        <material name="">
+                                <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
+                        </material>
+                </visual>
+                <!--collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_knee.obj"/>
+            </geometry>
+        </collision-->
+        </link>
+        <joint name="joint_rl_knee" type="revolute">
+                <origin xyz="-0.3 0 0" rpy="0 0 0"/>
+                <parent link="link_rl_hip_2"/>
+                <child link="link_rl_knee"/>
+                <axis xyz="0 0 -1"/>
+                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+        </joint>
+        <link name="link_rl_foot">
+                <inertial>
+                        <origin xyz="8.32667268468867E-17 1.11022302462516E-16 -0.000321674370353242" rpy="0 0 0"/>
+                        <!--mass value="0.0367881989501166"/-->
+                        <mass value="0.045"/><!-- DM: Measured on scales -->
+                        <inertia ixx="5.64573152001465E-06" ixy="1.06404982245401E-12" ixz="4.27555270880889E-19" iyy="6.89467553884924E-06" iyz="-7.54901955321639E-19" izz="5.69202224874889E-06"/>
+                </inertial>
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_foot.obj"/>
+                        </geometry>
+                        <material name="">
+                                <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
+                        </material>
+                </visual>
+                <collision name="right_foot_collision">
+                        <origin rpy="0 0 0" xyz="0 0 0"/>
+                        <geometry>
+                                <sphere radius="0.022"/>
+                        </geometry>
+                        <drake:proximity_properties>
+                                <drake:compliant_hydroelastic/>
+                                <drake:mesh_resolution_hint value="0.02"/>
+                                <drake:hydroelastic_modulus value="3e5"/>
+                                <drake:hunt_crossley_dissipation value="50.0"/>
+                                <drake:mu_dynamic value="4.0"/>
+                                <drake:mu_static value="4.0"/>
+                        </drake:proximity_properties>
+                </collision>
+        </link>
+        <joint name="joint_rl_foot" type="fixed">
+                <origin xyz="-0.285 0 0" rpy="1.5707963267949 0 1.5707963267949"/>
+                <parent link="link_rl_knee"/>
+                <child link="link_rl_foot"/>
+                <axis xyz="0 0 0"/>
+        </joint>
+        <link name="link_ll_hip_1">
+                <inertial>
+                        <origin xyz="6.13564390418294E-05 0.00146198611936993 -0.00486396218289394" rpy="0 0 0"/>
+                        <mass value="1.10754307068078"/>
+                        <inertia ixx="0.000819419270663135" ixy="-1.94571455134751E-07" ixz="5.03876869399384E-07" iyy="0.00126081814746139" iyz="-4.38055954729759E-08" izz="0.000797454756315973"/>
+                </inertial>
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_1.obj"/>
+                        </geometry>
+                        <material name="">
+                                <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
+                        </material>
+                </visual>
+                <!--collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_1.obj"/>
+            </geometry>
+        </collision-->
+        </link>
+        <joint name="joint_ll_hip_1" type="revolute">
+                <origin xyz="0.1785 -0.055 0" rpy="3.1416 -1.5708 0"/>
+                <parent link="base_link"/>
+                <child link="link_ll_hip_1"/>
+                <axis xyz="0 0 1"/>
+                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+        </joint>
+        <link name="link_ll_hip_2">
+                <inertial>
+                        <!--origin xyz="-0.0369577294828647 0.000697943344591168 -0.0210556038082326" rpy="0 0 0"/-->
+                        <origin xyz="-0.0259577294828647 0.000697943344591168 -0.0110556038082326" rpy="0 0 0"/>
+                        <mass value="1.87910910460606"/>
+                        <inertia ixx="0.00128704284593454" ixy="-1.33126895699509E-06" ixz="-1.46601206976506E-07" iyy="0.00440445429795909" iyz="1.35222766086132E-07" izz="0.00530867381249688"/>
+                </inertial>
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_2.obj"/>
+                        </geometry>
+                        <material name="">
+                                <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
+                        </material>
+                </visual>
+                <!--collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_2.obj"/>
+            </geometry>
+        </collision-->
+        </link>
+        <joint name="joint_ll_hip_2" type="revolute">
+                <origin xyz="0 0.05185 0" rpy="1.5708 0 0"/>
+                <parent link="link_ll_hip_1"/>
+                <child link="link_ll_hip_2"/>
+                <axis xyz="0 0 1"/>
+                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+        </joint>
+        <link name="link_ll_knee">
+                <inertial>
+                        <origin xyz="-0.0687918003806049 0.000462539357992453 -2.77555756156289E-17" rpy="0 0 0"/>
+                        <mass value="0.329037855656887"/>
+                        <inertia ixx="0.000114871255888425" ixy="1.73596214306526E-16" ixz="-3.55197431542636E-19" iyy="0.00136977083415343" iyz="-1.30645929361238E-19" izz="0.00147413879305197"/>
+                </inertial>
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_knee.obj"/>
+                        </geometry>
+                        <material name="">
+                                <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
+                        </material>
+                </visual>
+                <!-- collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_knee.obj"/>
+            </geometry>
+        </collision -->
+        </link>
+        <joint name="joint_ll_knee" type="revolute">
+                <origin xyz="-0.3 0 0" rpy="0 0 0"/>
+                <parent link="link_ll_hip_2"/>
+                <child link="link_ll_knee"/>
+                <axis xyz="0 0 -1"/>
+                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+        </joint>
+        <link name="link_ll_foot">
+                <inertial>
+                        <origin xyz="5.55111512312578E-17 -4.16333634234434E-17 -0.000321674370353242" rpy="0 0 0"/>
+                        <!--mass value="0.0367881989501167"/-->
+                        <mass value="0.045"/><!-- DM: Measured on scales-->
+                        <inertia ixx="5.64573152001469E-06" ixy="1.06404981350407E-12" ixz="2.82768803128799E-20" iyy="6.89467553885105E-06" iyz="-7.55128256566323E-19" izz="5.69202224875067E-06"/>
+                </inertial>
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_foot.obj"/>
+                        </geometry>
+                        <material name="">
+                                <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
+                        </material>
+                </visual>
+                <collision name="left_foot_collision">
+                        <origin rpy="0 0 0" xyz="0 0 0"/>
+                        <geometry>
+                                <sphere radius="0.022"/>
+                        </geometry>
+                        <drake:proximity_properties>
+                                <drake:compliant_hydroelastic/>
+                                <drake:mesh_resolution_hint value="0.02"/>
+                                <drake:hydroelastic_modulus value="3e5"/>
+                                <drake:hunt_crossley_dissipation value="50.0"/>
+                                <drake:mu_dynamic value="4.0"/>
+                                <drake:mu_static value="4.0"/>
+                        </drake:proximity_properties>
+                </collision>
+        </link>
+        <joint name="joint_ll_foot" type="fixed">
+                <origin xyz="-0.285 0 0" rpy="1.5707963267949 0 1.5707963267949"/>
+                <parent link="link_ll_knee"/>
+                <child link="link_ll_foot"/>
+                <axis xyz="0 0 0"/>
+        </joint>
+
+        <link name="link_imu">
+                <inertial>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <mass value="0"/>
+                        <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+                </inertial>
+        </link>
+        <joint name="joint_imu" type="fixed">
+                <origin xyz="-0.02557 0 0.04232" rpy="0 0 0"/>
+                <parent link="base_link"/>
+                <child link="link_imu"/>
+                <axis xyz="0 0 0"/>
+        </joint>
+
+        <!-- Actuator for joint_ll_hip_1 -->
+        <transmission name="transmission_joint_ll_hip_1">
+                <type>transmission_interface/SimpleTransmission</type>
+                <joint name="joint_ll_hip_1">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </joint>
+                <actuator name="actuator_joint_ll_hip_1">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </actuator>
+        </transmission>
+
+        <!-- Actuator for joint_ll_hip_2 -->
+        <transmission name="transmission_joint_ll_hip_2">
+                <type>transmission_interface/SimpleTransmission</type>
+                <joint name="joint_ll_hip_2">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </joint>
+                <actuator name="actuator_joint_ll_hip_2">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </actuator>
+        </transmission>
+
+        <!-- Actuator for joint_ll_knee -->
+        <transmission name="transmission_joint_ll_knee">
+                <type>transmission_interface/SimpleTransmission</type>
+                <joint name="joint_ll_knee">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </joint>
+                <actuator name="actuator_joint_ll_knee">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </actuator>
+        </transmission>
+
+        <!-- Actuator for joint_rl_hip_1 -->
+        <transmission name="transmission_joint_rl_hip_1">
+                <type>transmission_interface/SimpleTransmission</type>
+                <joint name="joint_rl_hip_1">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </joint>
+                <actuator name="actuator_joint_rl_hip_1">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </actuator>
+        </transmission>
+
+        <!-- Actuator for joint_rl_hip_2 -->
+        <transmission name="transmission_joint_rl_hip_2">
+                <type>transmission_interface/SimpleTransmission</type>
+                <joint name="joint_rl_hip_2">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </joint>
+                <actuator name="actuator_joint_rl_hip_2">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </actuator>
+        </transmission>
+
+        <!-- Actuator for joint_rl_knee -->
+        <transmission name="transmission_joint_rl_knee">
+                <type>transmission_interface/SimpleTransmission</type>
+                <joint name="joint_rl_knee">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </joint>
+                <actuator name="actuator_joint_rl_knee">
+                        <hardwareInterface>EffortJointInterface</hardwareInterface>
+                </actuator>
+        </transmission>
+</robot>
