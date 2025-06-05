@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include "rclcpp/rclcpp.hpp"
-#include <wbc_msgs/msg/rigid_body_state.hpp>
+#include <robot_control_msgs/msg/rigid_body_state.hpp>
 
 using namespace std::chrono_literals;
 
@@ -14,7 +14,7 @@ class CartesianPosePublisher : public rclcpp::Node
 {
   public:
     CartesianPosePublisher() : Node("cartesian_pose_publisher"){
-        publisher_ = this->create_publisher<wbc_msgs::msg::RigidBodyState>("setpoint", 10);
+        publisher_ = this->create_publisher<robot_control_msgs::msg::RigidBodyState>("setpoint", 10);
 
         declare_parameter("pos_x", 0.0);
         declare_parameter("pos_y", 0.0);
@@ -38,7 +38,7 @@ class CartesianPosePublisher : public rclcpp::Node
   private:
     void timer_callback()
     {
-        auto msg = wbc_msgs::msg::RigidBodyState();
+        auto msg = robot_control_msgs::msg::RigidBodyState();
         msg.pose.position.x = pos_x;
         msg.pose.position.y = pos_y;
         msg.pose.position.z = pos_z;
@@ -49,7 +49,7 @@ class CartesianPosePublisher : public rclcpp::Node
         publisher_->publish(msg);
     }
     rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<wbc_msgs::msg::RigidBodyState>::SharedPtr publisher_;
+    rclcpp::Publisher<robot_control_msgs::msg::RigidBodyState>::SharedPtr publisher_;
     double pos_x;
     double pos_y;
     double pos_z;

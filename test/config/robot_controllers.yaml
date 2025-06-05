@@ -8,13 +8,15 @@ controller_manager:
 
 whole_body_controller:
     ros__parameters:
+        udpate_rate: 1000
         control_mode: velocity
         command_interfaces: ["position"]
+        state_interfaces: ["position"]
         task_names: ["ee_pose"]
         joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
         robot_model:
-            file: install/wbc_ros/share/wbc_ros/models/urdf/iiwa.urdf
-            type: rbdl
+            file: install/wbc_ros/share/wbc_ros/models/urdf/kuka/iiwa.urdf
+            type: pinocchio
         tasks:
             ee_pose:
                 type: cart

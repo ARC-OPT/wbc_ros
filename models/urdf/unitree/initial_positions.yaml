@@ -1,0 +1,13 @@
+initial_positions:
+  FR_hip_joint: 0.0
+  FR_thigh_joint: 0.5
+  FR_calf_joint: -1.0
+  FL_hip_joint: 0.0
+  FL_thigh_joint: 0.5
+  FL_calf_joint: -1.0
+  RL_hip_joint: 0.0
+  RL_thigh_joint: 0.5
+  RL_calf_joint: -1.0
+  RR_hip_joint: 0.0
+  RR_thigh_joint: 0.5
+  RR_calf_joint: -1.0      

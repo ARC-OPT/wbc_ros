@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="go2">
+
+    <!-- Enable setting arguments from the launch file -->
+    <xacro:arg name="prefix" default="" />
+    <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
+    <xacro:arg name="command_interface" default="position" />
+    <xacro:arg name="namespace" default="/" />
+
+    <!-- Import urdf file -->
+    <xacro:include filename="$(find wbc_ros)/models/urdf/unitree/robot.xacro" />
+
+    <!-- Import ros2_control description -->
+    <xacro:include filename="$(find wbc_ros)/models/urdf/unitree/go2.fake_hardware.xacro" />
+
+    <xacro:go2_fake_hardware
+        name="go2" prefix="$(arg prefix)"
+        command_interface="$(arg command_interface)"
+        initial_positions_file="$(arg initial_positions_file)"
+        />
+
+</robot>

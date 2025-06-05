@@ -1,0 +1,124 @@
+whole_body_controller:
+    ros__parameters:
+        # Update rate in Hz. 
+        update_rate: 1000
+        # Prefix used in the robot description parameter to claim the correct state and command interface names.
+        prefix: ""
+        # The joint weights control the contribution of each individual joint to the solution. Values have to be within [0,1].
+        # A zero means here that the joint is not used at all. Size has to be same as number of robot joints.
+        joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
+        # This array defines the order of joints used in the solver output. If empty, the order from URDF parser will be used (which is alphabetic).
+        joint_names: ["joint_ll_hip_1","joint_ll_hip_2","joint_ll_knee",
+                      "joint_rl_hip_1","joint_rl_hip_2","joint_rl_knee"]
+        robot_model:
+            # Robot model type. Must be the exact name of one of the registered robot model plugins. See src/robot_models for all available plugins. Default is pinocchio
+            type: pinocchio
+            # Optionally attach a virtual 6 DoF floating base to the model
+            floating_base: true
+            contacts:
+                left_leg:
+                    # Link name that can be in contact with the environment. Has to be valid link name in the robot model.
+                    name: "link_ll_foot"
+                    # Is the link is in contact with the environment initially?
+                    active: 1
+                    # Friction coeffcient for the contact point.
+                    mu: 0.6
+                right_leg:
+                    # Link name that can be in contact with the environment. Has to be valid link name in the robot model.
+                    name: "link_rl_foot"
+                    # Is the link is in contact with the environment initially?
+                    active: 1
+                    # Friction coeffcient for the contact point.
+                    mu: 0.6
+        solver:
+            # QP Solver type. Must be the exact name of one of the registered QP solver plugins. See src/solvers for all available plugins. Default is qpoases
+            type: qpoases
+        scene:
+            # Scene type. Must be the exact name of one of the registered scene plugins. See src/scenes for all available plugins.
+            type: acceleration_reduced_tsid
+        gain_scheduling:
+            # P-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same as the number of joints"
+            p_gain_stance: [0.0,0.0,0.0,0.0,0.0,0.0]
+            #p_gain_stance: [0.0,0.0,0.0,0.0,0.0,0.0]
+            # D-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same as the number of joints"
+            d_gain_stance: [0.0,0.0,0.0,0.0,0.0,0.0]
+            #d_gain_stance: [0.0,0.0,0.0,0.0,0.0,0.0]
+            # P-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same as the number of joints"
+            p_gain_swing: [0.0,0.0,0.0,0.0,0.0,0.0]
+            # D-Gains for the low-level PD controller during stance phase. These are sent along with the solver output to the motor drivers. Size has to be same as the number of joints"
+            d_gain_swing: [0.0,0.0,0.0,0.0,0.0,0.0]
+            # Joint names of the left leg in the correct order (same as in joint_names property). These are required to set the low-level PD-gains correctly.
+            joint_names_left_leg: ["joint_ll_hip_1","joint_ll_hip_2","joint_ll_knee"]
+            # Joint names of the right leg in the correct order (same as in joint_names property). These are required to set the low-level PD-gains correctly. 
+            joint_names_right_leg: ["joint_rl_hip_1","joint_rl_hip_2","joint_rl_knee"]
+        integrator:
+            # Integrate from current state (true) or from internal integrator state (false)
+            from_current_state: true
+        tasks: 
+            com_position: 
+                # Initial weights for this task. Size has to be 3
+                weights: [1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1.
+                activation: 0.0
+                # Array of proportional gain values, size has to be 3
+                p_gain: [10.0,10.0,10.0]
+                # Array of derivative gain values, size has to be 3
+                d_gain: [10.0,10.0,10.0]
+                # Controller output saturation per element. Size has to be 3
+                max_control_output: [100000.0,100000.0,100000.0]
+            foot_r_pose: 
+                # Initial weights for this task. Size has to be 6
+                weights: [1.0,1.0,1.0,0.0,0.0,0.0]
+                # Initial activation for this task. Has to be within 0 and 1.
+                activation: 0.0
+                # Array of proportional gain values, size has to be 6
+                p_gain: [500.0,500.0,500.0,0.0,0.0,0.0]
+                # Array of derivative gain values, size has to be 6
+                d_gain: [100.0,100.0,100.0,0.0,0.0,0.0]
+                # Controller output saturation per element. Size has to be 6
+                max_control_output: [100000000.0,100000000.0,100000000.0,0,0,0]
+                # Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
+                tip_frame: link_rl_foot
+                # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
+                ref_frame: base_link
+            foot_l_pose: 
+                # Initial weights for this task. Size has to be 6
+                weights: [1.0,1.0,1.0,0.0,0.0,0.0]
+                # Initial activation for this task. Has to be within 0 and 1.
+                activation: 0.0
+                # Array of proportional gain values, size has to be 6
+                p_gain: [500.0,500.0,500.0,0.0,0.0,0.0]
+                # Array of derivative gain values, size has to be 6
+                d_gain: [100.0,100.0,100.0,0.0,0.0,0.0]
+                # Controller output saturation per element. Size has to be 6
+                max_control_output: [100000000.0,100000000.0,100000000.0,0,0,0]
+                # Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
+                tip_frame: link_ll_foot
+                # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
+                ref_frame: base_link
+            contact_force_r:
+                # Initial weights for this task. Size has to be 3
+                weights: [1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1.
+                activation: 0.0
+                # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
+                ref_frame: base_link
+            contact_force_l:
+                # Initial weights for this task. Size has to be 3
+                weights: [1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1.
+                activation: 0.0
+                # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
+                ref_frame: base_link
+            joint_position: 
+                # Initial weights for this task. Size has to be same as number of joints
+                weights: [1.0,1.0,1.0,1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1.
+                activation: 1.0
+                # Array of proportional gain values, size has to be same as number of joints
+                p_gain: [1000.0,1000.0,1000.0,1000.0,1000.0,1000.0]
+                # Array of derivative gain values, size has to be same as number of joints
+                d_gain: [200.0,200.0,200.0,200.0,200.0,200.0]
+                # Controller output saturation per element. Size has to be same as number of joints
+                max_control_output: [100000.0,100000.0,100000.0,100000.0,100000.0,100000.0]
+
