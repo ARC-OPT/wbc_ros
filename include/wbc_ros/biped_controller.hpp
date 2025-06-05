@@ -49,10 +49,10 @@ namespace wbc_ros{
      *  - @c ~/timing_stats (@c wbc_msgs/msg/TimingStats) - Debug message showing the computation time
      * 
      * @b Subscribed @b Topics:
-     *  - @c ~/com_position/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the CoM (position, linear velocity, linear acceleration)
+     *  - @c ~/body_pose/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the base of the robot (pose, twist, spatial acceleration)
      *  - @c ~/foot_l_pose/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the left foot (position, linear velocity, linear acceleration)
      *  - @c ~/foot_r_pose/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the right foot (position, linear velocity, linear acceleration)
-     *  - @c ~/joint_position/setpoint (@c robot_control_msgs/msg/JointCommand) - Setpoint for the entire joints (position, velocity, acceleration)
+     *  - @c ~/joint_position/setpoint (@c robot_control_msgs/msg/JointCommand) - Setpoint for all joints (position, velocity, acceleration)
      *  - @c ~/robot_state (@c robot_control_msgs/msg/RobotState) - Joint and floating base state of the robot
         - @c ~/joint_state (@c robot_control_msgs/msg/JointState) - Joint state of the robot. Can be used alternatively, if there is no floating base
      *  - @c ~/contacts (@c robot_control_msgs/msg/Contacts) - Planned contacts (0/1) and contact expected contact wrenches
