@@ -27,6 +27,23 @@ namespace wbc_ros{
 
     /** @brief ROS 2 Interface for the Whole-Body Controller specific to bipedal walking. 
      * 
+     * @b Published @b Topics:
+     *  - @c ~/solver_output (@c robot_control_msgs/msg/JointCommand) - The QP solution (position, velocity, torque) 
+     *  - @c ~/timing_stats (@c wbc_msgs/msg/TimingStats) - Debug message showing the computation time
+     * 
+     * @b Subscribed @b Topics:
+     *  - @c ~/com_position/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the CoM (position, linear velocity, linear acceleration)
+     *  - @c ~/foot_l_pose/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the left foot (position, linear velocity, linear acceleration)
+     *  - @c ~/foot_r_pose/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the right foot (position, linear velocity, linear acceleration)
+     *  - @c ~/joint_position/setpoint (@c robot_control_msgs/msg/JointCommand) - Setpoint for the entire joints (position, velocity, acceleration)
+     *  - @c ~/robot_state (@c robot_control_msgs/msg/RobotState) - Joint and floating base state of the robot
+        - @c ~/joint_state (@c robot_control_msgs/msg/JointState) - Joint state of the robot. Can be used alternatively, if there is no floating base
+     *  - @c ~/contacts (@c robot_control_msgs/msg/Contacts) - Planned contacts (0/1) and contact expected contact wrenches
+     *  - @c ~/joint_weights (@c std_msgs/msg/Float64MultiArray) - Joint weights to control contribution of each individual joint
+     * 
+     * @b Parameters: 
+     * - See @c src/biped_controller_parameters.yaml
+     * 
      * This Controller implements full or reduced TSID (https://github.com/stack-of-tasks/tsid), depending on the scene.type parameter. 
      * It gets the feet position, velocities and acceleration, the CoM pose and twist, as well as the feet contact forces as input, and produces
      * a joint position, velocity, acceleration and torque as output.
@@ -78,23 +95,6 @@ namespace wbc_ros{
      * Note: 
      *   - The QP considers the floating base of the robot, so most of the quantities include the virtual joints of the floating base (dimension n+6)
      *   - The constraints above are simplified. Additionally, there are terms considering the joint position/velocity/acceleration limits  
-     * 
-     * @b Published @b Topics:
-     *  - @c ~/solver_output (@c robot_control_msgs/msg/JointCommand) - The QP solution (position, velocity, torque) 
-     *  - @c ~/timing_stats (@c wbc_msgs/msg/TimingStats) - Debug message showing the computation time
-     * 
-     * @b Subscribed @b Topics:
-     *  - @c ~/com_position/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the CoM (position, linear velocity, linear acceleration)
-     *  - @c ~/foot_l_pose/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the left foot (position, linear velocity, linear acceleration)
-     *  - @c ~/foot_r_pose/setpoint (@c robot_control_msgs/msg/RigidBodyState) - Setpoint for the right foot (position, linear velocity, linear acceleration)
-     *  - @c ~/joint_position/setpoint (@c robot_control_msgs/msg/JointCommand) - Setpoint for the entire joints (position, velocity, acceleration)
-     *  - @c ~/robot_state (@c robot_control_msgs/msg/RobotState) - Joint and floating base state of the robot
-        - @c ~/joint_state (@c robot_control_msgs/msg/JointState) - Joint state of the robot. Can be used alternatively, if there is no floating base
-     *  - @c ~/contacts (@c robot_control_msgs/msg/Contacts) - Planned contacts (0/1) and contact expected contact wrenches
-     *  - @c ~/joint_weights (@c std_msgs/msg/Float64MultiArray) - Joint weights to control contribution of each individual joint
-     * 
-     * @b Parameters: 
-     * - See @c src/biped_controller_parameters.yaml
      */
     class BipedController : public rclcpp_lifecycle::LifecycleNode{
 
