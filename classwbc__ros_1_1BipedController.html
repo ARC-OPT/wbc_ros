@@ -225,6 +225,23 @@ Protected Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>ROS 2 Interface for the Whole-Body Controller specific to bipedal walking. </p>
+<p><b>Published</b> <b>Topics:</b> </p><ul>
+<li><code>~/solver_output</code> (<code>robot_control_msgs/msg/JointCommand</code>) - The QP solution (position, velocity, torque)</li>
+<li><code>~/timing_stats</code> (<code>wbc_msgs/msg/TimingStats</code>) - Debug message showing the computation time</li>
+</ul>
+<p><b>Subscribed</b> <b>Topics:</b> </p><ul>
+<li><code>~/com_position/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the CoM (position, linear velocity, linear acceleration)</li>
+<li><code>~/foot_l_pose/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the left foot (position, linear velocity, linear acceleration)</li>
+<li><code>~/foot_r_pose/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the right foot (position, linear velocity, linear acceleration)</li>
+<li><code>~/joint_position/setpoint</code> (<code>robot_control_msgs/msg/JointCommand</code>) - Setpoint for the entire joints (position, velocity, acceleration)</li>
+<li><code>~/robot_state</code> (<code>robot_control_msgs/msg/RobotState</code>) - Joint and floating base state of the robot</li>
+<li><code>~/joint_state</code> (<code>robot_control_msgs/msg/JointState</code>) - Joint state of the robot. Can be used alternatively, if there is no floating base</li>
+<li><code>~/contacts</code> (<code>robot_control_msgs/msg/Contacts</code>) - Planned contacts (0/1) and contact expected contact wrenches</li>
+<li><code>~/joint_weights</code> (<code>std_msgs/msg/Float64MultiArray</code>) - Joint weights to control contribution of each individual joint</li>
+</ul>
+<p><b>Parameters:</b> </p><ul>
+<li>See <code>src/biped_controller_parameters.yaml</code> </li>
+</ul>
 <p>This Controller implements full or reduced TSID (<a href="https://github.com/stack-of-tasks/tsid">https://github.com/stack-of-tasks/tsid</a>), depending on the scene.type parameter. It gets the feet position, velocities and acceleration, the CoM pose and twist, as well as the feet contact forces as input, and produces a joint position, velocity, acceleration and torque as output. The reduced TSID sets up and solves the following QP:</p>
 <p class="formulaDsp">
 \[       \begin{array}{ccc}
@@ -271,25 +288,7 @@ Protected Attributes</h2></td></tr>
 </p>
 <p>Note:</p><ul>
 <li>The QP considers the floating base of the robot, so most of the quantities include the virtual joints of the floating base (dimension n+6)</li>
-<li>The constraints above are simplified. Additionally, there are terms considering the joint position/velocity/acceleration limits <br  />
-</li>
-</ul>
-<p><b>Published</b> <b>Topics:</b> </p><ul>
-<li><code>~/solver_output</code> (<code>robot_control_msgs/msg/JointCommand</code>) - The QP solution (position, velocity, torque)</li>
-<li><code>~/timing_stats</code> (<code>wbc_msgs/msg/TimingStats</code>) - Debug message showing the computation time</li>
-</ul>
-<p><b>Subscribed</b> <b>Topics:</b> </p><ul>
-<li><code>~/com_position/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the CoM (position, linear velocity, linear acceleration)</li>
-<li><code>~/foot_l_pose/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the left foot (position, linear velocity, linear acceleration)</li>
-<li><code>~/foot_r_pose/setpoint</code> (<code>robot_control_msgs/msg/RigidBodyState</code>) - Setpoint for the right foot (position, linear velocity, linear acceleration)</li>
-<li><code>~/joint_position/setpoint</code> (<code>robot_control_msgs/msg/JointCommand</code>) - Setpoint for the entire joints (position, velocity, acceleration)</li>
-<li><code>~/robot_state</code> (<code>robot_control_msgs/msg/RobotState</code>) - Joint and floating base state of the robot</li>
-<li><code>~/joint_state</code> (<code>robot_control_msgs/msg/JointState</code>) - Joint state of the robot. Can be used alternatively, if there is no floating base</li>
-<li><code>~/contacts</code> (<code>robot_control_msgs/msg/Contacts</code>) - Planned contacts (0/1) and contact expected contact wrenches</li>
-<li><code>~/joint_weights</code> (<code>std_msgs/msg/Float64MultiArray</code>) - Joint weights to control contribution of each individual joint</li>
-</ul>
-<p><b>Parameters:</b> </p><ul>
-<li>See <code>src/biped_controller_parameters.yaml</code> </li>
+<li>The constraints above are simplified. Additionally, there are terms considering the joint position/velocity/acceleration limits </li>
 </ul>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a255fb2420bbc052a7c2f7bbccde38654" name="a255fb2420bbc052a7c2f7bbccde38654"></a>
