@@ -67,7 +67,7 @@ whole_body_controller:
                 # Controller output saturation per element. Size has to be 6
                 max_control_output: [100000.0,100000.0,100000.0,100000.0,100000.0,100000.0]
                 # Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
-                tip_frame: link_rbase_linkl_foot
+                tip_frame: base_link
                 # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
                 ref_frame: world
             foot_r_pose: 
