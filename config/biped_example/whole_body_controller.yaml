@@ -84,12 +84,12 @@ whole_body_controller:
                 # Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
                 tip_frame: link_rl_foot
                 # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
-                ref_frame: base_link
+                ref_frame: world
             foot_l_pose: 
                 # Initial weights for this task. Size has to be 6
                 weights: [1.0,1.0,1.0,0.0,0.0,0.0]
                 # Initial activation for this task. Has to be within 0 and 1.
-                activation: 0.0
+                activation: 1.0
                 # Array of proportional gain values, size has to be 6
                 p_gain: [500.0,500.0,500.0,0.0,0.0,0.0]
                 # Array of derivative gain values, size has to be 6
@@ -99,26 +99,22 @@ whole_body_controller:
                 # Tip frame of the kinematic chain associated with this task. Has to be the name of a valid link in the robot model.
                 tip_frame: link_ll_foot
                 # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
-                ref_frame: base_link
+                ref_frame: world
             contact_force_r:
                 # Initial weights for this task. Size has to be 3
                 weights: [1.0,1.0,1.0]
-                # Initial activation for this task. Has to be within 0 and 1.
-                activation: 0.0
                 # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
-                ref_frame: base_link
+                ref_frame: world
             contact_force_l:
                 # Initial weights for this task. Size has to be 3
                 weights: [1.0,1.0,1.0]
-                # Initial activation for this task. Has to be within 0 and 1.
-                activation: 0.0
                 # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
-                ref_frame: base_link
+                ref_frame: world
             joint_position: 
                 # Initial weights for this task. Size has to be same as number of joints
                 weights: [1.0,1.0,1.0,1.0,1.0,1.0]
                 # Initial activation for this task. Has to be within 0 and 1.
-                activation: 1.0
+                activation: 0.0
                 # Array of proportional gain values, size has to be same as number of joints
                 p_gain: [1000.0,1000.0,1000.0,1000.0,1000.0,1000.0]
                 # Array of derivative gain values, size has to be same as number of joints
