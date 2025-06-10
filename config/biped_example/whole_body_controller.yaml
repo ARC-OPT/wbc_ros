@@ -103,11 +103,15 @@ whole_body_controller:
             contact_force_r:
                 # Initial weights for this task. Size has to be 3
                 weights: [1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1.
+                activation: 1.0
                 # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
                 ref_frame: world
             contact_force_l:
                 # Initial weights for this task. Size has to be 3
                 weights: [1.0,1.0,1.0]
+                # Initial activation for this task. Has to be within 0 and 1.
+                activation: 1.0
                 # Reference frame of the task input (frame wrt which the input is expressed). This has to be the name of a valid link in robot model. If ref_frame != world the controller output will be transformed to the world frame.
                 ref_frame: world
             joint_position: 
