@@ -307,7 +307,12 @@ void BipedController::updateController(){
 
     // 4. Solve the QP 
     start = this->get_clock()->now();
-    solver_output = scene->solve(qp);
+    try{
+        solver_output = scene->solve(qp);
+    }
+    catch(std::runtime_error& e){
+        RCLCPP_WARN(this->get_logger(), "Failed to solve QP. Caught exception: %s", e.what());
+    }
     timing_stats.time_solve = (this->get_clock()->now() - start).seconds();
 
     // 5. Integrate and publish solution
