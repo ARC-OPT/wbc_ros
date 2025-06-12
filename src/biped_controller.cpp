@@ -205,7 +205,7 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
 
     //  Timer to run control loop
 
-    timer = this->create_wall_timer(std::chrono::milliseconds((int)1000.0/params.update_rate),std::bind(&BipedController::updateController, this));
+    timer = rclcpp::create_timer(this, this->get_clock(), std::chrono::milliseconds((int)1000.0/params.update_rate), std::bind(&BipedController::updateController, this));
     timer->cancel(); // Cancel here to start the timer on activate
 
     return rclcpp_lifecycle::LifecycleNode::CallbackReturn::SUCCESS;
