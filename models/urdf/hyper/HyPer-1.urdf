@@ -3,7 +3,15 @@
      Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot name="20240805_URDF_Biped_002">
-        <link name="base_link">
+        <link name="base_link"/>
+        
+        <joint name="base_to_torso" type="fixed">
+                <origin xyz="0 0 0" rpy="0 0 3.141"/>
+                <parent link="base_link"/>
+                <child link="torso_link"/>
+        </joint>
+
+        <link name="torso_link">
                 <inertial>
                         <origin xyz="0.066613572578566 -0.000830925829372993 0.00346023367158472" rpy="0 0 0"/>
                         <mass value="2.57373458051342"/>
@@ -12,13 +20,13 @@
                 <visual>
                         <origin xyz="0 0 0" rpy="0 0 0"/>
                         <geometry>
-                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_base.obj"/>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_torso.obj"/>
                         </geometry>
                         <material name="">
                                 <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
                         </material>
                 </visual>
-                <collision name="base_link_collision">
+                <collision name="torso_link_collision">
                         <origin rpy="0 0 0" xyz="0 0 0"/>
                         <geometry>
                                 <box size="0.10 0.25 0.10"/>
@@ -41,7 +49,7 @@
                 <visual>
                         <origin xyz="0 0 0" rpy="0 0 0"/>
                         <geometry>
-                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_1.obj"/>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_1.obj"/>
                         </geometry>
                         <material name="">
                                 <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -50,13 +58,13 @@
                 <!--collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_1.obj"/>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_1.obj"/>
             </geometry>
         </collision-->
         </link>
         <joint name="joint_rl_hip_1" type="revolute">
                 <origin xyz="0.1785 0.055 0" rpy="3.1416 -1.5708 0"/>
-                <parent link="base_link"/>
+                <parent link="torso_link"/>
                 <child link="link_rl_hip_1"/>
                 <axis xyz="0 0 1"/>
                 <limit lower="-1.5708" upper="1.5708" effort="48.0" velocity="26.0"/> <!--Pos. limits due to mechanical structure. Torque/Vel. limits from AK10/9 data sheet -->
@@ -71,7 +79,7 @@
                 <visual>
                         <origin xyz="0 0 0" rpy="0 0 0"/>
                         <geometry>
-                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_2.obj"/>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_2.obj"/>
                         </geometry>
                         <material name="">
                                 <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -80,7 +88,7 @@
                 <!--collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_2.obj"/>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_2.obj"/>
             </geometry>
         </collision-->
         </link>
@@ -100,7 +108,7 @@
                 <visual>
                         <origin xyz="0 0 0" rpy="0 0 0"/>
                         <geometry>
-                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_knee.obj"/>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_knee.obj"/>
                         </geometry>
                         <material name="">
                                 <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -109,7 +117,7 @@
                 <!--collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_knee.obj"/>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_knee.obj"/>
             </geometry>
         </collision-->
         </link>
@@ -131,7 +139,7 @@
                 <visual>
                         <origin xyz="0 0 0" rpy="0 0 0"/>
                         <geometry>
-                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_foot.obj"/>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_foot.obj"/>
                         </geometry>
                         <material name="">
                                 <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -167,7 +175,7 @@
                 <visual>
                         <origin xyz="0 0 0" rpy="0 0 0"/>
                         <geometry>
-                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_1.obj"/>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_1.obj"/>
                         </geometry>
                         <material name="">
                                 <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -176,13 +184,13 @@
                 <!--collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_1.obj"/>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_1.obj"/>
             </geometry>
         </collision-->
         </link>
         <joint name="joint_ll_hip_1" type="revolute">
                 <origin xyz="0.1785 -0.055 0" rpy="3.1416 -1.5708 0"/>
-                <parent link="base_link"/>
+                <parent link="torso_link"/>
                 <child link="link_ll_hip_1"/>
                 <axis xyz="0 0 1"/>
                 <limit lower="-1.5708" upper="1.5708" effort="48.0" velocity="26.0"/> <!--Pos. limits due to mechanical structure. Torque/Vel. limits from AK10/9 data sheet -->
@@ -197,7 +205,7 @@
                 <visual>
                         <origin xyz="0 0 0" rpy="0 0 0"/>
                         <geometry>
-                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_2.obj"/>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_2.obj"/>
                         </geometry>
                         <material name="">
                                 <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -206,7 +214,7 @@
                 <!--collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_hip_2.obj"/>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_hip_2.obj"/>
             </geometry>
         </collision-->
         </link>
@@ -226,7 +234,7 @@
                 <visual>
                         <origin xyz="0 0 0" rpy="0 0 0"/>
                         <geometry>
-                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_knee.obj"/>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_knee.obj"/>
                         </geometry>
                         <material name="">
                                 <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -235,7 +243,7 @@
                 <!-- collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_knee.obj"/>
+                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_knee.obj"/>
             </geometry>
         </collision -->
         </link>
@@ -257,7 +265,7 @@
                 <visual>
                         <origin xyz="0 0 0" rpy="0 0 0"/>
                         <geometry>
-                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_rl_foot.obj"/>
+                                <mesh filename="package://wbc_ros/models/meshes/HyPer-1/link_ll_foot.obj"/>
                         </geometry>
                         <material name="">
                                 <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -294,7 +302,7 @@
         </link>
         <joint name="joint_imu" type="fixed">
                 <origin xyz="-0.02557 0 0.04232" rpy="0 0 0"/>
-                <parent link="base_link"/>
+                <parent link="torso_link"/>
                 <child link="link_imu"/>
                 <axis xyz="0 0 0"/>
         </joint>
