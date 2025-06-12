@@ -59,7 +59,7 @@
                 <parent link="base_link"/>
                 <child link="link_rl_hip_1"/>
                 <axis xyz="0 0 1"/>
-                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+                <limit lower="-1.5708" upper="1.5708" effort="48.0" velocity="26.0"/> <!--Pos. limits due to mechanical structure. Torque/Vel. limits from AK10/9 data sheet -->
         </joint>
         <link name="link_rl_hip_2">
                 <inertial>
@@ -89,7 +89,7 @@
                 <parent link="link_rl_hip_1"/>
                 <child link="link_rl_hip_2"/>
                 <axis xyz="0 0 1"/>
-                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+                <limit lower="-3.14" upper="0.5" effort="48.0" velocity="26.0"/> <!--Pos. limits due to mechanical structure. Torque/Vel. limits from AK10/9 data sheet -->
         </joint>
         <link name="link_rl_knee">
                 <inertial>
@@ -118,7 +118,7 @@
                 <parent link="link_rl_hip_2"/>
                 <child link="link_rl_knee"/>
                 <axis xyz="0 0 -1"/>
-                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+                <limit lower="-2.1" upper="1.8" effort="72" velocity="17.33"/> <!-- Values in joint space. Pos. Limits due to mechanical structure. Torque is 1.5x higher than in data sheet, velocity 1.5x lower-->
         </joint>
         <link name="link_rl_foot">
                 <inertial>
@@ -185,7 +185,7 @@
                 <parent link="base_link"/>
                 <child link="link_ll_hip_1"/>
                 <axis xyz="0 0 1"/>
-                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+                <limit lower="-1.5708" upper="1.5708" effort="48.0" velocity="26.0"/> <!--Pos. limits due to mechanical structure. Torque/Vel. limits from AK10/9 data sheet -->
         </joint>
         <link name="link_ll_hip_2">
                 <inertial>
@@ -215,7 +215,7 @@
                 <parent link="link_ll_hip_1"/>
                 <child link="link_ll_hip_2"/>
                 <axis xyz="0 0 1"/>
-                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+                <limit lower="-3.14" upper="0.5" effort="48.0" velocity="26.0"/> <!--Pos. limits due to mechanical structure. Torque/Vel. limits from AK10/9 data sheet -->
         </joint>
         <link name="link_ll_knee">
                 <inertial>
@@ -244,7 +244,7 @@
                 <parent link="link_ll_hip_2"/>
                 <child link="link_ll_knee"/>
                 <axis xyz="0 0 -1"/>
-                <limit lower="-1.5708" upper="1.5708" effort="100" velocity="40.0"/>
+                <limit lower="-2.1" upper="1.8" effort="72" velocity="17.33"/> <!-- Values in joint space. Pos. Limits due to mechanical structure. Torque is 1.5x higher than in data sheet, velocity 1.5x lower-->
         </joint>
         <link name="link_ll_foot">
                 <inertial>
