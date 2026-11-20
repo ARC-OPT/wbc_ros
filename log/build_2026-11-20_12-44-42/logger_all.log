@@ -1,0 +1,79 @@
+[0.065s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--symlink-install']
+[0.065s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=True, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=22, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, mixin_files=None, mixin=None, verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0x71ce20c3a9f0>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x71ce20c38f50>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x71ce20c38f50>>, mixin_verb=('build',))
+[0.089s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.090s] INFO:colcon.colcon_metadata.package_discovery.colcon_meta:Using configuration from '/root/.colcon/metadata/default/Gazebo.meta'
+[0.090s] INFO:colcon.colcon_metadata.package_discovery.colcon_meta:Using configuration from '/root/.colcon/metadata/default/fastdds.meta'
+[0.090s] INFO:colcon.colcon_metadata.package_discovery.colcon_meta:Using configuration from '/root/.colcon/metadata/default/fastrtps.meta'
+[0.090s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.090s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.090s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.090s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.090s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.090s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/root/ros2_ws/src/wbc_ros'
+[0.090s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.090s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.091s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.091s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.091s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.091s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.091s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.091s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.091s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.109s] DEBUG:colcon.colcon_core.package_identification:Package '.' with type 'ros.ament_cmake' and name 'wbc_ros'
+[0.109s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.109s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.109s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.109s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.109s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.120s] Level 5:colcon.colcon_core.verb:set package 'wbc_ros' build argument 'cmake_args' from command line to 'None'
+[0.121s] Level 5:colcon.colcon_core.verb:set package 'wbc_ros' build argument 'cmake_target' from command line to 'None'
+[0.121s] Level 5:colcon.colcon_core.verb:set package 'wbc_ros' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.121s] Level 5:colcon.colcon_core.verb:set package 'wbc_ros' build argument 'cmake_clean_cache' from command line to 'False'
+[0.121s] Level 5:colcon.colcon_core.verb:set package 'wbc_ros' build argument 'cmake_clean_first' from command line to 'False'
+[0.121s] Level 5:colcon.colcon_core.verb:set package 'wbc_ros' build argument 'cmake_force_configure' from command line to 'False'
+[0.121s] Level 5:colcon.colcon_core.verb:set package 'wbc_ros' build argument 'ament_cmake_args' from command line to 'None'
+[0.121s] Level 5:colcon.colcon_core.verb:set package 'wbc_ros' build argument 'catkin_cmake_args' from command line to 'None'
+[0.121s] Level 5:colcon.colcon_core.verb:set package 'wbc_ros' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.121s] DEBUG:colcon.colcon_core.verb:Building package 'wbc_ros' with the following arguments: {'ament_cmake_args': None, 'build_base': '/root/ros2_ws/src/wbc_ros/build/wbc_ros', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/root/ros2_ws/src/wbc_ros/install/wbc_ros', 'merge_install': False, 'path': '/root/ros2_ws/src/wbc_ros', 'symlink_install': True, 'test_result_base': None}
+[0.121s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.122s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.122s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/root/ros2_ws/src/wbc_ros' with build type 'ament_cmake'
+[0.122s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/root/ros2_ws/src/wbc_ros'
+[0.123s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.123s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.123s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.129s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/root/ros2_ws/src/wbc_ros/build/wbc_ros': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake /root/ros2_ws/src/wbc_ros -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/root/ros2_ws/src/wbc_ros/install/wbc_ros
+[0.918s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/root/ros2_ws/src/wbc_ros/build/wbc_ros' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake /root/ros2_ws/src/wbc_ros -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/root/ros2_ws/src/wbc_ros/install/wbc_ros
+[0.928s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(wbc_ros)
+[0.930s] Level 1:colcon.colcon_core.environment:checking '/root/ros2_ws/src/wbc_ros/install/wbc_ros' for CMake module files
+[0.931s] Level 1:colcon.colcon_core.environment:checking '/root/ros2_ws/src/wbc_ros/install/wbc_ros' for CMake config files
+[0.931s] Level 1:colcon.colcon_core.environment:checking '/root/ros2_ws/src/wbc_ros/install/wbc_ros/bin'
+[0.931s] Level 1:colcon.colcon_core.environment:checking '/root/ros2_ws/src/wbc_ros/install/wbc_ros/lib/pkgconfig/wbc_ros.pc'
+[0.933s] Level 1:colcon.colcon_core.environment:checking '/root/ros2_ws/src/wbc_ros/install/wbc_ros/lib/python3.12/site-packages'
+[0.934s] Level 1:colcon.colcon_core.environment:checking '/root/ros2_ws/src/wbc_ros/install/wbc_ros/bin'
+[0.934s] INFO:colcon.colcon_core.shell:Creating package script '/root/ros2_ws/src/wbc_ros/install/wbc_ros/share/wbc_ros/package.ps1'
+[0.935s] INFO:colcon.colcon_core.shell:Creating package descriptor '/root/ros2_ws/src/wbc_ros/install/wbc_ros/share/wbc_ros/package.dsv'
+[0.935s] INFO:colcon.colcon_core.shell:Creating package script '/root/ros2_ws/src/wbc_ros/install/wbc_ros/share/wbc_ros/package.sh'
+[0.935s] INFO:colcon.colcon_core.shell:Creating package script '/root/ros2_ws/src/wbc_ros/install/wbc_ros/share/wbc_ros/package.bash'
+[0.936s] INFO:colcon.colcon_core.shell:Creating package script '/root/ros2_ws/src/wbc_ros/install/wbc_ros/share/wbc_ros/package.zsh'
+[0.936s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/root/ros2_ws/src/wbc_ros/install/wbc_ros/share/colcon-core/packages/wbc_ros)
+[0.946s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[0.947s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[0.947s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '1'
+[0.947s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[0.950s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Could not find 'notify-send'
+[0.950s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[0.950s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[0.950s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[0.950s] DEBUG:colcon.colcon_notification.desktop_notification.notify2:Failed to initialize notify2: org.freedesktop.DBus.Error.NotSupported: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+[0.950s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[0.950s] INFO:colcon.colcon_core.shell:Creating prefix script '/root/ros2_ws/src/wbc_ros/install/local_setup.ps1'
+[0.951s] INFO:colcon.colcon_core.shell:Creating prefix util module '/root/ros2_ws/src/wbc_ros/install/_local_setup_util_ps1.py'
+[0.951s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/root/ros2_ws/src/wbc_ros/install/setup.ps1'
+[0.953s] INFO:colcon.colcon_core.shell:Creating prefix script '/root/ros2_ws/src/wbc_ros/install/local_setup.sh'
+[0.954s] INFO:colcon.colcon_core.shell:Creating prefix util module '/root/ros2_ws/src/wbc_ros/install/_local_setup_util_sh.py'
+[0.954s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/root/ros2_ws/src/wbc_ros/install/setup.sh'
+[0.954s] INFO:colcon.colcon_core.shell:Creating prefix script '/root/ros2_ws/src/wbc_ros/install/local_setup.bash'
+[0.955s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/root/ros2_ws/src/wbc_ros/install/setup.bash'
+[0.955s] INFO:colcon.colcon_core.shell:Creating prefix script '/root/ros2_ws/src/wbc_ros/install/local_setup.zsh'
+[0.955s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/root/ros2_ws/src/wbc_ros/install/setup.zsh'

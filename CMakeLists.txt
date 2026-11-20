@@ -43,45 +43,27 @@ link_directories(
   ${wbc-tasks_LIBRARIES}
 )
 
-generate_parameter_library(single_arm_controller_parameters
-  src/single_arm_controller_parameters.yaml
-)
 generate_parameter_library(biped_controller_parameters
   src/biped_controller_parameters.yaml
 )
 
 add_library(biped_controller SHARED src/biped_controller.cpp src/conversions.cpp)
-add_library(single_arm_controller SHARED src/single_arm_controller.cpp src/conversions.cpp)
-add_library(mock_hardware_interface SHARED src/examples/mock_hardware_interface.cpp)
-ament_target_dependencies(single_arm_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_target_dependencies(biped_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
-ament_target_dependencies(mock_hardware_interface rclcpp_lifecycle robot_control_msgs sensor_msgs rclcpp_components)
 
-target_link_libraries(single_arm_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} single_arm_controller_parameters)
 target_link_libraries(biped_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} biped_controller_parameters)
-target_compile_features(single_arm_controller PUBLIC cxx_std_17)
 target_compile_features(biped_controller PUBLIC cxx_std_17)
-target_include_directories(single_arm_controller PUBLIC
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/wbc_ros>
-)
 target_include_directories(biped_controller PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/wbc_ros>
 )
 
-rclcpp_components_register_node(single_arm_controller PLUGIN "wbc_ros::SingleArmController" EXECUTABLE single_arm_controller_node)
 rclcpp_components_register_node(biped_controller PLUGIN "wbc_ros::BipedController" EXECUTABLE biped_controller_node)
-rclcpp_components_register_node(mock_hardware_interface PLUGIN "wbc_ros::MockHardwareInterface" EXECUTABLE mock_hardware_interface_node)
 
 install(
   DIRECTORY include/
   DESTINATION include/wbc_ros
 )
-install(TARGETS mock_hardware_interface
-                single_arm_controller
-                biped_controller
-                single_arm_controller_parameters
+install(TARGETS biped_controller
                 biped_controller_parameters
         EXPORT export_wbc_ros
         RUNTIME DESTINATION bin
@@ -98,33 +80,6 @@ install(DIRECTORY models
 ament_export_targets(export_wbc_ros HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()
-
-##############
-## Helpers ##
-##############
-
-add_executable(joint_state_converter src/helpers/joint_state_converter.cpp)
-ament_target_dependencies(joint_state_converter rclcpp robot_control_msgs sensor_msgs)
-
-install(TARGETS joint_state_converter
-        RUNTIME DESTINATION lib/${PROJECT_NAME})
-
-##############
-## Examples ##
-##############
-
-add_executable(joint_trajectory_publisher src/examples/joint_trajectory_publisher.cpp)
-add_executable(cartesian_trajectory_publisher src/examples/cartesian_trajectory_publisher.cpp)
-add_executable(cartesian_pose_publisher src/examples/cartesian_pose_publisher.cpp)
-ament_target_dependencies(joint_trajectory_publisher rclcpp robot_control_msgs)
-ament_target_dependencies(cartesian_trajectory_publisher rclcpp robot_control_msgs)
-ament_target_dependencies(cartesian_pose_publisher rclcpp robot_control_msgs)
-
-install(TARGETS joint_trajectory_publisher
-                cartesian_trajectory_publisher
-                cartesian_pose_publisher
-        RUNTIME DESTINATION lib/${PROJECT_NAME})
-
 
 #############
 ## Testing ##

@@ -1,0 +1,2 @@
+Invoking command in '/root/ros2_ws/src/wbc_ros/build/wbc_ros': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake /root/ros2_ws/src/wbc_ros -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/root/ros2_ws/src/wbc_ros/install/wbc_ros
+Invoked command in '/root/ros2_ws/src/wbc_ros/build/wbc_ros' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake /root/ros2_ws/src/wbc_ros -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/root/ros2_ws/src/wbc_ros/install/wbc_ros

@@ -101,28 +101,27 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     // Body Pose Task
     auto body_param = params.tasks.body_pose;                                                     
     body_task_iface = std::make_shared<RbsTaskInterface>("body_pose", this->shared_from_this());
-    body_task_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("body_pose", 0, body_param.weights, body_param.activation), 
-                                                                 robot_model,
-                                                                 body_param.tip_frame,
-                                                                 body_param.ref_frame); 
-    Eigen::VectorXd p_gain(6), d_gain(6), max_ctrl_out(6);
-    p_gain << body_param.p_gain[0], body_param.p_gain[1], body_param.p_gain[2], body_param.p_gain[3], body_param.p_gain[4], body_param.p_gain[5];
-    d_gain << body_param.d_gain[0], body_param.d_gain[1], body_param.d_gain[2], body_param.d_gain[3], body_param.d_gain[4], body_param.d_gain[5];
-    max_ctrl_out << body_param.max_control_output[0], body_param.max_control_output[1], body_param.max_control_output[2],
-                    body_param.max_control_output[3], body_param.max_control_output[4], body_param.max_control_output[5];
-    body_task_iface->controller.setPGain(p_gain);
-    body_task_iface->controller.setDGain(d_gain);
-    body_task_iface->controller.setMaxCtrlOutput(max_ctrl_out);
+    body_task_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("body_pose", 
+                                                                                 0, 
+                                                                                 Eigen::Map<Eigen::VectorXd>(body_param.weights.data(), body_param.weights.size()),
+                                                                                 body_param.activation), 
+                                                                      robot_model,
+                                                                      body_param.tip_frame); 
+    body_task_iface->controller.setPGain(Eigen::Map<Eigen::VectorXd>(body_param.p_gain.data(), body_param.p_gain.size()));
+    body_task_iface->controller.setDGain(Eigen::Map<Eigen::VectorXd>(body_param.d_gain.data(), body_param.d_gain.size()));
+    body_task_iface->controller.setMaxCtrlOutput(Eigen::Map<Eigen::VectorXd>(body_param.max_control_output.data(), body_param.max_control_output.size()));
     tasks.push_back(body_task_iface->task);
     task_interfaces.push_back(body_task_iface);
 
     // Foot tasks
     auto foot_r_param = params.tasks.foot_r_pose;
     foot_r_iface = std::make_shared<RbsTaskInterface>("foot_r_pose", this->shared_from_this());
-    foot_r_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("foot_r_pose", 0, foot_r_param.weights, foot_r_param.activation), 
+    foot_r_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("foot_r_pose", 
+                                                                              0, 
+                                                                              Eigen::Map<Eigen::VectorXd>(foot_r_param.weights.data(), foot_r_param.weights.size()),
+                                                                              foot_r_param.activation), 
                                                                    robot_model,
-                                                                   foot_r_param.tip_frame,
-                                                                   foot_r_param.ref_frame); 
+                                                                   foot_r_param.tip_frame); 
     foot_r_iface->controller.setPGain(Eigen::Map<Eigen::VectorXd>(foot_r_param.p_gain.data(), foot_r_param.p_gain.size()));
     foot_r_iface->controller.setDGain(Eigen::Map<Eigen::VectorXd>(foot_r_param.d_gain.data(), foot_r_param.d_gain.size()));
     foot_r_iface->controller.setMaxCtrlOutput(Eigen::Map<Eigen::VectorXd>(foot_r_param.max_control_output.data(), foot_r_param.max_control_output.size()));
@@ -131,10 +130,12 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
 
     auto foot_l_param = params.tasks.foot_l_pose;
     foot_l_iface = std::make_shared<RbsTaskInterface>("foot_l_pose", this->shared_from_this());
-    foot_l_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("foot_l_pose", 0, foot_l_param.weights, foot_l_param.activation), 
+    foot_l_iface->task = std::make_shared<SpatialAccelerationTask>(TaskConfig("foot_l_pose", 
+                                                                              0, 
+                                                                              Eigen::Map<Eigen::VectorXd>(foot_l_param.weights.data(), foot_l_param.weights.size()),
+                                                                              foot_l_param.activation), 
                                                                    robot_model,
-                                                                   foot_l_param.tip_frame,
-                                                                   foot_l_param.ref_frame); 
+                                                                   foot_l_param.tip_frame); 
     foot_l_iface->controller.setPGain(Eigen::Map<Eigen::VectorXd>(foot_l_param.p_gain.data(), foot_l_param.p_gain.size()));
     foot_l_iface->controller.setDGain(Eigen::Map<Eigen::VectorXd>(foot_l_param.d_gain.data(), foot_l_param.d_gain.size()));
     foot_l_iface->controller.setMaxCtrlOutput(Eigen::Map<Eigen::VectorXd>(foot_l_param.max_control_output.data(), foot_l_param.max_control_output.size()));
@@ -143,21 +144,28 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
 
     // Contact force tasks
     auto force_l_param = params.tasks.contact_force_l;
-    force_l_task = std::make_shared<ContactForceTask>(TaskConfig("foot_l_force", 0, force_l_param.weights, force_l_param.activation),
-                                                      robot_model,
-                                                      force_l_param.ref_frame);
+    force_l_task = std::make_shared<ContactForceTask>(TaskConfig("foot_l_force", 
+                                                                 0, 
+                                                                 Eigen::Map<Eigen::VectorXd>(force_l_param.weights.data(), force_l_param.weights.size()),
+                                                                 force_l_param.activation),
+                                                      robot_model);
     tasks.push_back(force_l_task);
 
     auto force_r_param = params.tasks.contact_force_r;
-    force_r_task = std::make_shared<ContactForceTask>(TaskConfig("foot_r_force", 0, force_r_param.weights, force_r_param.activation),
-                                                      robot_model,
-                                                      force_r_param.ref_frame);
+    force_r_task = std::make_shared<ContactForceTask>(TaskConfig("foot_r_force", 
+                                                                 0, 
+                                                                 Eigen::Map<Eigen::VectorXd>(force_r_param.weights.data(), force_r_param.weights.size()),
+                                                                 force_r_param.activation),
+                                                      robot_model);
     tasks.push_back(force_r_task);
 
     // Joint position task
     auto joint_pos_param = params.tasks.joint_position;
     joint_pos_iface = std::make_shared<JointPositionTaskInterface>("joint_position", this->shared_from_this());
-    joint_pos_iface->task = std::make_shared<JointAccelerationTask>(TaskConfig("joint_position", 0, joint_pos_param.weights, joint_pos_param.activation), 
+    joint_pos_iface->task = std::make_shared<JointAccelerationTask>(TaskConfig("joint_position", 
+                                                                               0, 
+                                                                               Eigen::Map<Eigen::VectorXd>(joint_pos_param.weights.data(), joint_pos_param.weights.size()),
+                                                                               joint_pos_param.activation), 
                                                                     robot_model,
                                                                     params.joint_names); 
     joint_pos_iface->controller = std::make_shared<JointPosPDController>(params.joint_names.size());                                                                    

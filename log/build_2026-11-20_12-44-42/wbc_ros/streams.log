@@ -1,0 +1,49 @@
+[0.007s] Invoking command in '/root/ros2_ws/src/wbc_ros/build/wbc_ros': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake /root/ros2_ws/src/wbc_ros -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/root/ros2_ws/src/wbc_ros/install/wbc_ros
+[0.049s] -- The C compiler identification is GNU 13.3.0
+[0.093s] -- The CXX compiler identification is GNU 13.3.0
+[0.105s] -- Detecting C compiler ABI info
+[0.164s] -- Detecting C compiler ABI info - done
+[0.169s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.169s] -- Detecting C compile features
+[0.169s] -- Detecting C compile features - done
+[0.177s] -- Detecting CXX compiler ABI info
+[0.251s] -- Detecting CXX compiler ABI info - done
+[0.257s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.257s] -- Detecting CXX compile features
+[0.257s] -- Detecting CXX compile features - done
+[0.259s] -- Found ament_cmake: 2.5.6 (/opt/ros/jazzy/share/ament_cmake/cmake)
+[0.344s] -- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+[0.392s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.411s] -- Found rclcpp: 28.1.22 (/opt/ros/jazzy/share/rclcpp/cmake)
+[0.440s] -- Found rosidl_generator_c: 4.6.9 (/opt/ros/jazzy/share/rosidl_generator_c/cmake)
+[0.448s] -- Found rosidl_generator_cpp: 4.6.9 (/opt/ros/jazzy/share/rosidl_generator_cpp/cmake)
+[0.458s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.469s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.516s] -- Found rmw_implementation_cmake: 7.3.4 (/opt/ros/jazzy/share/rmw_implementation_cmake/cmake)
+[0.518s] -- Found rmw_fastrtps_cpp: 8.4.4 (/opt/ros/jazzy/share/rmw_fastrtps_cpp/cmake)
+[0.579s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.13")  
+[0.589s] -- Found FastRTPS: /opt/ros/jazzy/include (Required is at least version "2.13") 
+[0.607s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[0.663s] -- Found realtime_tools: 3.14.1 (/opt/ros/jazzy/share/realtime_tools/cmake)
+[0.668s] -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.83.0/BoostConfig.cmake (found version "1.83.0")  
+[0.768s] -- Found std_msgs: 5.3.8 (/opt/ros/jazzy/share/std_msgs/cmake)
+[0.777s] -- Found geometry_msgs: 5.3.8 (/opt/ros/jazzy/share/geometry_msgs/cmake)
+[0.789s] [31mCMake Error at CMakeLists.txt:22 (find_package):
+[0.789s]   By not providing "Findwbc_msgs.cmake" in CMAKE_MODULE_PATH this project has
+[0.789s]   asked CMake to find a package configuration file provided by "wbc_msgs",
+[0.789s]   but CMake did not find one.
+[0.789s] 
+[0.789s]   Could not find a package configuration file provided by "wbc_msgs" with any
+[0.790s]   of the following names:
+[0.790s] 
+[0.790s]     wbc_msgsConfig.cmake
+[0.790s]     wbc_msgs-config.cmake
+[0.790s] 
+[0.790s]   Add the installation prefix of "wbc_msgs" to CMAKE_PREFIX_PATH or set
+[0.790s]   "wbc_msgs_DIR" to a directory containing one of the above files.  If
+[0.790s]   "wbc_msgs" provides a separate development package or SDK, be sure it has
+[0.790s]   been installed.
+[0.790s] 
+[0.790s] [0m
+[0.790s] -- Configuring incomplete, errors occurred!
+[0.795s] Invoked command in '/root/ros2_ws/src/wbc_ros/build/wbc_ros' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake /root/ros2_ws/src/wbc_ros -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/root/ros2_ws/src/wbc_ros/install/wbc_ros
