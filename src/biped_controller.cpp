@@ -224,6 +224,8 @@ rclcpp_lifecycle::LifecycleNode::CallbackReturn BipedController::on_configure(co
     solver_output_publisher = this->create_publisher<JointCommandMsg>("~/solver_output", QOS_RELIABLE_NO_DEPTH);
     timing_stats_publisher = this->create_publisher<TimingStatsMsg>("~/timing_ms", QOS_BEST_EFFORT_NO_DEPTH);
 
+    task_status_publisher = this->create_publisher<WbcTaskStatusMsg>("~/task_status", QOS_BEST_EFFORT_NO_DEPTH);
+
     //  Timer to run control loop
 
     timer = rclcpp::create_timer(this, this->get_clock(), chrono::milliseconds((int)1000.0/params.update_rate), bind(&BipedController::updateController, this));
@@ -285,7 +287,24 @@ void BipedController::updateController(){
     robot_model->update(joint_state.position, joint_state.velocity, joint_state.acceleration,
                         floating_base_state.pose, floating_base_state.twist, floating_base_state.acceleration);        
     timing_stats.time_robot_model_update = (rclcpp::Clock(RCL_SYSTEM_TIME).now() - start).seconds()*1000.0;
+    
+    task_status_msg.body_pose_task_status.activation = body_task_iface.task->activation;
+    task_status_msg.body_pose_task_status.weights = std::vector<double>(body_task_iface.task->weights.data(), body_task_iface.task->weights.data() + body_task_iface.task->weights.size());         
+    toROS(robot_model->pose(body_task_iface.task->tipFrame()), robot_model->twist(body_task_iface.task->tipFrame()), types::SpatialAcceleration(), task_status_msg.body_pose_feedback);
 
+    task_status_msg.left_foot_task_status.activation = foot_l_iface.task->activation;
+    task_status_msg.left_foot_task_status.weights = std::vector<double>(foot_l_iface.task->weights.data(), foot_l_iface.task->weights.data() + foot_l_iface.task->weights.size());                 
+    toROS(robot_model->pose(foot_l_iface.task->tipFrame()), robot_model->twist(foot_l_iface.task->tipFrame()), types::SpatialAcceleration(), task_status_msg.left_foot_feedback);
+
+    task_status_msg.right_foot_task_status.activation = foot_r_iface.task->activation;
+    task_status_msg.right_foot_task_status.weights = std::vector<double>(foot_r_iface.task->weights.data(), foot_r_iface.task->weights.data() + foot_r_iface.task->weights.size());                 
+    toROS(robot_model->pose(foot_r_iface.task->tipFrame()), robot_model->twist(foot_r_iface.task->tipFrame()), types::SpatialAcceleration(), task_status_msg.right_foot_feedback);
+
+    task_status_msg.joint_position_task_status.activation = joint_pos_iface.task->activation;
+    task_status_msg.joint_position_task_status.weights = std::vector<double>(joint_pos_iface.task->weights.data(), joint_pos_iface.task->weights.data() + foot_r_iface.task->weights.size());                 
+    toROS(joint_state, joint_idx_map, task_status_msg.joint_position_feedback);
+    task_status_publisher->publish(task_status_msg);
+    
 
     // Only compute control output if there is a setpoint
     if(!has_setpoint){
