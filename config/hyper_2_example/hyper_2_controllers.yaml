@@ -1,0 +1,78 @@
+/**:
+  ros__parameters:
+    joint_names: ["joint_l_hip_yaw", "joint_l_hip_roll", "joint_l_hip_pitch", "joint_l_knee", "joint_l_ankle_pitch", "joint_l_ankle_roll", 
+                  "joint_r_hip_yaw", "joint_r_hip_roll", "joint_r_hip_pitch", "joint_r_knee", "joint_r_ankle_pitch", "joint_r_ankle_roll",
+                  "joint_l_shoulder_yaw", "joint_l_shoulder_roll", "joint_l_shoulder_pitch", "joint_l_elbow",
+                  "joint_r_shoulder_yaw", "joint_r_shoulder_roll", "joint_r_shoulder_pitch", "joint_r_elbow"]
+    robot_urdf_path: "/root/wbc/models/hyper-2/urdf/HyPer-2.urdf"
+    default_joint_positions: [0.,0.,0.,0.,0.,0.,
+                              0.,0.,0.,0.,0.,0.,
+                              0.,0.,0.,0.,
+                              0.,0.,0.,0.]
+    use_sim_time: true
+
+
+whole_body_control:
+  ros__parameters:
+    # Control update rate in Hz
+    update_rate: 1000
+    joint_weights: [1.0,1.0,1.0,1.0,1.0,1.0,
+                    1.0,1.0,1.0,1.0,1.0,1.0,
+                    1.0,1.0,1.0,1.0,
+                    1.0,1.0,1.0,1.0]
+    p_gain: [50.,50.,50.,50.,50.,50.,
+                      50.,50.,50.,50.,50.,50.,
+                      50.,50.,50.,50.,
+                      50.,50.,50.,50.]
+    d_gain: [0.5,0.5,0.5,0.5,0.5,0.5,
+                      0.5,0.5,0.5,0.5,0.5,0.5,
+                      0.5,0.5,0.5,0.5,
+                      0.5,0.5,0.5,0.5]
+    tasks:
+      body_pose:
+        weights: [1.,1.,1.,1.,1.,1.]
+        tip_frame: "base_link"
+        p_gain: [100.,100.,100.,100.,100.,100.] 
+        d_gain: [10.,10.,10.,10.,10.,10.] 
+      foot_l_pose:
+        weights: [1.,1.,1.,1.,1.,1.]
+        tip_frame: "link_l_foot"
+        p_gain: [100.,100.,100.,100.,100.,100.] 
+        d_gain: [10.,10.,10.,10.,10.,10.] 
+      foot_r_pose:
+        weights: [1.,1.,1.,1.,1.,1.]
+        tip_frame: "link_r_foot"
+        p_gain: [100.,100.,100.,100.,100.,100.] 
+        d_gain: [10.,10.,10.,10.,10.,10.]
+      contact_force_l:
+        weights: [1.,1.,1.,1.,1.,1.]
+      contact_force_r:
+        weights: [1.,1.,1.,1.,1.,1.]
+      joint_position: 
+        weights: [0.,0.,0.,0.,0.,0.,
+                  0.,0.,0.,0.,0.,0.,
+                  1.,1.,1.,1.,
+                  1.,1.,1.,1.]
+        p_gain: [0.,0.,0.,0.,0.,0.,
+                 0.,0.,0.,0.,0.,0.,
+                 2000.,500.,500.,500.,
+                 2000.,500.,500.,500.]
+        d_gain: [0.0,0.0,0.0,0.0,0.0,0.0,
+                 0.0,0.0,0.0,0.0,0.0,0.0,
+                 500.0,100.0,100.0,100.0,
+                 500.0,100.0,100.0,100.0]
+    robot_model:  
+      type: "pinocchio"
+      contacts:
+        left_leg:
+          name: "link_l_foot"
+          mu: 0.6
+          wx: 0.03
+          wy: 0.02
+        right_leg:
+          name: "link_r_foot"
+          mu: 0.6
+          wx: 0.03
+          wy: 0.02
+    solver:
+      type: "eiquadprog"
