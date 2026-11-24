@@ -67,40 +67,438 @@ document.addEventListener('DOMContentLoaded', codefold.init);
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">biped_controller.hpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;rclcpp_lifecycle/lifecycle_node.hpp&gt;</code><br />
-<code>#include &lt;<a class="el" href="conversions_8hpp_source.html">wbc_ros/conversions.hpp</a>&gt;</code><br />
-<code>#include &lt;realtime_tools/realtime_buffer.hpp&gt;</code><br />
-<code>#include &lt;realtime_tools/realtime_publisher.hpp&gt;</code><br />
-<code>#include &lt;wbc_msgs/msg/wbc_timing_stats.hpp&gt;</code><br />
-<code>#include &lt;std_msgs/msg/float64_multi_array.hpp&gt;</code><br />
-<code>#include &lt;std_msgs/msg/float64.hpp&gt;</code><br />
-<code>#include &lt;wbc/core/RobotModel.hpp&gt;</code><br />
-<code>#include &lt;wbc/core/Scene.hpp&gt;</code><br />
+<div class="textblock"><code>#include &lt;wbc/core/Scene.hpp&gt;</code><br />
 <code>#include &lt;wbc/core/QPSolver.hpp&gt;</code><br />
-<code>#include &lt;wbc/tools/JointIntegrator.hpp&gt;</code><br />
 <code>#include &lt;wbc/core/QuadraticProgram.hpp&gt;</code><br />
+<code>#include &lt;wbc/tools/JointIntegrator.hpp&gt;</code><br />
+<code>#include &lt;wbc/scenes/acceleration_reduced_tsid/AccelerationSceneReducedTSID.hpp&gt;</code><br />
 <code>#include &lt;wbc/controllers/CartesianPosPDController.hpp&gt;</code><br />
 <code>#include &lt;wbc/controllers/JointPosPDController.hpp&gt;</code><br />
 <code>#include &lt;wbc/tasks/SpatialAccelerationTask.hpp&gt;</code><br />
+<code>#include &lt;wbc/tasks/CoMAccelerationTask.hpp&gt;</code><br />
 <code>#include &lt;wbc/tasks/JointAccelerationTask.hpp&gt;</code><br />
-<code>#include &lt;wbc/tasks/ContactForceTask.hpp&gt;</code><br />
-<code>#include &quot;biped_controller_parameters.hpp&quot;</code><br />
+<code>#include &lt;wbc/tasks/ContactWrenchTask.hpp&gt;</code><br />
+<code>#include &lt;rclcpp/rclcpp.hpp&gt;</code><br />
+<code>#include &lt;rclcpp_lifecycle/lifecycle_node.hpp&gt;</code><br />
+<code>#include &lt;robot_control_msgs/msg/rigid_body_state.hpp&gt;</code><br />
+<code>#include &lt;robot_control_msgs/msg/joint_command.hpp&gt;</code><br />
+<code>#include &lt;robot_control_msgs/msg/joint_state.hpp&gt;</code><br />
+<code>#include &lt;robot_control_msgs/msg/robot_state.hpp&gt;</code><br />
+<code>#include &lt;robot_control_msgs/msg/contacts.hpp&gt;</code><br />
+<code>#include &lt;wbc_msgs/msg/wbc_timing_stats.hpp&gt;</code><br />
+<code>#include &lt;wbc_msgs/msg/task_status.hpp&gt;</code><br />
+<code>#include &lt;wbc_msgs/msg/biped_control_target.hpp&gt;</code><br />
+<code>#include &quot;wbc_ros/biped_controller_parameters.hpp&quot;</code><br />
 </div>
 <p><a href="biped__controller_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:wbc_5Fros_3A_3ABipedController" id="r_wbc_5Fros_3A_3ABipedController"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="classwbc__ros_1_1BipedController.html">wbc_ros::BipedController</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">ROS 2 Interface for the Whole-Body Controller specific to bipedal walking.  <a href="classwbc__ros_1_1BipedController.html#details">More...</a><br /></td></tr>
+<tr class="memitem:BipedController" id="r_BipedController"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="classBipedController.html">BipedController</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">ROS 2 Interface for the Whole-Body Controller specific to bipedal walking.  <a href="classBipedController.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 id="header-namespaces" class="groupheader"><a id="namespaces" name="namespaces"></a>
-Namespaces</h2></td></tr>
-<tr class="memitem:wbc_5Fros" id="r_wbc_5Fros"><td class="memItemLeft">namespace &#160;</td><td class="memItemRight"><a class="el" href="namespacewbc__ros.html">wbc_ros</a></td></tr>
+<tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a89bce4418f29c8a44b0abc2aecf168a2" id="r_a89bce4418f29c8a44b0abc2aecf168a2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a89bce4418f29c8a44b0abc2aecf168a2">fromROS</a> (const robot_control_msgs::msg::Contacts &amp;in, std::vector&lt; wbc::types::Contact &gt; &amp;out)</td></tr>
+<tr class="memitem:afd9cde1c5e68c175485bffb722037af1" id="r_afd9cde1c5e68c175485bffb722037af1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afd9cde1c5e68c175485bffb722037af1">fromROS</a> (const geometry_msgs::msg::Wrench &amp;in, wbc::types::Wrench &amp;out)</td></tr>
+<tr class="memitem:ac20e001aee56fd6091ea2730285befaa" id="r_ac20e001aee56fd6091ea2730285befaa"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac20e001aee56fd6091ea2730285befaa">fromROS</a> (const geometry_msgs::msg::Pose &amp;in, wbc::types::Pose &amp;out)</td></tr>
+<tr class="memitem:a94ece9faa507db1e5c4eb0a9a30b4b22" id="r_a94ece9faa507db1e5c4eb0a9a30b4b22"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a94ece9faa507db1e5c4eb0a9a30b4b22">fromROS</a> (const geometry_msgs::msg::Twist &amp;in, wbc::types::Twist &amp;out)</td></tr>
+<tr class="memitem:a770825875fe73680b24c5ba8a24100a3" id="r_a770825875fe73680b24c5ba8a24100a3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a770825875fe73680b24c5ba8a24100a3">fromROS</a> (const geometry_msgs::msg::Accel &amp;in, wbc::types::SpatialAcceleration &amp;out)</td></tr>
+<tr class="memitem:a4435200cab386b010fdf33c3f4b9c3f4" id="r_a4435200cab386b010fdf33c3f4b9c3f4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4435200cab386b010fdf33c3f4b9c3f4">fromROS</a> (const robot_control_msgs::msg::JointCommand &amp;in, const std::vector&lt; int &gt; &amp;joint_indices, wbc::types::JointCommand &amp;out)</td></tr>
+<tr class="memitem:a424160d3a3c05f98cc6c1b556713e543" id="r_a424160d3a3c05f98cc6c1b556713e543"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a424160d3a3c05f98cc6c1b556713e543">fromROS</a> (const robot_control_msgs::msg::JointState &amp;in, const std::vector&lt; int &gt; &amp;joint_indices, wbc::types::JointState &amp;out)</td></tr>
+<tr class="memitem:a3cda53f4f46153eeb3467fff7d716333" id="r_a3cda53f4f46153eeb3467fff7d716333"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3cda53f4f46153eeb3467fff7d716333">fromROS</a> (const robot_control_msgs::msg::RigidBodyState &amp;in, wbc::types::RigidBodyState &amp;out)</td></tr>
+<tr class="memitem:a45f27f86df2eb2ce1290fb0e1c87bde2" id="r_a45f27f86df2eb2ce1290fb0e1c87bde2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a45f27f86df2eb2ce1290fb0e1c87bde2">fromROS</a> (const robot_control_msgs::msg::RobotState &amp;in, const std::vector&lt; int &gt; &amp;joint_indices, wbc::types::JointState &amp;joint_state_out, wbc::types::RigidBodyState &amp;floating_base_state_out)</td></tr>
+<tr class="memitem:ac9825e45fa237ea64943d189a2b7080c" id="r_ac9825e45fa237ea64943d189a2b7080c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac9825e45fa237ea64943d189a2b7080c">toROS</a> (const wbc::types::JointCommand &amp;in, const std::vector&lt; int &gt; &amp;joint_indices, robot_control_msgs::msg::JointCommand &amp;out)</td></tr>
+<tr class="memitem:a33f3e121fc929cd3dc926b74fa9ceb70" id="r_a33f3e121fc929cd3dc926b74fa9ceb70"><td class="memItemLeft">Eigen::VectorXd&#160;</td><td class="memItemRight"><a class="el" href="#a33f3e121fc929cd3dc926b74fa9ceb70">sortEigen</a> (const std::vector&lt; double &gt; &amp;vect_external, const std::vector&lt; int &gt; &amp;joint_indices)</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a3db2a9d6c46429c51df3f1b96784ddad" id="r_a3db2a9d6c46429c51df3f1b96784ddad"><td class="memItemLeft">const rclcpp::QoS&#160;</td><td class="memItemRight"><a class="el" href="#a3db2a9d6c46429c51df3f1b96784ddad">QOS_RELIABLE_NO_DEPTH</a></td></tr>
+<tr class="memitem:a081f937db6a5cfd96e19a854eb85785f" id="r_a081f937db6a5cfd96e19a854eb85785f"><td class="memItemLeft">const rclcpp::QoS&#160;</td><td class="memItemRight"><a class="el" href="#a081f937db6a5cfd96e19a854eb85785f">QOS_BEST_EFFORT_NO_DEPTH</a></td></tr>
 </table>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="a770825875fe73680b24c5ba8a24100a3" name="a770825875fe73680b24c5ba8a24100a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a770825875fe73680b24c5ba8a24100a3">&#9670;&#160;</a></span>fromROS() <span class="overload">[1/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromROS </td>
+          <td>(</td>
+          <td class="paramtype">const geometry_msgs::msg::Accel &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">wbc::types::SpatialAcceleration &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac20e001aee56fd6091ea2730285befaa" name="ac20e001aee56fd6091ea2730285befaa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac20e001aee56fd6091ea2730285befaa">&#9670;&#160;</a></span>fromROS() <span class="overload">[2/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromROS </td>
+          <td>(</td>
+          <td class="paramtype">const geometry_msgs::msg::Pose &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">wbc::types::Pose &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a94ece9faa507db1e5c4eb0a9a30b4b22" name="a94ece9faa507db1e5c4eb0a9a30b4b22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94ece9faa507db1e5c4eb0a9a30b4b22">&#9670;&#160;</a></span>fromROS() <span class="overload">[3/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromROS </td>
+          <td>(</td>
+          <td class="paramtype">const geometry_msgs::msg::Twist &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">wbc::types::Twist &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afd9cde1c5e68c175485bffb722037af1" name="afd9cde1c5e68c175485bffb722037af1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd9cde1c5e68c175485bffb722037af1">&#9670;&#160;</a></span>fromROS() <span class="overload">[4/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromROS </td>
+          <td>(</td>
+          <td class="paramtype">const geometry_msgs::msg::Wrench &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">wbc::types::Wrench &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a89bce4418f29c8a44b0abc2aecf168a2" name="a89bce4418f29c8a44b0abc2aecf168a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89bce4418f29c8a44b0abc2aecf168a2">&#9670;&#160;</a></span>fromROS() <span class="overload">[5/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromROS </td>
+          <td>(</td>
+          <td class="paramtype">const robot_control_msgs::msg::Contacts &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; wbc::types::Contact &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4435200cab386b010fdf33c3f4b9c3f4" name="a4435200cab386b010fdf33c3f4b9c3f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4435200cab386b010fdf33c3f4b9c3f4">&#9670;&#160;</a></span>fromROS() <span class="overload">[6/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromROS </td>
+          <td>(</td>
+          <td class="paramtype">const robot_control_msgs::msg::JointCommand &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>joint_indices</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">wbc::types::JointCommand &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a424160d3a3c05f98cc6c1b556713e543" name="a424160d3a3c05f98cc6c1b556713e543"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a424160d3a3c05f98cc6c1b556713e543">&#9670;&#160;</a></span>fromROS() <span class="overload">[7/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromROS </td>
+          <td>(</td>
+          <td class="paramtype">const robot_control_msgs::msg::JointState &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>joint_indices</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">wbc::types::JointState &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3cda53f4f46153eeb3467fff7d716333" name="a3cda53f4f46153eeb3467fff7d716333"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3cda53f4f46153eeb3467fff7d716333">&#9670;&#160;</a></span>fromROS() <span class="overload">[8/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromROS </td>
+          <td>(</td>
+          <td class="paramtype">const robot_control_msgs::msg::RigidBodyState &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">wbc::types::RigidBodyState &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a45f27f86df2eb2ce1290fb0e1c87bde2" name="a45f27f86df2eb2ce1290fb0e1c87bde2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45f27f86df2eb2ce1290fb0e1c87bde2">&#9670;&#160;</a></span>fromROS() <span class="overload">[9/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fromROS </td>
+          <td>(</td>
+          <td class="paramtype">const robot_control_msgs::msg::RobotState &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>joint_indices</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">wbc::types::JointState &amp;</td>          <td class="paramname"><span class="paramname"><em>joint_state_out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">wbc::types::RigidBodyState &amp;</td>          <td class="paramname"><span class="paramname"><em>floating_base_state_out</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a33f3e121fc929cd3dc926b74fa9ceb70" name="a33f3e121fc929cd3dc926b74fa9ceb70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33f3e121fc929cd3dc926b74fa9ceb70">&#9670;&#160;</a></span>sortEigen()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Eigen::VectorXd sortEigen </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>vect_external</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>joint_indices</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac9825e45fa237ea64943d189a2b7080c" name="ac9825e45fa237ea64943d189a2b7080c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9825e45fa237ea64943d189a2b7080c">&#9670;&#160;</a></span>toROS()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void toROS </td>
+          <td>(</td>
+          <td class="paramtype">const wbc::types::JointCommand &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>joint_indices</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">robot_control_msgs::msg::JointCommand &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a id="a081f937db6a5cfd96e19a854eb85785f" name="a081f937db6a5cfd96e19a854eb85785f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a081f937db6a5cfd96e19a854eb85785f">&#9670;&#160;</a></span>QOS_BEST_EFFORT_NO_DEPTH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const rclcpp::QoS QOS_BEST_EFFORT_NO_DEPTH</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">                                       = rclcpp::QoS(</div>
+<div class="line">rclcpp::QoSInitialization::from_rmw(qos_profile_best_effort_no_depth), qos_profile_best_effort_no_depth)</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a3db2a9d6c46429c51df3f1b96784ddad" name="a3db2a9d6c46429c51df3f1b96784ddad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3db2a9d6c46429c51df3f1b96784ddad">&#9670;&#160;</a></span>QOS_RELIABLE_NO_DEPTH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const rclcpp::QoS QOS_RELIABLE_NO_DEPTH</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">                                    =</div>
+<div class="line">rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(qos_profile_reliable_no_depth), qos_profile_reliable_no_depth)</div>
+</div><!-- fragment -->
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
