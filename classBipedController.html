@@ -131,6 +131,8 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:a764196f3bc99943e5c96be3b2b467ba4" id="r_a764196f3bc99943e5c96be3b2b467ba4"><td class="memItemLeft">rclcpp::TimerBase::SharedPtr&#160;</td><td class="memItemRight"><a class="el" href="#a764196f3bc99943e5c96be3b2b467ba4">timer</a></td></tr>
 <tr class="memitem:a46c86904841af445b8d7def235dc6450" id="r_a46c86904841af445b8d7def235dc6450"><td class="memItemLeft">std::shared_ptr&lt; whole_body_control::ParamListener &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a46c86904841af445b8d7def235dc6450">param_listener</a></td></tr>
 <tr class="memitem:a893f924382c5e44a717fed8e4a301370" id="r_a893f924382c5e44a717fed8e4a301370"><td class="memItemLeft">whole_body_control::Params&#160;</td><td class="memItemRight"><a class="el" href="#a893f924382c5e44a717fed8e4a301370">params</a></td></tr>
+<tr class="memitem:a9e29fb54db52b45f695070bf9bb2761a" id="r_a9e29fb54db52b45f695070bf9bb2761a"><td class="memItemLeft">WbcTaskStatusPublisher::SharedPtr&#160;</td><td class="memItemRight"><a class="el" href="#a9e29fb54db52b45f695070bf9bb2761a">task_status_publisher</a></td></tr>
+<tr class="memitem:ae236ed2c3a7d4653d356172f296d2dc2" id="r_ae236ed2c3a7d4653d356172f296d2dc2"><td class="memItemLeft">WbcTaskStatusMsg&#160;</td><td class="memItemRight"><a class="el" href="#ae236ed2c3a7d4653d356172f296d2dc2">task_status_msg</a></td></tr>
 <tr class="memitem:adb80a062da0af65d5a1e8c23f75a6a24" id="r_adb80a062da0af65d5a1e8c23f75a6a24"><td class="memItemLeft">std::vector&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#adb80a062da0af65d5a1e8c23f75a6a24">joint_idx_map</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -1127,6 +1129,50 @@ Protected Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">rclcpp::Time BipedController::stamp</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae236ed2c3a7d4653d356172f296d2dc2" name="ae236ed2c3a7d4653d356172f296d2dc2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae236ed2c3a7d4653d356172f296d2dc2">&#9670;&#160;</a></span>task_status_msg</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">WbcTaskStatusMsg BipedController::task_status_msg</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9e29fb54db52b45f695070bf9bb2761a" name="a9e29fb54db52b45f695070bf9bb2761a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e29fb54db52b45f695070bf9bb2761a">&#9670;&#160;</a></span>task_status_publisher</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">WbcTaskStatusPublisher::SharedPtr BipedController::task_status_publisher</td>
         </tr>
       </table>
   </td>
