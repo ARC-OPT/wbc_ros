@@ -7,12 +7,8 @@ endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
-  realtime_tools
-  std_msgs
-  geometry_msgs
   wbc_msgs
   robot_control_msgs
-  sensor_msgs
   rclcpp_lifecycle
   generate_parameter_library
   rclcpp_components
@@ -27,6 +23,7 @@ pkg_check_modules(wbc-core REQUIRED wbc-core)
 pkg_check_modules(wbc-controllers REQUIRED wbc-controllers)
 pkg_check_modules(wbc-types REQUIRED wbc-types)
 pkg_check_modules(wbc-tasks REQUIRED wbc-tasks)
+pkg_check_modules(wbc-scenes-acceleration_reduced_tsid REQUIRED wbc-scenes-acceleration_reduced_tsid)
 
 include_directories(
   ${wbc-core_INCLUDE_DIRS}
@@ -41,23 +38,22 @@ link_directories(
   ${wbc-controllers_LIBRARIES}
   ${wbc-types_LIBRARIES}
   ${wbc-tasks_LIBRARIES}
+  ${wbc-scenes-acceleration_reduced_tsid_LIBRARIES}
 )
 
 generate_parameter_library(biped_controller_parameters
   src/biped_controller_parameters.yaml
 )
 
-add_library(biped_controller SHARED src/biped_controller.cpp src/conversions.cpp)
+add_executable(biped_controller src/biped_controller.cpp)
 ament_target_dependencies(biped_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-target_link_libraries(biped_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} biped_controller_parameters)
+target_link_libraries(biped_controller PUBLIC dl ${wbc-core_LIBRARIES} ${wbc-types_LIBRARIES} ${wbc-controllers_LIBRARIES} ${wbc-tasks_LIBRARIES} ${wbc-scenes-acceleration_reduced_tsid_LIBRARIES} biped_controller_parameters)
 target_compile_features(biped_controller PUBLIC cxx_std_17)
 target_include_directories(biped_controller PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/wbc_ros>
 )
-
-rclcpp_components_register_node(biped_controller PLUGIN "wbc_ros::BipedController" EXECUTABLE biped_controller_node)
 
 install(
   DIRECTORY include/
@@ -66,7 +62,7 @@ install(
 install(TARGETS biped_controller
                 biped_controller_parameters
         EXPORT export_wbc_ros
-        RUNTIME DESTINATION bin
+        RUNTIME DESTINATION lib/${PROJECT_NAME}
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib)
 
