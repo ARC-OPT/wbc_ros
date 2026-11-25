@@ -1,0 +1,51 @@
+{
+    "name": "wbc_docker",
+    "privileged": true,
+    "build": {
+        "dockerfile": "${localWorkspaceFolder}/docker/Dockerfile"
+    },
+    "initializeCommand": "xhost +local:docker",
+    "runArgs": [
+        "--net=host",
+        "--pid=host",
+        "--ipc=host",
+        "--gpus=all",
+        "--device=/dev/dri:/dev/dri",
+        "--device=/dev/input:/dev/input",
+        "--env=DISPLAY=${localEnv:DISPLAY}",
+        "--env=XDG_RUNTIME_DIR=/tmp",
+        "--env=NVIDIA_DISABLE_REQUIRE=1"
+    ],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/root/ros2_ws/src/wbc_ros,type=bind",
+    "workspaceFolder": "/root/ros2_ws",
+    "containerEnv": {
+        "DISPLAY": "${localEnv:DISPLAY}",
+        "NVIDIA_DRIVER_CAPABILITIES": "all",
+        "ROS_AUTOMATIC_DISCOVERY_RANGE": "LOCALHOST",
+        "ROS_DOMAIN_ID": "45"
+    },
+    "mounts": [
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
+    ],
+    "customizations": {
+        "vscode": {
+            "settings": {},
+            "extensions": [
+                "mhutchie.git-graph",
+                "ms-python.python",
+                "ms-vscode.cpptools"
+            ]
+        }
+    },
+    "appPort": [],
+    "forwardPorts": [],
+    "portsAttributes": {
+        "autoForward": false
+    },
+    "otherPortsAttributes": {
+        "onAutoForward": "ignore",
+        "enable": false
+    },
+    "postCreateCommand": "/bin/bash -c 'source /opt/ros/jazzy/setup.bash && colcon build --symlink-install'"
+}
+

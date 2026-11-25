@@ -1,21 +1,19 @@
-ARG ROS_DISTRO=humble
-FROM osrf/ros:${ROS_DISTRO}-desktop as base
-ENV ROS_DISTRO=${ROS_DISTRO}
-SHELL ["/bin/bash", "-c"]
-RUN sudo apt-get update
+FROM ros:jazzy AS base
 
-# Install WBC lib
-RUN mkdir -p /arc-opt
-WORKDIR /arc-opt
-RUN sudo apt-get install wget && \
-    wget https://raw.githubusercontent.com/ARC-OPT/wbc/master/scripts/install.sh && \
-    sh install.sh
+RUN sudo apt update && sudo apt install wget
 
-# Set up colcon workspace and install wbc_ros
-RUN mkdir -p /ros2_ws/src
-WORKDIR /ros2_ws
-RUN vcs import src --input https://raw.githubusercontent.com/ARC-OPT/wbc_ros/${ROS_DISTRO}/repos.yaml && \
-    rosdep install --from-paths src -i -r -y  && \
-    source /opt/ros/${ROS_DISTRO}/setup.bash  && \
-    colcon build --symlink-install  && \
-    source install/setup.bash 
+WORKDIR /root/arc-opt
+RUN wget https://raw.githubusercontent.com/ARC-OPT/wbc/master/scripts/full_install.sh
+RUN sh full_install.sh
+
+WORKDIR /root/ros2_ws
+RUN mkdir src
+RUN vcs import src --input https://raw.githubusercontent.com/ARC-OPT/wbc_ros/main/repos.yaml
+# Install the dependencies of all packages (including wbc_ros), then drop wbc_ros:
+# the devcontainer bind-mounts the local wbc_ros checkout to src/wbc_ros.
+RUN rosdep install --from-paths src -i -r -y && rm -rf src/wbc_ros
+RUN . /opt/ros/jazzy/setup.sh && colcon build --symlink-install
+
+# Source ROS and the workspace in every interactive shell
+RUN echo 'source /opt/ros/jazzy/setup.bash' >> /root/.bashrc && \
+    echo '[ -f /root/ros2_ws/install/setup.bash ] && source /root/ros2_ws/install/setup.bash' >> /root/.bashrc

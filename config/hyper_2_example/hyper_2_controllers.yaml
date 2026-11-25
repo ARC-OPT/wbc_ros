@@ -4,7 +4,7 @@
                   "joint_r_hip_yaw", "joint_r_hip_roll", "joint_r_hip_pitch", "joint_r_knee", "joint_r_ankle_pitch", "joint_r_ankle_roll",
                   "joint_l_shoulder_yaw", "joint_l_shoulder_roll", "joint_l_shoulder_pitch", "joint_l_elbow",
                   "joint_r_shoulder_yaw", "joint_r_shoulder_roll", "joint_r_shoulder_pitch", "joint_r_elbow"]
-    robot_urdf_path: "/root/wbc/models/hyper-2/urdf/HyPer-2.urdf"
+    robot_urdf_path: "/root/arc-opt/wbc/models/hyper-2/urdf/HyPer-2.urdf"
     default_joint_positions: [0.,0.,0.,0.,0.,0.,
                               0.,0.,0.,0.,0.,0.,
                               0.,0.,0.,0.,
