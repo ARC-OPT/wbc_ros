@@ -17,7 +17,9 @@ jobs:
        git clone https://github.com/ARC-OPT/wbc.git
        sh wbc/scripts/install.sh
     - uses: ros-tooling/setup-ros@v0.7
-    - uses: ros-tooling/action-ros-ci@v0.3
+      with:
+        required-ros-distributions: jazzy
+    - uses: ros-tooling/action-ros-ci@v0.4
       with:
         package-name: wbc_ros
         ref: main
