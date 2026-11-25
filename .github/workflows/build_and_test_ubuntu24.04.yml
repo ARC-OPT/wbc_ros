@@ -20,6 +20,6 @@ jobs:
     - uses: ros-tooling/action-ros-ci@v0.3
       with:
         package-name: wbc_ros
-        ref: jazzy
+        ref: main
         target-ros2-distro: jazzy
         vcs-repo-file-url: https://raw.githubusercontent.com/ARC-OPT/wbc_ros/main/repos.yaml
